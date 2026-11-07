@@ -72,6 +72,18 @@ def verify():
     if (donor['commit'],donor['repository'],donor['path'])!=(upstream['commit'],upstream['repository'],upstream['config_path']):
         raise ValueError('S24 FE donor provenance mismatch')
     count+=1
+    review=json.loads((ROOT/'manifests/tolerated-patch-sources.json').read_text())
+    baseline=json.loads((ROOT/'integration/tolerated_patch_review.json').read_text())
+    if review['commit']!='5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954' or len(review['files'])!=19:
+        raise ValueError('Unexpected prior-failure source revision/count')
+    expected={e['patch']:e['source_blob'] for e in baseline['patches']}
+    if len(expected)!=19 or expected!={e['path']:e['sha'] for e in review['files']}:
+        raise ValueError('Incomplete patch review source coverage')
+    for entry in review['files']:
+        path=ROOT/entry['reference']
+        if not path.resolve().is_relative_to((ROOT/'reference/patch-failure-review').resolve()):
+            raise ValueError('Unsafe failed-patch evidence path')
+        blob(path,entry);count+=1
     return count
 
 

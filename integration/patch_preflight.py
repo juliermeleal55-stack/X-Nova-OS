@@ -13,6 +13,7 @@ import subprocess
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from smali_patch import apply as apply_smali_patch
+from patch_review import summarize as summarize_prior_failures
 
 
 def logdir(workspace):
@@ -108,6 +109,8 @@ def finish(workspace):
                   kernel='deferred to real build',
                   warning='Later mismatches may depend on earlier failures; failed modules have incomplete coverage.',
                   modules=len(modules), patches=len(patches), failures=failures, events=events)
+    report['prior_failure_review']=summarize_prior_failures(events,marker)
+    print('Prior 19 patch failures: '+json.dumps(report['prior_failure_review']['counts']),flush=True)
     (logdir(workspace) / 'patch-preflight.json').write_text(json.dumps(report, indent=2) + '\n')
     print(f'Patch preflight: {len(modules)} modules, {len(patches)} patch attempts, {len(failures)} failures', flush=True)
     if tolerated:

@@ -8,19 +8,55 @@ import json
 import subprocess
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from smali_paths import resolve
+from smali_paths import resolve, DEX
 from semantic_smali import plan
+
+
+def new_class_path(decoded, relative, section):
+    """An explicit new-file patch must NOT resolve an already-existing class."""
+    path=Path(relative)
+    descriptor='L'+Path(*path.parts[1:]).as_posix()[:-6]+';'
+    headers=re.findall(r'(?m)^\+\.class[^\n]* (L[^\s]+;)\s*$',section)
+    if (headers!=[descriptor] or '\n--- /dev/null\n' not in section
+            or not re.search(r'(?m)^@@ -0,0 \+1,[0-9]+ @@',section)):
+        raise ValueError('New class must have an explicit matching descriptor and creation hunk')
+    dexes=[]
+    suffix=Path(*path.parts[1:])
+    for dex in decoded.iterdir():
+        if not DEX.fullmatch(dex.name):continue
+        if dex.is_symlink():raise ValueError('Unsafe dex directory for new class')
+        if not dex.is_dir():continue
+        dexes.append(dex)
+        candidate=dex/suffix
+        if candidate.exists() or candidate.is_symlink():
+            raise ValueError('New class already exists in a decoded DEX; refusing duplicate')
+    if not dexes:raise ValueError('No decoded DEX directory for class creation')
+    requested=decoded/path.parts[0]
+    if requested.exists():
+        if not requested.is_dir():raise ValueError('Invalid new-class DEX destination')
+        return requested/suffix
+    # Allocate the NEXT contiguous DEX, not classes6 with missing classes2..5.
+    highest=max(1 if d.name=='smali' else int(d.name.split('classes')[1]) for d in dexes)
+    return decoded/f'smali_classes{highest+1}'/suffix
 
 
 def normalize(decoded, text):
     targets = []
     mapping = {}
+    sections={}
+    for section in re.split(r'(?m)(?=^diff --git )',text):
+        for name in re.findall(r'(?m)^\+\+\+ b/(.+)$',section):
+            if name in sections:raise ValueError('Duplicate patch file section')
+            sections[name]=section
     for target in re.findall(r'(?m)^\+\+\+ b/(.+)$', text):
         path = Path(target)
         if path.is_absolute() or '..' in path.parts or '\\' in target:
             raise ValueError('Unsafe patch target')
         if re.match(r'^smali(?:_classes\d+)?/', target):
-            actual = resolve(decoded, target)
+            if '\n--- /dev/null\n' in sections[target]:
+                actual=new_class_path(decoded,target,sections[target])
+            else:
+                actual = resolve(decoded, target)
         else:
             actual = decoded / path
         if actual.is_symlink() or not actual.resolve().is_relative_to(decoded.resolve()):

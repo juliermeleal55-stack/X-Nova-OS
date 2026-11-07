@@ -1,0 +1,122 @@
+{
+  "repository": "ArtisanROM-archive/ArtisanROM_old",
+  "commit": "5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954",
+  "source_run": 42374299228,
+  "diagnostic_review_run": 42407896803,
+  "files": [
+    {
+      "path": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+      "reference": "reference/patch-failure-review/unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+      "sha": "9767e3709de22bd7bc200f970c0054d07af97c1b",
+      "size": 25058
+    },
+    {
+      "path": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+      "reference": "reference/patch-failure-review/unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+      "sha": "cea0ea29a6bda671b63d30c2d61c3f9252a4eb7a",
+      "size": 2540
+    },
+    {
+      "path": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+      "reference": "reference/patch-failure-review/unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+      "sha": "a912e67997eb96dcb103d636d1467c0b58a1fbbd",
+      "size": 1566
+    },
+    {
+      "path": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "reference": "reference/patch-failure-review/unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "sha": "ec7c48fa04bd3d827e9db89f7678b2ccdf091758",
+      "size": 1814
+    },
+    {
+      "path": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "reference": "reference/patch-failure-review/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "sha": "ffbe361238cf605ebcc890ac63659f998d273e18",
+      "size": 12189
+    },
+    {
+      "path": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "reference": "reference/patch-failure-review/platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "sha": "21f9677dd364afb66e36fb55da9ae1a323c485bd",
+      "size": 1616
+    },
+    {
+      "path": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "reference": "reference/patch-failure-review/platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "sha": "194b4a6a4b19db66354ac7a279878db9c4025dbd",
+      "size": 1525
+    },
+    {
+      "path": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+      "reference": "reference/patch-failure-review/unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+      "sha": "0bfba53095ff0f9950beb597da1facc73066afdc",
+      "size": 1142
+    },
+    {
+      "path": "unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+      "reference": "reference/patch-failure-review/unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+      "sha": "f91e0d17f9983755fd02c6f280cc7f9f34c65ac3",
+      "size": 24775
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "sha": "3b7ff156e3a9cc890f75271e69e6d731a629d8b0",
+      "size": 3670
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+      "sha": "2a0818b3005caea11792c602d0d49af476bf6c96",
+      "size": 5264
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+      "sha": "4c6c68539d862c93c4ede24896cbfa761ef69278",
+      "size": 1357
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "sha": "d9012faca89a2703797cfcfb95d4036c8bbffc6c",
+      "size": 882
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+      "sha": "08dac71ab7c88adf58c916b27fb735784eafee30",
+      "size": 934
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+      "sha": "c197b6cc0d5d45c657737033839f786180bec120",
+      "size": 4611
+    },
+    {
+      "path": "unica/mods/settings/smali/system/framework/framework.jar/0002-Introduce-SamsungPropsHooks.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/framework/framework.jar/0002-Introduce-SamsungPropsHooks.patch",
+      "sha": "49da53cccac1c898960dc8a60457cb14c33bc0cc",
+      "size": 10048
+    },
+    {
+      "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "sha": "dce39978d8a07b2cd1327890b426b96ea81b6306",
+      "size": 1077
+    },
+    {
+      "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+      "sha": "ef67b1703053de803972879621c66fb464915fc0",
+      "size": 1480
+    },
+    {
+      "path": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+      "reference": "reference/patch-failure-review/unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+      "sha": "03092ed764ad3f9b60523c1f415a3a08adfb5b8d",
+      "size": 1525
+    }
+  ]
+}

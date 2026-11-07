@@ -25,3 +25,7 @@ esse risco para tentar gerar uma alpha; não demonstra que os erros são
 inofensivos. Mesmo nesse modo o build pode parar e nenhum ZIP ser produzido.
 
 Para voltar ao modo estrito, remover o input true da requisição ou usar false.
+
+## Revisão dos erros reais da Alpha 1
+
+A execução 42374299228 teve 19 patches falhos e uma falha de módulo associada. Veja a [revisão integral](TOLERATED-PATCH-REVIEW.md). O próximo preflight acompanha explicitamente os 19 como aplicados, falhos ou não executados; a troca de doador não é tratada como correção automática.
