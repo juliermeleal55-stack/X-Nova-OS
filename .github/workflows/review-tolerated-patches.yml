@@ -1,0 +1,40 @@
+name: Review tolerated failures from completed alpha
+on:
+  push:
+    branches: [arena/0d47b1d6-artisanrom-beyoud]
+    paths: [.github/workflows/review-tolerated-patches.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download existing diagnostics only, not firmware
+        uses: actions/download-artifact@v4
+        with:
+          name: beyond1lte-alpha-build-diagnostics
+          run-id: 42374299228
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-alpha
+      - name: Report all actual tolerated failures without rebuilding ROM
+        env:
+          DIAG_ROOT: ${{ runner.temp }}/prior-alpha
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          reports=list(Path(os.environ['DIAG_ROOT']).rglob('patch-preflight.json'))
+          if len(reports)!=1:raise SystemExit('Expected exactly one original preflight report')
+          report=json.loads(reports[0].read_text())
+          summary={k:report[k] for k in ('schema_version','status','modules','patches')}
+          summary['source_run']=42374299228
+          summary['failures']=[{k:v for k,v in e.items() if k in ('kind','patch','module','status','detail')} for e in report['failures']]
+          text=json.dumps(summary,ensure_ascii=False)
+          for i in range(0,len(text),2800):
+              chunk=text[i:i+2800].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+              print(f'::notice title=Tolerated-review-{i//2800}::{chunk}')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'w') as stream:
+              stream.write('# Actual failures from previous donor\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
+          PY
