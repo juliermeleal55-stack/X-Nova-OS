@@ -1,6 +1,6 @@
 <div align="center">
 
-# Beyoud ROM
+# X-Nova OS
 ### Galaxy S10 · Exynos 9820
 
 **Base ArtisanROM · Referências ExtremeROM · Integrações e correções próprias**
@@ -13,9 +13,20 @@
 
 ---
 
+## O significado de X-Nova
+
+| Elemento | Significado |
+| :--- | :--- |
+| **X** | O número romano **10**, em homenagem ao **Galaxy S10**, e uma referência ao **Exynos**. |
+| **Nova** | A ideia de uma **supernova**: energia pura e renovada. |
+
+**X-Nova OS — uma nova energia para o Galaxy S10.**
+
+> **Identidade em transição:** X-Nova OS é o novo nome público do projeto. O nome e a identidade visual **dentro da ROM serão incorporados somente em uma futura versão estável**. A Alpha 1 já compilada permanece sem alterações: ZIP, checksum, artefatos e identificadores técnicos ainda podem apresentar o nome legado **Beyoud**. Isso não indica outro pacote nem uma versão estável.
+
 ## Sobre o projeto
 
-Beyoud é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema **ExtremeROM**, sistema doador **UN1CA S926B/EUX** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
+X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema **ExtremeROM**, sistema doador **UN1CA S926B/EUX** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
 
 O objetivo é reunir essas adaptações em **um único ZIP completo**, com kernel integrado, patches específicos e um pipeline reproduzível. A aparência e os recursos do sistema ainda dependem de validação no aparelho; não há capturas de tela ou funcionalidades confirmadas nesta alpha.
 
@@ -67,6 +78,8 @@ reference/     Referências upstream preservadas
 tests/         Regressões da integração
 docs/          Instruções, auditorias e histórico técnico
 ```
+
+Identidade do projeto: [nome e política de transição](docs/X-NOVA-OS.md).
 
 Para desenvolvimento: [etapas do build](docs/BUILD-STAGES.md) · [integração](docs/INTEGRATION.md) · [pipeline alpha](docs/ALPHA.md).
 
