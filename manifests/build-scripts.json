@@ -176,6 +176,11 @@
       "path": "scripts/utils/build_utils.sh",
       "size": 3850,
       "sha": "1d5e91b4119d16f4c1015fe9ddb8310ff95a553a"
+    },
+    {
+      "path": "scripts/internal/create_work_dir.sh",
+      "size": 8908,
+      "sha": "5fa53805b700160cb2d1415e75122d1db892273b"
     }
   ]
 }

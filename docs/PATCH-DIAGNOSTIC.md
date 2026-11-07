@@ -52,3 +52,43 @@ do target e entradas inválidas. Sintaxe Bash, 69 referências Artisan, 37
 referências adicionais e 84 evidências verificadas. Isso corrige o bloqueio
 observado, não comprova download/extração nem SDK real ou aplicação dos patches.
 O retry solicitado continua **somente diagnóstico**, sem kernel/ZIP da ROM.
+
+## Correção e revisão do caminho até os patches — execução 42412918817
+
+Nesta execução, **ambos os firmwares foram baixados, verificados e extraídos**.
+A falha exibida na etapa do target ocorreu na inspeção posterior: o adaptador
+interpretava `SOURCE_HAS_SYSTEM_EXT=false` como ausência total de system_ext e
+recusava o diretório embutido. Não foi falta de espaço (cerca de 95,7 GB livres
+após extração), falha de download ou rejeição de patch. Os 19 continuaram não
+executados.
+
+Revisado o fluxo configuração -> lock -> download/extração -> inspeção ->
+create_work_dir -> caminhos APKTool -> módulos/preflight -> saída diagnóstica.
+O copier Artisan original possui caminhos explícitos para system_ext separado
+ou embutido e roteia conforme TARGET_HAS_SYSTEM_EXT. O alvo S10 permanece sem
+partição system_ext separada; o conteúdo embutido é copiado com metadata para
+system/system/system_ext, sem inventar outra partição no aparelho.
+
+Mudanças:
+
+- A inspeção distingue system_ext **separado**, **embutido** e **ausente**.
+  O perfil sem partição separada pode ter o diretório embutido. Não se trocou
+  apenas a declaração para true, nem se removeu a inspeção.
+- Aliases locais para a mesma árvore são reconhecidos sem contagem dupla;
+  árvores independentes ambíguas e aliases escapando da extração são rejeitados.
+- SDK, AP, modelo/CSC e marcadores de extração continuam conferidos.
+- A inspeção grava observações parciais e a causa **mesmo quando falha**,
+  incluindo propriedades opcionais de Android/One UI/incremental quando presentes.
+  Não infere a versão de One UI apenas do comentário da configuração.
+- O copier original foi preservado/fixado como referência adicional. Um teste
+  executa sua função original com filesystem sintético e shim de rsync,
+  comprovando o caminho de SystemUI e a preservação de metadata no caso embutido.
+  Esse teste não usa um APK Samsung real nem substitui o próximo diagnóstico.
+- Mantidas as portas de saída antes de compilar kernel, reconstruir APK/JAR,
+  gerar imagens e empacotar ROM. A execução solicitada segue só diagnóstica.
+
+**209 testes passaram em cópia limpa; 69 referências Artisan, 37 referências
+adicionais e 85 evidências auditadas.** Não se promete ausência de outras
+incompatibilidades: o próximo passo necessário ainda é executar os patches
+contra os arquivos S24 FE reais. O runner anterior já terminou e as árvores
+extraídas não foram publicadas/cacheadas; a nova execução precisa baixar de novo.

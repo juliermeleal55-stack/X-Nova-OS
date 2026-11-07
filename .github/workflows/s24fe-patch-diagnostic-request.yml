@@ -16,3 +16,5 @@ jobs:
       diagnostic_only: true
 
 # Retry: shared parser accepts S24 FE AP reference without requiring IMEI/SN.
+
+# Retry: accept embedded system_ext; retain actual SDK/layout evidence even on failure.
