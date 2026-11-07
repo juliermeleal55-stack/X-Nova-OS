@@ -149,7 +149,7 @@ def write_layout_check(workspace, destination):
         raise ValueError('Unsafe recovery layout-check destination')
     script='#!/sbin/sh\n# Read-only capacity check; never repartition or format.\n'
     if data.get('partition_layout',{}).get('id','stock')!='stock':
-        script+='base=${1:-/dev/block/by-name}\n'
+        script+=(Path(__file__).resolve().parent/'recovery_layout_check.sh').read_text()+'\n'
         caps=image_caps(data)
         if data['partition_layout']['id']=='content-sized':
             report=json.loads((workspace/'out/zip/REQUIRED-IMAGE-SIZES.json').read_text())
@@ -157,12 +157,10 @@ def write_layout_check(workspace, destination):
             if report.get('layout')!='content-sized' or report.get('model')!=data['model'] or 'system' not in caps or set(caps)-set(image_caps(data)) or any(type(v) is not int or v<=0 for v in caps.values()):
                 raise ValueError('Invalid generated image requirements')
         for name,cap in sorted(caps.items()):
-            script+=f'part="$base/{name}"\n'
-            script+='[ -b "$part" ] || { echo "Missing required partition: $part"; exit 1; }\n'
-            script+='size=$(blockdev --getsize64 "$part" 2>/dev/null) || { echo "Cannot read partition capacity: $part"; exit 1; }\n'
-            script+='case "$size" in ""|*[!0-9]*) exit 1;; esac\n'
-            script+=f'[ "$size" -ge {cap} ] || {{ echo "Partition too small for required image/layout: $part"; exit 1; }}\n'
-    script+='exit 0\n'
+            script+=f'check_partition {name} {cap} || failures=1\n'
+        script+='log "Partition check complete: failures=$failures; details=$LOG"\nexit "$failures"\n'
+    else:
+        script+='exit 0\n'
     destination.write_text(script)
 
 

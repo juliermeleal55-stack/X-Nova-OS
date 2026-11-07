@@ -68,7 +68,7 @@ BEYOUD_COMPRESS_PARTITION()
                 'python3 "$SRC_DIR/integration/package_inputs.py" layout-check "$SRC_DIR" "$TMP_DIR/partition-layout-check.sh" || exit 1\nLOG "- Generating updater-script"\nGENERATE_UPDATER_SCRIPT')
     text = once(text, '        PRINT_HEADER\n', '''        PRINT_HEADER
         echo 'package_extract_file("partition-layout-check.sh", "/tmp/partition-layout-check.sh") || abort("Cannot extract partition layout check.");'
-        echo 'run_program("/sbin/sh", "/tmp/partition-layout-check.sh", "'"$TARGET_BOOT_DEVICE_PATH"'") == 0 || abort("Partition too small. Resize to required image/layout sizes; no automatic repartition performed.");'
+        echo 'run_program("/sbin/sh", "/tmp/partition-layout-check.sh", "'"$TARGET_BOOT_DEVICE_PATH"'") == 0 || abort("Partition verification failed. See /tmp/partition-layout-check.log and recovery.log for partition, path and actual/required bytes. No automatic repartition performed.");'
 ''')
     return text
 

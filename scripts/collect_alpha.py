@@ -16,6 +16,11 @@ from integration.package_inputs import load as load_package_inputs, image_caps
 
 def check_package(path, model="SM-G975F", allowed_partitions=None):
     with zipfile.ZipFile(path) as archive:
+        entries=archive.infolist()
+        if len({item.filename for item in entries})!=len(entries):
+            raise ValueError('Duplicate ZIP entries; do not patch packages with ambiguous installer paths')
+        if any(item.flag_bits & 1 or item.compress_type not in (zipfile.ZIP_STORED,zipfile.ZIP_DEFLATED) for item in entries):
+            raise ValueError('Unsupported encrypted/compression ZIP format for recovery')
         if archive.testzip() is not None:
             raise ValueError('Corrupted ZIP')
         names = set(archive.namelist())
@@ -23,6 +28,8 @@ def check_package(path, model="SM-G975F", allowed_partitions=None):
                     'META-INF/com/google/android/updater-script', 'boot.img', 'dtbo.img'}
         if not required <= names:
             raise ValueError(f'Missing installer components: {required - names}')
+        if any(archive.getinfo(name).file_size==0 for name in required):
+            raise ValueError('Empty installer component')
         script = archive.read('META-INF/com/google/android/updater-script').decode()
         models = set(re.findall(r'SM-[A-Z0-9]+', script))
         if models != {model}:
