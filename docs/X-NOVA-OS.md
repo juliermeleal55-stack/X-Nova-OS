@@ -27,7 +27,7 @@ Esses identificadores legados mantêm a compatibilidade do pipeline e não signi
 
 ## Base e estado
 
-O projeto usa a base ArtisanROM para Exynos 9820, referências ExtremeROM, doador UN1CA S926B/EUX e integrações/correções próprias. Créditos, licenças e proveniência dos componentes continuam preservados. A mudança de nome não altera a autoria desses componentes.
+O projeto usa a base ArtisanROM para Exynos 9820, referências ExtremeROM e integrações/correções próprias. O código do próximo build migra o doador para S24 FE SM-S721B/EUX; a Alpha 1 publicada continua com S926B. Veja [a migração e suas validações pendentes](S24-FE-MIGRATION.md). Créditos, licenças e proveniência dos componentes continuam preservados. A mudança de nome não altera a autoria desses componentes.
 
 O alvo da alpha é **SM-G973F / beyond1lte**. Build concluído não comprova boot, estabilidade ou funcionamento em hardware. O pacote atual exige repartição personalizada conforme `REQUIRED-IMAGE-SIZES.json` e não reparticiona automaticamente.
 

@@ -150,6 +150,10 @@ done
 
 def apply_overlay(workspace, codename="beyond2lte"):
     device = select(codename)
+    donor=json.loads((ROOT/'integration/donors/s24fe.json').read_text())
+    raw=(ROOT/'integration/donors/s24fe.sh').read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=donor['sha256']:
+        raise ValueError('S24 FE donor config differs from pinned provenance')
     model = device["model"]
     shutil.copytree(ROOT / 'integration', workspace / 'integration')
     shutil.copyfile(ROOT / 'integration/artisan/essi_64.sh',
@@ -182,7 +186,9 @@ def apply_overlay(workspace, codename="beyond2lte"):
         'base_commit': BASE_COMMIT, 'status': 'unvalidated-candidate',
         'target': model, 'codename': codename, 'flashable_release': False,
         'onerom_compatibility': onerom,
-        'donor_commit': '609fa7cc738e42dedcc31ffecbe4aefc0b34d6e2',
+        'donor_commit': donor['commit'],
+        'donor_profile': donor,
+        'tooling_source_commit': '609fa7cc738e42dedcc31ffecbe4aefc0b34d6e2',
         'note': 'Legacy framework patches retained for compatibility investigation; not migrated.'
     }, indent=2) + '\n')
 

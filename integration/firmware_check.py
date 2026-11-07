@@ -12,13 +12,17 @@ from integration.targets import from_marker
 
 
 def inspect(workspace):
-    codename, device = from_marker(json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text()))
+    marker=json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text())
+    codename, device = from_marker(marker)
+    donor=marker.get('donor_profile')
     out = workspace / 'out'
     config = dict(re.findall(r'^([A-Z_]+)="([^"\n]*)"$', (out / 'config.sh').read_text(), re.M))
     results = []
     for role, descriptor in zip(('source', 'target'), configured_firmwares(out / 'config.sh')):
         model, csc, *_ = descriptor.split('/')
         record = get(out / 'firmware-lock.json', model, csc)
+        if role=='source' and donor and (model,csc)!=(donor['model'],donor['csc']):
+            raise ValueError('Source firmware does not match selected donor model/CSC')
         root = out / 'fw' / f'{model}_{csc}'
         if root.is_symlink() or not root.resolve().is_relative_to(workspace.resolve()):
             raise ValueError('Unsafe extracted firmware root')
@@ -28,12 +32,16 @@ def inspect(workspace):
         expected = config[f'{role.upper()}_API_LEVEL']
         if sdk != expected:
             raise ValueError(f'{role} actual SDK={sdk}, declared SDK={expected}; select/adapt the donor schema, do not bypass this check')
+        if role=='source' and donor and (int(sdk)!=donor['declared_sdk'] or record['version'].split('/')[0]!=donor['reference_ap']):
+            raise ValueError('Actual source SDK/AP differs from selected S24 FE donor profile; adapt after inspection')
         if role == 'target' and model != device['model']:
             raise ValueError('Wrong stock target firmware')
         separate = (root / 'system_ext').is_dir()
         embedded = (root / 'system/system/system_ext').is_dir()
         if role == 'source' and config.get('SOURCE_HAS_SYSTEM_EXT') == 'true' and not (separate or embedded):
             raise ValueError('Declared donor system_ext is absent; adapter layout needs review')
+        if role=='source' and donor and config.get('SOURCE_HAS_SYSTEM_EXT')=='false' and (separate or embedded):
+            raise ValueError('Unexpected source system_ext for selected S24 FE schema; inspect before adapting layout')
         results.append(dict(role=role, model=model, csc=csc, version=record['version'], sdk=int(sdk),
                             separate_system_ext=separate, embedded_system_ext=embedded))
     if len(results) != 2:

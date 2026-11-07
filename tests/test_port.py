@@ -9,7 +9,9 @@ spec.loader.exec_module(port)
 
 class ReadinessTests(unittest.TestCase):
     def test_sources_are_pinned(self):
-        self.assertEqual(len(port.load_manifest()["sources"]), 4)
+        sources=port.load_manifest()["sources"]
+        self.assertEqual(set(sources), {"un1ca","artisan_current","artisan_s10","extremekernel","s24fe_donor"})
+        self.assertEqual(sources["s24fe_donor"]["commit"], "541074191937f2d7c033be7a10cf5d99146cc98f")
 
     def test_empty_profile_is_blocked(self):
         self.assertEqual(len(port.doctor({})), len(port.CHECKS) + 1)

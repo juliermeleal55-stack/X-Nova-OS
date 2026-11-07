@@ -26,9 +26,13 @@
 
 ## Sobre o projeto
 
-X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema **ExtremeROM**, sistema doador **UN1CA S926B/EUX** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
+X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema **ExtremeROM**, sistema doador **S24 FE SM-S721B/EUX em migração** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
 
 O objetivo é reunir essas adaptações em **um único ZIP completo**, com kernel integrado, patches específicos e um pipeline reproduzível. A aparência e os recursos do sistema ainda dependem de validação no aparelho; não há capturas de tela ou funcionalidades confirmadas nesta alpha.
+
+## Migração do doador
+
+O código do próximo build está configurado para **Galaxy S24 FE (SM-S721B/EUX)**. O firmware e a compatibilidade ainda precisam de validação real; a referência declara API 37, mas isso não comprova a versão do pacote Samsung. **O download Alpha 1 continua sendo o build anterior com doador S926B**, não uma ROM S24 FE recompilada. Kernel/vendor do S10, alvo SM-G973F e base de build Artisan permanecem. [Detalhes da migração](docs/S24-FE-MIGRATION.md).
 
 ## Estado da alpha
 

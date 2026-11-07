@@ -59,6 +59,11 @@ def resolve(workspace):
     # Never allow a previous partial/stale probe to be reused after failure.
     lock.unlink(missing_ok=True)
     records = []
+    marker=workspace/'BEYOUD-WORKSPACE.json'
+    donor=json.loads(marker.read_text()).get('donor_profile') if marker.is_file() else None
+    descriptors=configured_firmwares(workspace/'out/config.sh')
+    if donor and descriptors[0].split('/')[:2]!=[donor['model'],donor['csc']]:
+        raise ValueError('Configured source does not match selected donor profile')
     binary = workspace / 'out/tools/bin/beyoud-firmware-probe'
     for model, csc in configured_pairs(workspace / 'out/config.sh'):
         result = subprocess.run([str(binary), model, csc], text=True, capture_output=True, timeout=180)
@@ -72,6 +77,8 @@ def resolve(workspace):
         record = validate(dict(model=resolved_model, csc=resolved_csc, version=version, size=int(size)))
         if (resolved_model, resolved_csc) != (model, csc):
             raise ValueError('Probe identity differs from configured firmware')
+        if donor and (model,csc)==(donor['model'],donor['csc']) and version.split('/')[0]!=donor['reference_ap']:
+            raise ValueError(f"Resolved donor AP {version.split('/')[0]} differs from reference {donor['reference_ap']}; review actual firmware, do not silently switch donor versions")
         records.append(record)
     temp = lock.with_suffix('.tmp')
     temp.write_text(json.dumps({'schema_version': 1, 'storage_mode': 'sequential-linux-reclaim', 'firmwares': records}, indent=2) + '\n')

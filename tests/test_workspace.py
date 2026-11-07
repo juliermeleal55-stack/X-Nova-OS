@@ -19,7 +19,7 @@ class WorkspaceTests(unittest.TestCase):
             'SRC_DIR="$1"; source "$1/integration/artisan/essi_64.sh"; '
             'printf "%s|%s|%s" "$SOURCE_API_LEVEL" "$SOURCE_FIRMWARE" "${TARGET_PLATFORM-unset}"',
             'test', str(ROOT)], check=True, capture_output=True, text=True)
-        self.assertEqual(result.stdout, '37|SM-S926B/EUX/350330051234562|unset')
+        self.assertEqual(result.stdout, '37|SM-S721B/EUX/S721BXXSFEZJ1|unset')
 
     def test_overlay_only_changes_assertions_and_empty_extra(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -38,6 +38,10 @@ class WorkspaceTests(unittest.TestCase):
             misc.write_text((ROOT / 'reference/artisan-s10/platform/exynos9820/patches/miscs/customize.sh').read_text())
             with patch.object(prepare, 'install_runtime_paths'), patch.object(prepare, 'install_preflight'), patch.object(prepare, 'install_framework'), patch.object(prepare, 'apply_build_policy'), patch.object(prepare, 'patch_firmware_lookup'), patch.object(prepare, 'patch_parallel_builds'), patch.object(prepare, 'patch_sequential_firmwares'):
                 prepare.apply_overlay(workspace)
+            import json
+            marker=json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text())
+            self.assertEqual(marker['donor_profile']['model'],'SM-S721B')
+            self.assertEqual(marker['donor_commit'],'541074191937f2d7c033be7a10cf5d99146cc98f')
             self.assertIn('0.1.0-alpha1', (workspace / 'unica/configs/version.sh').read_text())
             self.assertIn('TARGET_ASSERT_MODEL=("SM-G975F")', target.read_text())
             self.assertIn('TARGET_SUPER_PARTITION_SIZE=0', target.read_text())

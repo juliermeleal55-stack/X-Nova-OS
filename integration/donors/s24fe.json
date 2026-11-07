@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "s24fe-r12s",
+  "model": "SM-S721B",
+  "csc": "EUX",
+  "codename": "r12s",
+  "reference_ap": "S721BXXSFEZJ1",
+  "declared_sdk": 37,
+  "declared_shipping_api": 34,
+  "declared_system_ext": false,
+  "firmware_validated": false,
+  "boot_validated": false,
+  "repository": "DaDevMikey/OneROM",
+  "commit": "541074191937f2d7c033be7a10cf5d99146cc98f",
+  "path": "unica/configs/r12s_native.sh",
+  "blob_sha": "904d1420eefb2099da05e3757d0253c6a7563d21",
+  "sha256": "833ce3c0fc6bc07e23e99f63ce4da65c097453ca2d02c65a55ba891ee5a715a9",
+  "license": "GPL-3.0-or-later; upstream notices retained",
+  "resolution": "SmartDownload latest for SM-S721B/EUX must match reference_ap; full version recorded in firmware lock"
+}

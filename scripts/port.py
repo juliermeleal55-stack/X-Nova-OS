@@ -39,6 +39,7 @@ def inspect(destination):
         "artisan_current": ["README.md", "LICENSE", "target/y2s/config.sh"],
         "artisan_s10": ["README.md", "LICENSE", "target/beyond2lte/config.sh"],
         "extremekernel": ["build.sh", "Makefile"],
+        "s24fe_donor": ["LICENSE", "unica/configs/r12s_native.sh"],
     }
     destination = destination.resolve()
     if destination == ROOT or ROOT in destination.parents:

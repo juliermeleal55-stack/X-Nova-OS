@@ -63,6 +63,15 @@ def verify():
     for partition,size in profile['image_size_caps'].items():
         matches=re.findall(r'^'+partition+r'size=([0-9]+)$',script,re.M)
         if len(matches)!=1 or int(matches[0])*1048576!=size:raise ValueError('Profile differs from upstream default partition sizes')
+    donor=json.loads((ROOT/'integration/donors/s24fe.json').read_text())
+    raw=(ROOT/'integration/donors/s24fe.sh').read_bytes()
+    import hashlib
+    if hashlib.sha256(raw).hexdigest()!=donor['sha256'] or hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=donor['blob_sha']:
+        raise ValueError('Modified pinned S24 FE donor reference')
+    upstream=json.loads((ROOT/'manifests/upstreams.json').read_text())['sources']['s24fe_donor']
+    if (donor['commit'],donor['repository'],donor['path'])!=(upstream['commit'],upstream['repository'],upstream['config_path']):
+        raise ValueError('S24 FE donor provenance mismatch')
+    count+=1
     return count
 
 
