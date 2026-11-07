@@ -30,3 +30,25 @@ O estágio CLI `diagnostic` usa os pré-requisitos de `patch`, mas grava somente
 ## Validação local
 
 **200 testes passaram em cópia limpa**, com 69 referências Artisan, 37 referências adicionais e 84 evidências de auditoria verificadas. Os testes novos garantem passagem única, separação de checkpoints, bloqueio de todas as etapas produtoras de ROM no workflow e resumo correto para diagnóstico ausente/incompleto. Isso não demonstra disponibilidade real do firmware Samsung.
+
+## Correção do bloqueio IMEI/SN — execução 42408707845
+
+A consulta SmartDownload confirmou SM-S721B/EUX e a versão completa
+`S721BXXSFEZJ1/S721BOXMFEZJ1/S721BXXSFEZJ1/S721BXXSFEZJ1`, tamanho de download
+22911343072 bytes. O download não chegou a iniciar: o parser compartilhado
+legado tratou o AP de referência no terceiro campo como IMEI/SN obrigatório.
+
+O preparador agora adapta `PARSE_FIRMWARE_STRING` no helper compartilhado por
+**download e extração**, não apenas a invocação do cliente. Ele aceita modelo/CSC
+com terceiro token opcional de compatibilidade, não trata esse token como
+identificador, limpa IMEI/SERIAL_NO a cada chamada e rejeita descritores inválidos
+sem imprimir seu conteúdo. Nenhum identificador real ou fictício foi acrescentado.
+A versão continua vindo exclusivamente do firmware lock e as verificações do
+modelo/região/AP do doador permanecem. O original em reference/ ficou intacto.
+
+Validação limpa: **204 testes passaram**, incluindo execução do helper real
+transformado com o descritor exato que falhou, formato de dois campos, legado
+do target e entradas inválidas. Sintaxe Bash, 69 referências Artisan, 37
+referências adicionais e 84 evidências verificadas. Isso corrige o bloqueio
+observado, não comprova download/extração nem SDK real ou aplicação dos patches.
+O retry solicitado continua **somente diagnóstico**, sem kernel/ZIP da ROM.

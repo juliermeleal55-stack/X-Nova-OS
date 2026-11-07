@@ -74,7 +74,7 @@ class FirmwareLockTests(unittest.TestCase):
             root = Path(tmp)
             path = root / 'scripts/utils/firmware_utils.sh'
             path.parent.mkdir(parents=True)
-            path.write_text('GET_LATEST_FIRMWARE()\n{\n    curl https://old-query.invalid\n}\n')
+            path.write_text((ROOT/'reference/build/scripts/utils/firmware_utils.sh').read_text())
             prepare.patch_firmware_lookup(root)
             self.assertNotIn('curl', path.read_text())
             self.assertIn('firmware-lock.json', path.read_text())

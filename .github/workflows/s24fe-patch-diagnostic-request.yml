@@ -14,3 +14,5 @@ jobs:
       partition_layout: content-sized
       experimental_patch_failures: true
       diagnostic_only: true
+
+# Retry: shared parser accepts S24 FE AP reference without requiring IMEI/SN.

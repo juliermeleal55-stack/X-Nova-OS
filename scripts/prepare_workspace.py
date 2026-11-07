@@ -111,6 +111,16 @@ def patch_firmware_lookup(workspace):
     text, count = re.subn(r'GET_LATEST_FIRMWARE\(\)\n\{.*?\n\}', lambda _: replacement, text, flags=re.S)
     if count != 1:
         raise ValueError('Unexpected firmware lookup helper')
+    # Both download_fw.sh and extract_fw.sh call this shared legacy parser.
+    # Version/identity selection belongs to the firmware lock, not IMEI parsing.
+    parser=(ROOT/'integration/samloader/parse_descriptor.sh').read_text().rstrip()
+    text,count=re.subn(r'PARSE_FIRMWARE_STRING\(\)\n\{.*?\n\}',lambda _:parser,text,flags=re.S)
+    if count!=1:
+        raise ValueError('Unexpected shared firmware descriptor parser')
+    text=text.replace('# - IMEI/SN that matches the given model is required to download the firmware from FUS',
+                      '# - SmartDownload requires no IMEI/SN; the version is taken from firmware-lock.json')
+    text=text.replace('# - The supplied string must be in the following format: <MODEL>/<CSC>/<IMEI/SN>',
+                      '# - Accepts <MODEL>/<CSC> with an optional ignored legacy/reference token')
     path.write_text(text)
 
 
