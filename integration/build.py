@@ -210,6 +210,8 @@ def package_budget(workspace, codename):
 
 
 def execute(workspace, stage, jobs=1):
+    diagnostic_only=stage=='diagnostic'
+    if diagnostic_only:stage='patch'
     if stage not in STAGES or jobs not in range(1, 5):
         raise ValueError('Invalid stage/job budget')
     workspace = workspace.resolve()
@@ -238,9 +240,10 @@ def execute(workspace, stage, jobs=1):
         validate_prior(workspace, stage, source_id, codename)
         for name in STAGES[STAGES.index(stage):]:
             (state / f'{name}.json').unlink(missing_ok=True)
-        receipt = dict(schema_version=1, stage=stage, codename=codename, identity=source_id,
+        receipt_stage='diagnostic' if diagnostic_only else stage
+        receipt = dict(schema_version=1, stage=receipt_stage, codename=codename, identity=source_id,
                        status='running', started=time.time(), before=resources(workspace), jobs=jobs)
-        receipt_path = state / f'{stage}.json'
+        receipt_path = state / f'{receipt_stage}.json'
         atomic_json(receipt_path, receipt)
         try:
             if stage == 'retire':
@@ -268,6 +271,13 @@ def execute(workspace, stage, jobs=1):
                             accepted.add('experimental-with-failures')
                         if json.loads((logs / 'patch-preflight.json').read_text()).get('status') not in accepted:
                             raise ValueError('No successful donor patch preflight; real build blocked')
+                        if diagnostic_only:
+                            if identity(workspace)!=source_id:
+                                raise ValueError('Recipes changed during diagnostics')
+                            receipt.update(status='diagnostic-complete',outputs={'preflight_sha256':digest_path(logs/'patch-preflight.json')},
+                                           scope='Patch/module preflight only; no kernel, APK/JAR assembly, partition image or ROM ZIP')
+                            print('Diagnostic complete: report retained; no real build launched',flush=True)
+                            return receipt
                         normalize_static_layout(workspace, codename, check_only=True)
                         if env.get('BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES') == '1':
                             shutil.copyfile(logs / 'patch-preflight.json', logs / 'diagnostic-preflight.json')
@@ -296,7 +306,7 @@ def execute(workspace, stage, jobs=1):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('workspace', type=Path)
-    parser.add_argument('stage', choices=STAGES + ('firmware', 'alpha', 'rom'))
+    parser.add_argument('stage', choices=STAGES + ('firmware', 'alpha', 'rom', 'diagnostic'))
     parser.add_argument('--jobs', type=int, choices=range(1, 5), default=1)
     args = parser.parse_args()
     groups = {'alpha': ('source', 'target', 'patch', 'retire', 'package'),

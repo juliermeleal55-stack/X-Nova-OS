@@ -2,7 +2,7 @@
 # Persistent, checkpointed stages of the original Artisan build procedure.
 set -euo pipefail
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-    echo "Usage: $0 /absolute/workspace [dependencies|source|target|firmware|patch|retire|package|rom|alpha]" >&2
+    echo "Usage: $0 /absolute/workspace [dependencies|source|target|firmware|diagnostic|patch|retire|package|rom|alpha]" >&2
     exit 64
 fi
 workspace=$(realpath "$1")

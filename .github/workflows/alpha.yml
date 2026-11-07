@@ -2,6 +2,10 @@ name: Galaxy S10 Exynos experimental alpha build
 on:
   workflow_call:
     inputs:
+      diagnostic_only:
+        description: Stop after patch preflight; no kernel, APK assembly or ROM ZIP
+        type: boolean
+        default: false
       partition_layout:
         description: Explicit partition profile, stock, extreme-default or content-sized for SM-G973F
         type: string
@@ -16,6 +20,10 @@ on:
         required: true
   workflow_dispatch:
     inputs:
+      diagnostic_only:
+        description: Stop after patch preflight; no kernel, APK assembly or ROM ZIP
+        type: boolean
+        default: false
       partition_layout:
         description: Explicit partition profile, stock, extreme-default or content-sized for SM-G973F
         type: string
@@ -88,7 +96,7 @@ jobs:
           sudo install -d -o "$(id -u)" -g "$(id -g)" "/mnt/beyoud-$GITHUB_RUN_ID"
       - name: Select the filesystem with most available space
         run: python3 scripts/select_workspace_volume.py
-      - name: Assemble Artisan S10 base with UN1CA donor
+      - name: Assemble Artisan S10 base with configured donor
         run: |
           set -o pipefail
           python3 scripts/prepare_workspace.py "$WORKSPACE" --target "$BEYOUD_TARGET" --discard-archive 2>&1 | tee "$RUNNER_TEMP/prepare.log"
@@ -110,15 +118,23 @@ jobs:
         run: bash scripts/build_candidate.sh "$WORKSPACE" target
       - name: Verify package identifiers and stock image limits before patch compilation
         run: python3 "$WORKSPACE/integration/package_inputs.py" verify "$WORKSPACE"
+      - name: Diagnose modules and patches only, without producing a ROM
+        if: inputs.diagnostic_only
+        run: bash scripts/build_candidate.sh "$WORKSPACE" diagnostic
       - name: Preflight all modules, then apply patches and build pinned device kernel
+        if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" patch
       - name: Capture package inputs and retire verified firmware trees
+        if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" retire
       - name: Build static partitions serially and package alpha installer
+        if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" package
       - name: Validate and collect alpha package
+        if: ${{ !inputs.diagnostic_only }}
         run: python3 scripts/collect_alpha.py "$WORKSPACE" "$RUNNER_TEMP/alpha-output"
       - name: Upload alpha only after successful build and structural checks
+        if: ${{ !inputs.diagnostic_only }}
         uses: actions/upload-artifact@v4
         with:
           name: Beyoud-${{ inputs.target }}-alpha1-UNTESTED
@@ -126,6 +142,9 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+      - name: Summarize patch diagnosis even if a prerequisite failed
+        if: ${{ always() && inputs.diagnostic_only }}
+        run: python3 scripts/summarize_patch_diagnostic.py "$WORKSPACE"
       - name: Annotate build failure tail
         if: failure()
         run: python3 scripts/annotate_build_failure.py "$WORKSPACE"

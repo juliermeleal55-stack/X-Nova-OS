@@ -1,0 +1,16 @@
+# Diagnostic authorization: download/extract and test patches, never build ROM.
+name: X-Nova OS S24 FE donor patch diagnostic
+on:
+  push:
+    branches: [arena/0d47b1d6-artisanrom-beyoud]
+    paths: [.github/workflows/s24fe-patch-diagnostic-request.yml]
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    uses: ./.github/workflows/alpha.yml
+    with:
+      target: beyond1lte
+      partition_layout: content-sized
+      experimental_patch_failures: true
+      diagnostic_only: true
