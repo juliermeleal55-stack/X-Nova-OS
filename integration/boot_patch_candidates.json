@@ -43,5 +43,17 @@
     "id": "hotspot-country",
     "original_patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
     "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch"
+  },
+  {
+    "id": "integration-fingerprint-service",
+    "original_patch": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+    "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+    "mode": "integration"
+  },
+  {
+    "id": "integration-fingerprint-systemui",
+    "original_patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+    "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+    "mode": "integration"
   }
 ]

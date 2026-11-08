@@ -168,5 +168,27 @@
         ]
       }
     ]
+  },
+  "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch": {
+    "sha": "e988b78970678ec9b03feebf6a6b294b2e967307",
+    "classes": [
+      {
+        "path": "smali/com/android/server/biometrics/SemBiometricFeature.smali",
+        "booleans": {
+          "FP_FEATURE_SENSOR_IS_OPTICAL": false
+        }
+      }
+    ]
+  },
+  "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch": {
+    "sha": "05273c69c3fa9ed21089d61cc5de2adc7054bdfc",
+    "classes": [
+      {
+        "path": "smali/com/android/systemui/LsRune.smali",
+        "booleans": {
+          "SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL": false
+        }
+      }
+    ]
   }
 }

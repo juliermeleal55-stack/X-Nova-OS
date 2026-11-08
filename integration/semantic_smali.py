@@ -53,6 +53,33 @@ def force_applock(text):
     return text[:m.start()]+body+text[m.end():]
 
 
+def force_boolean_fields(text, fields):
+    """Use a fresh local for pinned boolean stores, never donor register guesses."""
+    headers=re.findall(r'(?m)^\.class[^\n]* (L[^\s]+;)\s*$',text)
+    if len(headers)!=1 or not fields or any(type(v) is not bool for v in fields.values()):raise ValueError('Invalid boolean field contract')
+    owner=headers[0]
+    methods=list(re.finditer(r'(?ms)^\.method [^\n]*<clinit>\(\)V\n.*?^\.end method',text))
+    if len(methods)!=1:raise ValueError('Expected one boolean static initializer')
+    m=methods[0];body=m[0];flags=body.splitlines()[0].split()
+    if 'static' not in flags or 'constructor' not in flags or 'native' in flags or 'abstract' in flags:raise ValueError('Unexpected boolean initializer modifiers')
+    locals_=list(re.finditer(r'(?m)^(\s*\.locals )([0-9]+)\s*$',body))
+    if len(locals_)!=1 or int(locals_[0][2])>255:raise ValueError('Unsupported boolean local register budget')
+    patterns={}
+    for field in fields:
+        if not re.fullmatch('[A-Z][A-Z0-9_]*',field):raise ValueError('Unexpected boolean field name')
+        declarations=re.findall(r'(?m)^\.field [^\n]* '+re.escape(field)+r':Z(?: = [^\n]+)?$',text)
+        pattern=re.compile(r'(?m)^\s*sput-boolean [vp][0-9]+, '+re.escape(owner)+'->'+field+r':Z\s*$')
+        if len(declarations)!=1 or len(list(pattern.finditer(body)))!=1:raise ValueError('Missing/ambiguous boolean field '+field)
+        patterns[field]=pattern
+    # Already-correct output remains stable on replay.
+    if all(re.search(r'const/(?:4|16) (?P<r>v[0-9]+), '+('0x1' if value else '0x0')+r'\s+sput-boolean (?P=r), '+re.escape(owner)+'->'+field+r':Z',body) for field,value in fields.items()):return text
+    register='v'+locals_[0][2]
+    for field,value in fields.items():
+        body=patterns[field].sub('\n    const/16 '+register+', '+('0x1' if value else '0x0')+'\n\n    sput-boolean '+register+', '+owner+'->'+field+':Z',body)
+    body=re.sub(r'(?m)^(\s*\.locals )([0-9]+)\s*$',lambda x:x[1]+str(int(x[2])+1),body,count=1)
+    return text[:m.start()]+body+text[m.end():]
+
+
 def plan(workspace, decoded, patch):
     relative=str(patch.resolve().relative_to(workspace.resolve()))
     specs=json.loads(SPECS.read_text())
@@ -66,6 +93,8 @@ def plan(workspace, decoded, patch):
         path=resolve(decoded,item['path']);text=path.read_text()
         if item.get('applock'):
             text=force_applock(text)
+        elif 'booleans' in item:
+            text=force_boolean_fields(text,item['booleans'])
         else:
             for change in item['methods']:
                 text=method_return(text,change['signature'],change['value'],change['static'],change.get('absent_if_unreferenced',False))

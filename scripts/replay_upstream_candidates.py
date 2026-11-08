@@ -25,7 +25,10 @@ def fixed_boolean(text, field):
     body=methods[0]
     stores=list(re.finditer(r'(?m)^\s*sput-boolean ([vp][0-9]+), L[^;]+;->'+re.escape(field)+r':Z\s*$',body))
     if len(stores)!=1:return 'unknown'
-    register=stores[0][1];lines=body[:stores[0].start()].splitlines()
+    register=stores[0][1];prefix=body[:stores[0].start()]
+    immediate=re.search(r'const/(?:4|16) '+register+r', (0x[01])\s*$',prefix)
+    if immediate:return immediate[1]=='0x1'
+    lines=prefix.splitlines()
     branch=next((i for i,line in enumerate(lines) if re.match(r'^(?::|if-|goto|packed-switch|sparse-switch|return|throw)',line.strip())),len(lines))
     writers=[]
     for i,line in enumerate(lines):
@@ -40,8 +43,8 @@ def fixed_boolean(text, field):
 
 
 def fingerprint_facts(decoded, spec):
-    if spec['id'] not in ('fingerprint-service','fingerprint-systemui'):return None
-    if spec['id']=='fingerprint-service':
+    if 'fingerprint' not in spec['id']:return None
+    if spec['id'].endswith('fingerprint-service'):
         target='smali/com/android/server/biometrics/SemBiometricFeature.smali'
         fields=['FP_FEATURE_SENSOR_IS_IN_DISPLAY_TYPE','FP_FEATURE_SENSOR_IS_OPTICAL']
     else:
@@ -86,13 +89,14 @@ def replay(artifacts):
                 for target in re.findall(r'(?m)^\+\+\+ b/(.+)$',raw):resolve(decoded,target)
             except ValueError:
                 item['reason']='Candidate needs additional/absent class input';continue
-            patch=workspace/'candidate.patch';patch.write_text(raw)
+            patch=workspace/(spec['original_patch'] if spec.get('mode')=='integration' else 'candidate.patch')
+            patch.parent.mkdir(parents=True,exist_ok=True);patch.write_text(raw)
             before=fingerprint_facts(decoded,spec)
             result,_=apply(workspace,decoded,patch)
             if before is not None and result.returncode==0:
                 item['constant_evidence']={'before':before,'after':fingerprint_facts(decoded,spec)}
             item['status']='applied-to-retained-input' if result.returncode==0 else 'rejected'
-            item['reason']='Strict git apply; original input hashes matched' if result.returncode==0 else 'Candidate context rejected by strict apply'
+            item['reason']=('Pinned integration adaptation; original input hashes matched' if spec.get('mode')=='integration' else 'Strict git apply; original input hashes matched') if result.returncode==0 else 'Candidate rejected by strict application guards'
     return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=42419957346,results=results)
 
 
