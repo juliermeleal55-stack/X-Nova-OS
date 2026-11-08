@@ -84,6 +84,13 @@ def verify():
         if not path.resolve().is_relative_to((ROOT/'reference/patch-failure-review').resolve()):
             raise ValueError('Unsafe failed-patch evidence path')
         blob(path,entry);count+=1
+    boot=json.loads((ROOT/'manifests/boot-patch-audit.json').read_text())
+    for source in boot['sources'].values():
+        if not re.fullmatch('[0-9a-f]{40}',source['commit']):raise ValueError('Unpinned boot patch audit source')
+        for entry in source['files']:
+            path=ROOT/entry['reference']
+            if not path.resolve().is_relative_to((ROOT/'reference/boot-patch-audit').resolve()):raise ValueError('Unsafe boot patch evidence path')
+            blob(path,entry);count+=1
     return count
 
 

@@ -153,5 +153,20 @@
         ]
       }
     ]
+  },
+  "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch": {
+    "sha": "4c6c68539d862c93c4ede24896cbfa761ef69278",
+    "classes": [
+      {
+        "path": "smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali",
+        "methods": [
+          {
+            "signature": "isDowngradePermitted(IZ)Z",
+            "value": "true",
+            "static": true
+          }
+        ]
+      }
+    ]
   }
 }

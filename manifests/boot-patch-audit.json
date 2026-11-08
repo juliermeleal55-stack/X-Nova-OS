@@ -1,0 +1,630 @@
+{
+  "schema_version": 1,
+  "scope": "Selected failed-patch families and recipes, not exhaustive source audit",
+  "sources": {
+    "artisan": {
+      "repository": "ArtisanROM-archive/ArtisanROM_old",
+      "commit": "5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954",
+      "files": [
+        {
+          "path": "LICENSE",
+          "reference": "reference/boot-patch-audit/artisan/LICENSE",
+          "size": 35147,
+          "sha": "94a9ed024d3859793618152ea559a168bbcbb5e2"
+        },
+        {
+          "path": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+          "reference": "reference/boot-patch-audit/artisan/platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+          "size": 1616,
+          "sha": "21f9677dd364afb66e36fb55da9ae1a323c485bd"
+        },
+        {
+          "path": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+          "reference": "reference/boot-patch-audit/artisan/platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+          "size": 1525,
+          "sha": "194b4a6a4b19db66354ac7a279878db9c4025dbd"
+        },
+        {
+          "path": "target/beyond1lte/config.sh",
+          "reference": "reference/boot-patch-audit/artisan/target/beyond1lte/config.sh",
+          "size": 2083,
+          "sha": "f32c43f52c1cef62a07b751fafd8701b55a684e5"
+        },
+        {
+          "path": "unica/configs/essi_64.sh",
+          "reference": "reference/boot-patch-audit/artisan/unica/configs/essi_64.sh",
+          "size": 1921,
+          "sha": "188f92422b80992d357d8a20b57cc4299ec96918"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "size": 24775,
+          "sha": "f91e0d17f9983755fd02c6f280cc7f9f34c65ac3"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "size": 1590,
+          "sha": "2529515b5e8573b28fb27198d6fa547ebe56af99"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+          "size": 990,
+          "sha": "f5a8421a546265eefd26304b6055f147658f272d"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+          "size": 1142,
+          "sha": "0bfba53095ff0f9950beb597da1facc73066afdc"
+        },
+        {
+          "path": "unica/mods/settings/customize.sh",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/customize.sh",
+          "size": 2253,
+          "sha": "26cf7ccb0dedb33d309071774bf9ad3b87325920"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+          "size": 4611,
+          "sha": "c197b6cc0d5d45c657737033839f786180bec120"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/framework.jar/0002-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/framework.jar/0002-Introduce-SamsungPropsHooks.patch",
+          "size": 10048,
+          "sha": "49da53cccac1c898960dc8a60457cb14c33bc0cc"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+          "size": 5264,
+          "sha": "2a0818b3005caea11792c602d0d49af476bf6c96"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+          "size": 1357,
+          "sha": "4c6c68539d862c93c4ede24896cbfa761ef69278"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "size": 882,
+          "sha": "d9012faca89a2703797cfcfb95d4036c8bbffc6c"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+          "size": 934,
+          "sha": "08dac71ab7c88adf58c916b27fb735784eafee30"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "size": 1077,
+          "sha": "dce39978d8a07b2cd1327890b426b96ea81b6306"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+          "size": 1480,
+          "sha": "ef67b1703053de803972879621c66fb464915fc0"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+          "size": 1525,
+          "sha": "03092ed764ad3f9b60523c1f415a3a08adfb5b8d"
+        },
+        {
+          "path": "unica/patches/product_feature/audio/SecSettings.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/audio/SecSettings.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "size": 1675,
+          "sha": "86b56d76f9c425acbd65ce5a08d14da435e47aa6"
+        },
+        {
+          "path": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "size": 1814,
+          "sha": "ec7c48fa04bd3d827e9db89f7678b2ccdf091758"
+        },
+        {
+          "path": "unica/patches/product_feature/customize.sh",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/customize.sh",
+          "size": 19039,
+          "sha": "9038b9c41c6d4f3eeddaaac5e7c444d4e0a10323"
+        },
+        {
+          "path": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+          "size": 25058,
+          "sha": "9767e3709de22bd7bc200f970c0054d07af97c1b"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "size": 1220,
+          "sha": "484283d5f45f3156e5505132338f90c47004b036"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+          "size": 1087,
+          "sha": "05273c69c3fa9ed21089d61cc5de2adc7054bdfc"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/SystemUI.apk/0002-Set-SECURITY_FINGERPRINT_IN_DISPLAY-to-false.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/SystemUI.apk/0002-Set-SECURITY_FINGERPRINT_IN_DISPLAY-to-false.patch",
+          "size": 1055,
+          "sha": "2d9772be4ace7fd0dc163ea6f3e50c9e5f0f31a4"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "size": 1161,
+          "sha": "e988b78970678ec9b03feebf6a6b294b2e967307"
+        },
+        {
+          "path": "unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+          "size": 156022,
+          "sha": "71fec5279865952e57d5feb379bfbed8d0217efa"
+        },
+        {
+          "path": "unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-And-EAD-Settings.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-And-EAD-Settings.patch",
+          "size": 24554,
+          "sha": "8310b67b8082a624f7636f1b68b49f802a30512f"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-FW_DYNAMIC_RESOLUTION_CONTROL.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/resolution/framework.jar/0001-Enable-FW_DYNAMIC_RESOLUTION_CONTROL.patch",
+          "size": 1551,
+          "sha": "ef775eb2c787af38e750269e8770901467173bf9"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+          "size": 957,
+          "sha": "43ba5a012874116a2ebe97121dc6313eea181539"
+        },
+        {
+          "path": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+          "size": 1566,
+          "sha": "a912e67997eb96dcb103d636d1467c0b58a1fbbd"
+        },
+        {
+          "path": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+          "size": 2540,
+          "sha": "cea0ea29a6bda671b63d30c2d61c3f9252a4eb7a"
+        },
+        {
+          "path": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+          "size": 12189,
+          "sha": "ffbe361238cf605ebcc890ac63659f998d273e18"
+        },
+        {
+          "path": "unica/patches/signature/customize.sh",
+          "reference": "reference/boot-patch-audit/artisan/unica/patches/signature/customize.sh",
+          "size": 468,
+          "sha": "7da2cbf1b2ccb75ffc060bd72d926951b7c72944"
+        }
+      ]
+    },
+    "extreme": {
+      "repository": "ExtremeXT/ExtremeROM",
+      "commit": "2056320784b7d1d88f9e7025f86f7bbd39945d6b",
+      "files": [
+        {
+          "path": "LICENSE",
+          "reference": "reference/boot-patch-audit/extreme/LICENSE",
+          "size": 35147,
+          "sha": "94a9ed024d3859793618152ea559a168bbcbb5e2"
+        },
+        {
+          "path": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+          "reference": "reference/boot-patch-audit/extreme/platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+          "size": 1566,
+          "sha": "4f582171cce345f0e34c7d811da1bf74009bcf78"
+        },
+        {
+          "path": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+          "reference": "reference/boot-patch-audit/extreme/platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+          "size": 1360,
+          "sha": "f8c990e2a86a200a8df6e12aada5a53461362510"
+        },
+        {
+          "path": "target/beyond1lte/config.sh",
+          "reference": "reference/boot-patch-audit/extreme/target/beyond1lte/config.sh",
+          "size": 2083,
+          "sha": "ffe8f5eeeb47c96a837818da012ef58dfa968552"
+        },
+        {
+          "path": "unica/configs/essi_64.sh",
+          "reference": "reference/boot-patch-audit/extreme/unica/configs/essi_64.sh",
+          "size": 1927,
+          "sha": "1ff1f5e56c1ab504f01eb9a5f597a88fe9e5c01d"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "size": 24500,
+          "sha": "d2660fd9cba57ccde81060160a9b9907a77c2242"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "size": 1590,
+          "sha": "2529515b5e8573b28fb27198d6fa547ebe56af99"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+          "size": 990,
+          "sha": "f5a8421a546265eefd26304b6055f147658f272d"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+          "size": 1059,
+          "sha": "bfe89334f8dc9e9c06f1167c771b40423a2fc53e"
+        },
+        {
+          "path": "unica/mods/settings/customize.sh",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/customize.sh",
+          "size": 1442,
+          "sha": "fae111b16181b2f8d2b1ba58b85c15e5c15faf55"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+          "size": 5252,
+          "sha": "1bd9a9f14574d6f2d39066f81f26dbcde6d5b8cc"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+          "size": 1367,
+          "sha": "52c6959bc697b56f61861b14edfdcc027fa7786a"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0004-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/framework/services.jar/0004-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "size": 877,
+          "sha": "8a5e7c1709fc356d7ba21f0aba182fe3b3e2ad4f"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0005-Allow-Zipped-Overlay-APKs.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/framework/services.jar/0005-Allow-Zipped-Overlay-APKs.patch",
+          "size": 956,
+          "sha": "85740dcd98f36eb3b3d897896ae48d68744ef858"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "size": 1113,
+          "sha": "00cd89f522763b8b18c2a6a667d5487d3f0f6a66"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+          "size": 1502,
+          "sha": "fb78b6606c9dd8d150c182f5699c9b992a9b2d3d"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+          "size": 1529,
+          "sha": "c916143548e160ea42addc19f5ab2ce176448727"
+        },
+        {
+          "path": "unica/patches/product_feature/audio/SecSettings.apk/0002-Disable-Virtual-Vibration-support.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/audio/SecSettings.apk/0002-Disable-Virtual-Vibration-support.patch",
+          "size": 1852,
+          "sha": "f5efe36992d475ba63f8020445ba59977a194b58"
+        },
+        {
+          "path": "unica/patches/product_feature/customize.sh",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/customize.sh",
+          "size": 20428,
+          "sha": "96199561672f76823711f06113fbca9632164eb6"
+        },
+        {
+          "path": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+          "size": 27469,
+          "sha": "9d80edf56fe3f557d54e718684203f254615a8c1"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "size": 1096,
+          "sha": "e56ed9f9df235883323246149f06a86b90d60a7c"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+          "size": 968,
+          "sha": "cc809369893b8b3e341f558804351c3231092a06"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/SystemUI.apk/0002-Set-SECURITY_FINGERPRINT_IN_DISPLAY-to-false.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/fingerprint/SystemUI.apk/0002-Set-SECURITY_FINGERPRINT_IN_DISPLAY-to-false.patch",
+          "size": 1065,
+          "sha": "eb74bd34a29055cde046d65001110357baed924d"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "size": 1161,
+          "sha": "e988b78970678ec9b03feebf6a6b294b2e967307"
+        },
+        {
+          "path": "unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+          "size": 157878,
+          "sha": "44558dee542a44b32e0bc2a9b9e715303e5af3f8"
+        },
+        {
+          "path": "unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-Settings.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-Settings.patch",
+          "size": 23514,
+          "sha": "91956ffde7b27d7e45b4a86bc6b4cfa58fe75664"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/SecSettings.apk/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/resolution/SecSettings.apk/0001-Enable-dynamic-resolution-control.patch",
+          "size": 394099,
+          "sha": "466ffd5ac7add3f211ef5c0d64d6a0dfcda5cd06"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/resolution/framework.jar/0001-Enable-dynamic-resolution-control.patch",
+          "size": 1080,
+          "sha": "68fb3e7417896088ba2dd090b08a8ea36ac53047"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+          "size": 932,
+          "sha": "794e0c4d3a43aea34564544401c08834684ce21e"
+        },
+        {
+          "path": "unica/patches/product_feature/wifi/SecSettings.apk/0002-Disable-DualAP-support.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/wifi/SecSettings.apk/0002-Disable-DualAP-support.patch",
+          "size": 1928,
+          "sha": "23e50da93fe4d8853da84dfc0f7066cdf260986c"
+        },
+        {
+          "path": "unica/patches/product_feature/wifi/semwifi-service.jar/0002-Disable-DualAP-support.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/product_feature/wifi/semwifi-service.jar/0002-Disable-DualAP-support.patch",
+          "size": 2314,
+          "sha": "d2a894b04a0cfb7d1023911bc1796159360e5d75"
+        },
+        {
+          "path": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+          "size": 12025,
+          "sha": "5257f01c78fc27469379bf709b0f38d29d1c997d"
+        },
+        {
+          "path": "unica/patches/signature/customize.sh",
+          "reference": "reference/boot-patch-audit/extreme/unica/patches/signature/customize.sh",
+          "size": 468,
+          "sha": "7da2cbf1b2ccb75ffc060bd72d926951b7c72944"
+        }
+      ]
+    },
+    "onerom": {
+      "repository": "DaDevMikey/OneROM",
+      "commit": "541074191937f2d7c033be7a10cf5d99146cc98f",
+      "files": [
+        {
+          "path": "LICENSE",
+          "reference": "reference/boot-patch-audit/onerom/LICENSE",
+          "size": 35147,
+          "sha": "94a9ed024d3859793618152ea559a168bbcbb5e2"
+        },
+        {
+          "path": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+          "reference": "reference/boot-patch-audit/onerom/platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+          "size": 1616,
+          "sha": "2f4bf2b9b3ae31583386b5fce6c868a9662e63ed"
+        },
+        {
+          "path": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+          "reference": "reference/boot-patch-audit/onerom/platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+          "size": 1525,
+          "sha": "ce72aaa9529fe2ac3c6ffcca29ca8b6e1cacda9b"
+        },
+        {
+          "path": "target/beyond1lte/config.sh",
+          "reference": "reference/boot-patch-audit/onerom/target/beyond1lte/config.sh",
+          "size": 2197,
+          "sha": "1db634401b7d32ba0b0e9024713a4c1e62085427"
+        },
+        {
+          "path": "unica/configs/essi_64.sh",
+          "reference": "reference/boot-patch-audit/onerom/unica/configs/essi_64.sh",
+          "size": 1921,
+          "sha": "188f92422b80992d357d8a20b57cc4299ec96918"
+        },
+        {
+          "path": "unica/configs/r12s_native.sh",
+          "reference": "reference/boot-patch-audit/onerom/unica/configs/r12s_native.sh",
+          "size": 1269,
+          "sha": "904d1420eefb2099da05e3757d0253c6a7563d21"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "size": 24775,
+          "sha": "f91e0d17f9983755fd02c6f280cc7f9f34c65ac3"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+          "size": 1590,
+          "sha": "2529515b5e8573b28fb27198d6fa547ebe56af99"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+          "size": 990,
+          "sha": "f5a8421a546265eefd26304b6055f147658f272d"
+        },
+        {
+          "path": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+          "size": 1142,
+          "sha": "0bfba53095ff0f9950beb597da1facc73066afdc"
+        },
+        {
+          "path": "unica/mods/settings/customize.sh",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/customize.sh",
+          "size": 1588,
+          "sha": "d98111a413f7dce2018afcdab1d4f785aebbb39b"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+          "size": 5264,
+          "sha": "2a0818b3005caea11792c602d0d49af476bf6c96"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+          "size": 1357,
+          "sha": "4c6c68539d862c93c4ede24896cbfa761ef69278"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "size": 881,
+          "sha": "f6928ad62d9a4fab33928caf735f163ba800c6ea"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+          "size": 1077,
+          "sha": "dce39978d8a07b2cd1327890b426b96ea81b6306"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+          "size": 1480,
+          "sha": "ef67b1703053de803972879621c66fb464915fc0"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+          "size": 1525,
+          "sha": "03092ed764ad3f9b60523c1f415a3a08adfb5b8d"
+        },
+        {
+          "path": "unica/patches/product_feature/audio/SecSettings.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/audio/SecSettings.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "size": 1675,
+          "sha": "86b56d76f9c425acbd65ce5a08d14da435e47aa6"
+        },
+        {
+          "path": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+          "size": 1814,
+          "sha": "ec7c48fa04bd3d827e9db89f7678b2ccdf091758"
+        },
+        {
+          "path": "unica/patches/product_feature/customize.sh",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/customize.sh",
+          "size": 20347,
+          "sha": "2c95af19f5b5b79b1f6f64342c10c918727eea51"
+        },
+        {
+          "path": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+          "size": 25058,
+          "sha": "9767e3709de22bd7bc200f970c0054d07af97c1b"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "size": 1220,
+          "sha": "484283d5f45f3156e5505132338f90c47004b036"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Enable-SECURITY_FINGERPRINT_IN_DISPLAY-for-S10.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Enable-SECURITY_FINGERPRINT_IN_DISPLAY-for-S10.patch",
+          "size": 815,
+          "sha": "3a0c725e4030686a9fd3fcc23804fcccd0fe58ba"
+        },
+        {
+          "path": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+          "size": 1169,
+          "sha": "720e1b99cc9c8c6b5adda2e0715065fc5765c6a1"
+        },
+        {
+          "path": "unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+          "size": 156022,
+          "sha": "71fec5279865952e57d5feb379bfbed8d0217efa"
+        },
+        {
+          "path": "unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-And-EAD-Settings.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-And-EAD-Settings.patch",
+          "size": 24554,
+          "sha": "8310b67b8082a624f7636f1b68b49f802a30512f"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/SecSettings.apk/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/SecSettings.apk/0001-Enable-dynamic-resolution-control.patch",
+          "size": 255633,
+          "sha": "09b76f1474e966961cc3b5b92100b45bbd4a49b1"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/framework.jar/0001-Enable-dynamic-resolution-control.patch",
+          "size": 2066,
+          "sha": "ef8d851cf143e6ddb68f989bb5def5ebfc457ac0"
+        },
+        {
+          "path": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+          "size": 1055,
+          "sha": "dc0b68d39562fd5068248d39cfe1c4169f19d3dd"
+        },
+        {
+          "path": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+          "size": 1566,
+          "sha": "a912e67997eb96dcb103d636d1467c0b58a1fbbd"
+        },
+        {
+          "path": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+          "size": 2540,
+          "sha": "cea0ea29a6bda671b63d30c2d61c3f9252a4eb7a"
+        },
+        {
+          "path": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+          "size": 10603,
+          "sha": "6f061e8f2e18a775d2ff3ecb712240b1ffc24b84"
+        },
+        {
+          "path": "unica/patches/signature/customize.sh",
+          "reference": "reference/boot-patch-audit/onerom/unica/patches/signature/customize.sh",
+          "size": 468,
+          "sha": "7da2cbf1b2ccb75ffc060bd72d926951b7c72944"
+        }
+      ]
+    }
+  }
+}

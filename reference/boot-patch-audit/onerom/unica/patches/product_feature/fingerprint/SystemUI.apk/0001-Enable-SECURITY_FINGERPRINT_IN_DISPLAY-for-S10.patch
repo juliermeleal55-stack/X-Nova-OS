@@ -1,0 +1,16 @@
+From 3a3c9537f219d6abfc863730246c3ece16dcf30c Mon Sep 17 00:00:00 2001
+From: Bahar KURT <kurtbahartr@users.noreply.github.com>
+Subject: [PATCH] Enable in-display fingerprint for S10 ultrasonic sensor
+
+Retargeted for the Android 17 donor; retain optical=false.
+---
+diff --git a/smali/com/android/systemui/LsRune.smali b/smali/com/android/systemui/LsRune.smali
+--- a/smali/com/android/systemui/LsRune.smali
++++ b/smali/com/android/systemui/LsRune.smali
+@@ -740,5 +740,5 @@
+     sput-boolean v0, Lcom/android/systemui/LsRune;->SECURITY_UNPACK:Z
+ 
+-    sput-boolean v3, Lcom/android/systemui/LsRune;->SECURITY_FINGERPRINT_IN_DISPLAY:Z
++    sput-boolean v2, Lcom/android/systemui/LsRune;->SECURITY_FINGERPRINT_IN_DISPLAY:Z
+ 
+     sput-boolean v3, Lcom/android/systemui/LsRune;->SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL:Z
