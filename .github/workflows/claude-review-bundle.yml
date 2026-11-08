@@ -1,0 +1,31 @@
+name: Claude source and error evidence bundle
+on:
+  push:
+    branches: [arena/0d47b1d6-artisanrom-beyoud]
+    paths: [.github/workflows/claude-review-bundle.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect source and original diagnostic evidence, never firmware or ROM
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/create_claude_review_bundle.py
+      - name: Publish downloadable review package
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: X-Nova-Claude-source-and-error-evidence
+          path: out/claude-review/package/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - name: Record download link
+        env:
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: printf '## Pacote para o Claude\n\n[Baixar código + evidências](%s)\n\nLeia LEIA-ME.md e MANIFEST.json. Firmware/ROM não incluídos.\n' "$ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
