@@ -62,3 +62,45 @@ class SignatureBridgeTests(unittest.TestCase):
         result=method_return(text,'gate(Ljava/lang/String;)Z','false',True)
         self.assertIn('const/4 v0, 0x0',result);self.assertIn('keep()V',result)
         with self.assertRaises(ValueError):method_return(text,'gate(Ljava/lang/String;)Z','false',False)
+
+    def test_preferred_signature_never_tries_broad_legacy_even_if_it_would_fit(self):
+        from unittest.mock import patch
+        from integration.smali_patch import apply
+        key='unica/patches/signature/0001-Allow-custom-platform-signature.patch'
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace=Path(tmp);legacy=workspace/key;legacy.parent.mkdir(parents=True)
+            shutil.copyfile(ROOT.parent/'reference/boot-patch-audit/artisan'/key,legacy)
+            replacement=(ROOT/'rebased-patches/0001-Scoped-platform-signature.patch').read_text()
+            rejected=subprocess.CompletedProcess(['git','apply'],1,'','rejected')
+            with patch('integration.smali_patch.apply_text',return_value=(rejected,[])) as attempt:
+                self.assertNotEqual(apply(workspace,workspace/'decoded',legacy)[0].returncode,0)
+                attempt.assert_called_once_with(workspace,workspace/'decoded',replacement)
+
+    def test_preferred_signature_rejects_changed_original_before_application(self):
+        from unittest.mock import patch
+        from integration.smali_patch import apply
+        key='unica/patches/signature/0001-Allow-custom-platform-signature.patch'
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace=Path(tmp);legacy=workspace/key;legacy.parent.mkdir(parents=True)
+            legacy.write_bytes((ROOT.parent/'reference/boot-patch-audit/artisan'/key).read_bytes()+b'\n')
+            with patch('integration.smali_patch.apply_text') as attempt:
+                result,_=apply(workspace,workspace/'decoded',legacy)
+                self.assertNotEqual(result.returncode,0);attempt.assert_not_called()
+                self.assertIn('hash changed',result.stderr)
+
+    def test_apk_signing_guard_stops_before_signapk_with_invalid_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace=Path(tmp);tools=workspace/'integration';tools.mkdir()
+            for name in ['signature_bridge.py','signature_policy.json','platform_signature_methods.smali','smali_paths.py']:
+                shutil.copyfile(ROOT/name,tools/name)
+            decoded=workspace/'apktool/system/framework/services.jar';decoded.mkdir(parents=True);fixture(decoded)
+            security=workspace/'security';security.mkdir();pem=make_cert(security,'aosp_platform.x509')
+            receipt=workspace/'out/beyoud-logs/platform-signature.json';configure(decoded,pem,receipt)
+            receipt.write_text('{}')
+            overlay=(ROOT/'artisan/apktool.sh').read_text()
+            begin=overlay.index('    if [[ "$INPUT_FILE" == *".apk" ]]; then',overlay.index('BUILD()'))
+            end=overlay.index('\n    mkdir -p "$(dirname "$INPUT_FILE")"',begin)
+            harness='LOG() { :; }; EVAL() { echo SIGNING_REACHED; }; ROM_IS_OFFICIAL=false; INPUT_FILE=fixture.apk; SRC_DIR="$1"; APKTOOL_DIR="$1/apktool";\n'
+            result=subprocess.run(['bash','-c',harness+'guard() {\n'+overlay[begin:end]+'\n}; guard','test',str(workspace)],capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0);self.assertNotIn('SIGNING_REACHED',result.stdout)
+            self.assertIn('receipt',result.stderr.lower())

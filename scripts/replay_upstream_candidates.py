@@ -117,8 +117,8 @@ def replay(artifacts):
             source=sources.get(digest)
             if source is None or not name.endswith('WifiApFrameworkUtils.smali'):continue
             methods=re.findall(r'(?ms)^\.method [^\n]*\n.*?^\.end method',source.read_text())
-            selected=[m for m in methods if re.search(r'const/4 [vp][0-9]+, 0x2',m) and ')I' in m.splitlines()[0]]
-            inspection.append(dict(class_name='WifiApFrameworkUtils',band_method_headers=[m.splitlines()[0] for m in methods if re.search('Band|Dual',m.splitlines()[0],re.I)],small_integer_methods=[m for m in selected if len(m)<=4000][:2]))
+            selected=[m for m in methods if re.search(r'const/4 [vp][0-9]+, 0x2',m) ]
+            inspection.append(dict(class_name='WifiApFrameworkUtils',method_headers=[m.splitlines()[0] for m in methods],band_methods=[m for m in methods if re.search('Band|Dual',m.splitlines()[0],re.I) and len(m)<=4000],small_integer_methods=[m for m in selected if len(m)<=4000][:2]))
     return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=None,results=results,inspection=inspection)
 
 
