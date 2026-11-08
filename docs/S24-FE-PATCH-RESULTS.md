@@ -62,3 +62,7 @@ São dois patches de fingerprint óptico -> ultrassônico, dois de resolução d
 5. Repetir diagnóstico e só depois autorizar build completo, que também precisará validar reconstrução dos APKs/JARs.
 
 A execução verde significa que a coleta foi concluída sob modo experimental, não que as falhas possam ser ignoradas para uma versão estável. Nenhum ZIP publicado foi alterado por esta leitura.
+
+## Investigação posterior, sem alterar estes totais
+
+A [comparação de patches e risco de boot](PATCH-BOOT-CROSS-AUDIT.md) examina ArtisanROM, ExtremeROM e OneROM, testa alternativas nos inputs retidos e documenta duas adaptações ópticas próprias aplicadas aos snapshots reais. Também identifica uma alternativa upstream que aplica mas inverte o comportamento de fingerprint e um erro lógico comum no patch de downgrade. O replay isolado não substitui uma nova execução completa, reconstrução dos APKs/JARs ou teste de boot.

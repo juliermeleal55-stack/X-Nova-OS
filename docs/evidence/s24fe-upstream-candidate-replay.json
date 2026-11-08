@@ -1,0 +1,127 @@
+{
+  "scope": "Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation",
+  "source_run": 42419957346,
+  "results": [
+    {
+      "id": "fingerprint-service",
+      "original_patch": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "status": "applied-to-retained-input",
+      "constant_evidence": {
+        "before": {
+          "FP_FEATURE_SENSOR_IS_IN_DISPLAY_TYPE": "unknown",
+          "FP_FEATURE_SENSOR_IS_OPTICAL": "unknown"
+        },
+        "after": {
+          "FP_FEATURE_SENSOR_IS_IN_DISPLAY_TYPE": "unknown",
+          "FP_FEATURE_SENSOR_IS_OPTICAL": "unknown"
+        }
+      },
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "fingerprint-systemui",
+      "original_patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Enable-SECURITY_FINGERPRINT_IN_DISPLAY-for-S10.patch",
+      "status": "applied-to-retained-input",
+      "constant_evidence": {
+        "before": {
+          "SECURITY_FINGERPRINT_IN_DISPLAY": true,
+          "SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL": true
+        },
+        "after": {
+          "SECURITY_FINGERPRINT_IN_DISPLAY": false,
+          "SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL": true
+        }
+      },
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "resolution-framework",
+      "original_patch": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-FW_DYNAMIC_RESOLUTION_CONTROL.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/framework.jar/0001-Enable-dynamic-resolution-control.patch",
+      "status": "rejected",
+      "reason": "Candidate rejected by strict application guards"
+    },
+    {
+      "id": "resolution-game",
+      "original_patch": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+      "status": "unavailable",
+      "reason": "Exact original class inputs not retained"
+    },
+    {
+      "id": "extradim-settings",
+      "original_patch": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "candidate": "reference/boot-patch-audit/extreme/platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "status": "rejected",
+      "reason": "Candidate rejected by strict application guards"
+    },
+    {
+      "id": "extradim-systemui",
+      "original_patch": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "candidate": "reference/boot-patch-audit/extreme/platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "status": "applied-to-retained-input",
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "platform-signature",
+      "original_patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "status": "unavailable",
+      "reason": "Exact original class inputs not retained"
+    },
+    {
+      "id": "pin-service",
+      "original_patch": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "status": "unavailable",
+      "reason": "Exact original class inputs not retained"
+    },
+    {
+      "id": "hotspot-country",
+      "original_patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "status": "applied-to-retained-input",
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "integration-fingerprint-service",
+      "original_patch": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "mode": "integration",
+      "status": "applied-to-retained-input",
+      "constant_evidence": {
+        "before": {
+          "FP_FEATURE_SENSOR_IS_IN_DISPLAY_TYPE": "unknown",
+          "FP_FEATURE_SENSOR_IS_OPTICAL": "unknown"
+        },
+        "after": {
+          "FP_FEATURE_SENSOR_IS_IN_DISPLAY_TYPE": "unknown",
+          "FP_FEATURE_SENSOR_IS_OPTICAL": false
+        }
+      },
+      "reason": "Pinned integration adaptation; original input hashes matched"
+    },
+    {
+      "id": "integration-fingerprint-systemui",
+      "original_patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "mode": "integration",
+      "status": "applied-to-retained-input",
+      "constant_evidence": {
+        "before": {
+          "SECURITY_FINGERPRINT_IN_DISPLAY": true,
+          "SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL": true
+        },
+        "after": {
+          "SECURITY_FINGERPRINT_IN_DISPLAY": true,
+          "SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL": false
+        }
+      },
+      "reason": "Pinned integration adaptation; original input hashes matched"
+    }
+  ],
+  "replay_run": 42432014268,
+  "replay_commit": "4f01d546bb1d9a760b658e06d89bae38ba7ff2d0"
+}
