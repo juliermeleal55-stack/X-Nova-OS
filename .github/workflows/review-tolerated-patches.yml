@@ -31,7 +31,7 @@ jobs:
           summary={k:report[k] for k in ('schema_version','status','modules','patches')}
           summary['source_run']=42419957346
           summary['prior_failure_review']=report.get('prior_failure_review')
-          summary['failures']=[{k:v for k,v in e.items() if k in ('kind','patch','module','status','detail')} for e in report['failures']]
+          summary['failures']=[{k:v for k,v in e.items() if k in ('kind','patch','module','status')} | {'detail':e.get('detail','')[-600:]} for e in report['failures']]
           text=json.dumps(summary,ensure_ascii=False)
           for i in range(0,len(text),2800):
               chunk=text[i:i+2800].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
