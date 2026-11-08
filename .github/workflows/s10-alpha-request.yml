@@ -12,6 +12,7 @@ jobs:
     uses: ./.github/workflows/alpha.yml
     with:
       target: beyond1lte
+      diagnostic_only: false
       experimental_patch_failures: true
       partition_layout: content-sized
 
@@ -43,3 +44,8 @@ jobs:
 # Owner confirmed default ExtremeROM repartition, 7000/1500/1500 MiB; require that layout, not stock caps.
 
 # Retry: owner manages repartition AFTER build; content-sized images, no fixed capacity ceiling.
+
+# Owner authorizes a FULL experimental S24 FE build after final general review.
+# Current policy: content-sized, no fixed stock/ExtremeROM ceiling; no auto repartition.
+# Known unported patches are recorded/tolerated; assembly/signature/ZIP integrity stay fatal.
+# Includes logical DEX inventory and real-input-tested scoped signature/DualAP/audio fixes.

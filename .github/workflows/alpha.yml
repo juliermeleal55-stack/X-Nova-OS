@@ -162,6 +162,7 @@ jobs:
             ${{ env.WORKSPACE }}/out/config.sh
             ${{ env.WORKSPACE }}/out/beyoud-logs/*.log
             ${{ env.WORKSPACE }}/out/beyoud-logs/*.json*
+            ${{ env.WORKSPACE }}/out/beyoud-logs/dex-inventory/*.json
             ${{ env.WORKSPACE }}/out/beyoud-logs/failed-smali/**/*.smali
             ${{ env.WORKSPACE }}/out/beyoud-logs/patch-preflight-smali/**/*.smali
             ${{ env.WORKSPACE }}/out/beyoud-logs/native-inputs/*
