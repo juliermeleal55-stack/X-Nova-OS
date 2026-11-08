@@ -50,3 +50,7 @@ Falhas conhecidas de aplicação podem ser toleradas para o teste experimental. 
 - Foi acrescentada a preservação dos inventários DEX nos artefatos diagnósticos do build completo.
 
 Ainda não há resultado deste build, instalação ou boot validado. O Alpha anteriormente publicado não foi alterado. Branding interno estável permanece para uma etapa futura.
+
+## Execução iniciada
+
+Build completo [42439039231](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42439039231), revisão `1d6a34e`. Na primeira conferência o job `build / alpha` estava em andamento, a etapa **Validate integration passou**, e o runner instalava as dependências. Ainda não havia kernel, imagem ou ZIP concluído; o resultado final deve ser lido nessa execução, não presumido por esta autorização.
