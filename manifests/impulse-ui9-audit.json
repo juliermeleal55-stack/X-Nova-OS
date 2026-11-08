@@ -1,0 +1,103 @@
+{
+  "repository": "TomasULR/ImpulseROM",
+  "commit": "092fd6aa0abe743591d76cb018191a364aad6eda",
+  "tag_commit": "783909f0bc5854830a9a593c11077cc4e47f2fb7",
+  "files": [
+    {
+      "path": "docs/source-provenance.md",
+      "reference": "reference/impulse-ui9/docs/source-provenance.md",
+      "sha": "5bf35b988e1502992f7eeccfff3538363b96685e",
+      "size": 8542
+    },
+    {
+      "path": "unica/configs/essi.sh",
+      "reference": "reference/impulse-ui9/unica/configs/essi.sh",
+      "sha": "88b8010192ba81fc8f21c4a11129a58d2b26bdba",
+      "size": 1919
+    },
+    {
+      "path": "unica/configs/essi85.sh",
+      "reference": "reference/impulse-ui9/unica/configs/essi85.sh",
+      "sha": "3251fcad075ee413810fd5f5b32870509385196b",
+      "size": 2567
+    },
+    {
+      "path": "unica/configs/version.sh",
+      "reference": "reference/impulse-ui9/unica/configs/version.sh",
+      "sha": "746ac77b9c0e63506c455107a56aef48787b771b",
+      "size": 907
+    },
+    {
+      "path": "target/d2s/config.sh",
+      "reference": "reference/impulse-ui9/target/d2s/config.sh",
+      "sha": "ee10513bee4425e81b09ecabf081339a11ccd76b",
+      "size": 3213
+    },
+    {
+      "path": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "reference": "reference/impulse-ui9/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "sha": "7e0af04c587345264958e7a106f49f430e872e9a",
+      "size": 7541
+    },
+    {
+      "path": "unica/patches/product_feature/customize.sh",
+      "reference": "reference/impulse-ui9/unica/patches/product_feature/customize.sh",
+      "sha": "725542ad773d784a94ce9c76f26ef200a204018a",
+      "size": 22875
+    },
+    {
+      "path": "target/d2s/patches/android16_compat/customize.sh",
+      "reference": "reference/impulse-ui9/target/d2s/patches/android16_compat/customize.sh",
+      "sha": "e1934ac886c6a7abcccc1acf0e19f07021106858",
+      "size": 22777
+    },
+    {
+      "path": "target/d2s/patches/zz_stock_hwc/customize.sh",
+      "reference": "reference/impulse-ui9/target/d2s/patches/zz_stock_hwc/customize.sh",
+      "sha": "bc260a4ae6dfc6517c2283de5cdd007111e76293",
+      "size": 1290
+    },
+    {
+      "path": "target/d2s/patches/zz_ueventd/customize.sh",
+      "reference": "reference/impulse-ui9/target/d2s/patches/zz_ueventd/customize.sh",
+      "sha": "81f99aa88450237c277a57d01655cf2cf6ce50dc",
+      "size": 430
+    },
+    {
+      "path": "scripts/internal/merge_multilib_apex.py",
+      "reference": "reference/impulse-ui9/scripts/internal/merge_multilib_apex.py",
+      "sha": "7089f56376344c2e4eaa70caf590e64a27dd5e58",
+      "size": 7272
+    },
+    {
+      "path": "scripts/internal/run_build_oneui9_survey.sh",
+      "reference": "reference/impulse-ui9/scripts/internal/run_build_oneui9_survey.sh",
+      "sha": "d5be79c65e283ff8d178fa95c4c3588a527c81be",
+      "size": 1126
+    },
+    {
+      "path": "docs/PATCH_STATUS_DZF3.md",
+      "reference": "reference/impulse-ui9/docs/PATCH_STATUS_DZF3.md",
+      "sha": "c405965208514163af5c93ae257ee5a276d9ab4a",
+      "size": 6176
+    },
+    {
+      "path": "LICENSE",
+      "reference": "reference/impulse-ui9/LICENSE",
+      "sha": "94a9ed024d3859793618152ea559a168bbcbb5e2",
+      "size": 35147
+    },
+    {
+      "path": "scripts/apktool.sh",
+      "reference": "reference/impulse-ui9/scripts/apktool.sh",
+      "sha": "f537dfd92ad2c5e41e28a73df485d2a006d4a798",
+      "size": 24232
+    },
+    {
+      "path": "unica/patches/signature/customize.sh",
+      "reference": "reference/impulse-ui9/unica/patches/signature/customize.sh",
+      "sha": "eef2f8b238c55eda0385f506929ab3ffaeba8f9f",
+      "size": 954
+    }
+  ]
+}

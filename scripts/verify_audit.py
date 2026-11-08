@@ -91,6 +91,12 @@ def verify():
             path=ROOT/entry['reference']
             if not path.resolve().is_relative_to((ROOT/'reference/boot-patch-audit').resolve()):raise ValueError('Unsafe boot patch evidence path')
             blob(path,entry);count+=1
+    impulse=json.loads((ROOT/'manifests/impulse-ui9-audit.json').read_text())
+    if impulse['repository']!='TomasULR/ImpulseROM' or not re.fullmatch('[0-9a-f]{40}',impulse['commit']) or not re.fullmatch('[0-9a-f]{40}',impulse['tag_commit']):raise ValueError('Unpinned Impulse evidence')
+    for entry in impulse['files']:
+        path=ROOT/entry['reference']
+        if not path.resolve().is_relative_to((ROOT/'reference/impulse-ui9').resolve()):raise ValueError('Unsafe Impulse evidence path')
+        blob(path,entry);count+=1
     return count
 
 
