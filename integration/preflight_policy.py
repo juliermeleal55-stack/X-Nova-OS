@@ -25,6 +25,11 @@ def install(workspace):
     experimental = '${BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES:-0}'
     text = text.replace('"${BEYOUD_PATCH_PREFLIGHT:-0}" == "1"',
                         '"${BEYOUD_PATCH_PREFLIGHT:-0}" == "1" || "' + experimental + '" == "1"')
+    # Never reuse an output directory left by a failed/old decoder. In collection
+    # mode later modules continue, so directory existence alone is not success.
+    cached='        return $?\n    fi\n\n    return 0\n}\n\n# DOWNLOAD_FILE'
+    if text.count(cached)!=1:raise ValueError('Unexpected cached DECODE_APK contract')
+    text=text.replace(cached,'        return $?\n    fi\n\n    if [ ! -f "$APKTOOL_DIR/$1/${2//system\\/}/.beyoud_decode_complete" ]; then\n        LOGE "Incomplete or legacy decode cache; force a fresh decode: $2"\n        return 1\n    fi\n    return 0\n}\n\n# DOWNLOAD_FILE')
     utils.write_text(text)
     runner = workspace / 'scripts/internal/apply_modules.sh'
     text = runner.read_text()

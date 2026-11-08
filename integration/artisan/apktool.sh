@@ -72,6 +72,13 @@ BUILD()
         local DEX_FILENAME
         local -a BEYOUD_DEX_PIDS=()
 
+        # Every logical unit is assembled independently; never restore a physical
+        # DEX 041 container beside its newly assembled constituent DEXes.
+        if [ -f "$OUTPUT_PATH/dex_logical_map.json" ]; then
+            python3 "$SRC_DIR/integration/dex_entries.py" build-rows "$OUTPUT_PATH" > "$OUTPUT_PATH/dex_build_rows.tsv" || exit 1
+            cut -f1,2 "$OUTPUT_PATH/dex_build_rows.tsv" > "$OUTPUT_PATH/dex_api_versions.tsv"
+        fi
+
         while IFS= read -r d; do
             local DEX_DIR
             DEX_DIR="$(basename "$d")"
@@ -104,8 +111,12 @@ BUILD()
 
         # shellcheck disable=SC2046
         WAIT_FOR_DEX_WORKERS || exit 1
-        rm -f "$OUTPUT_PATH/dex_api_versions.tsv" "$OUTPUT_PATH/dex_api_version"
+        rm -f "$OUTPUT_PATH/dex_api_versions.tsv" "$OUTPUT_PATH/dex_api_version" \
+            "$OUTPUT_PATH/dex_logical_map.json" "$OUTPUT_PATH/dex_class_inventory.json" \
+            "$OUTPUT_PATH/dex_logical_entries.tsv" "$OUTPUT_PATH/dex_build_rows.tsv"
     fi
+
+    rm -f "$OUTPUT_PATH/.beyoud_decode_complete"
 
     # Copy original META-INF
     mkdir -p "$OUTPUT_PATH/build/apk"
@@ -182,20 +193,19 @@ DECODE()
         local SMALI_OUT
         local -a BEYOUD_DEX_PIDS=()
         : > "$OUTPUT_PATH/dex_api_versions.tsv"
+        # Plan via the original ZIP, not the extracted physical filenames only.
+        # Redirect to a checked file: process substitution would mask failure.
+        python3 "$SRC_DIR/integration/dex_entries.py" plan "$INPUT_FILE" "$OUTPUT_PATH" > "$OUTPUT_PATH/dex_logical_entries.tsv" || exit 1
 
-        while IFS= read -r f; do
+        local DEX_ENTRY
+        while IFS=$'\t' read -r DEX_ENTRY SMALI_OUT; do
+            f="$OUTPUT_PATH/${DEX_ENTRY%%/*}"
             DEX_API_LEVEL="$(DEX_TO_API "$f")"
             [ "$DEX_API_LEVEL" ] || exit 1
             # Preserve the API mapped from this DEX header, including services.jar.
             # Pinned google/smali only maps assembly APIs through 35; API 36
             # maps to NO_VERSION (-1) and cannot produce a valid DEX header.
             echo -n "$DEX_API_LEVEL" > "$OUTPUT_PATH/dex_api_version"
-
-            if [[ "$f" == *"classes.dex" ]]; then
-                SMALI_OUT="smali"
-            else
-                SMALI_OUT="smali_$(basename "${f//.dex/}")"
-            fi
 
             printf '%s\t%s\n' "$SMALI_OUT" "$DEX_API_LEVEL" >> "$OUTPUT_PATH/dex_api_versions.tsv"
 
@@ -204,15 +214,16 @@ DECODE()
             # - Disabled debug info
             # - Use .locals directive instead of the .registers one
             # - Use a sequential numbering scheme for labels
-            EVAL "baksmali d -a \"$DEX_API_LEVEL\" --ac false --di false -j \"$THREAD_COUNT\" -l -o \"$OUTPUT_PATH/$SMALI_OUT\" --sl \"$f\"" &
+            EVAL "baksmali d -a \"$DEX_API_LEVEL\" --ac false --di false -j \"$THREAD_COUNT\" -l -o \"$OUTPUT_PATH/$SMALI_OUT\" --sl \"$INPUT_FILE/$DEX_ENTRY\"" &
             BEYOUD_DEX_PIDS+=("$!")
             if (( ${#BEYOUD_DEX_PIDS[@]} >= THREAD_COUNT )); then
                 WAIT_FOR_DEX_WORKERS || exit 1
             fi
-        done < <(find "$OUTPUT_PATH" -maxdepth 1 -type f -name "*.dex")
+        done < "$OUTPUT_PATH/dex_logical_entries.tsv"
 
         # shellcheck disable=SC2046
         WAIT_FOR_DEX_WORKERS || exit 1
+        python3 "$SRC_DIR/integration/dex_entries.py" verify-decode "$INPUT_FILE" "$OUTPUT_PATH" "$SRC_DIR/out/beyoud-logs/dex-inventory" || exit 1
 
         find "$OUTPUT_PATH" -maxdepth 1 -type f -name "*.dex" -delete
     fi
@@ -223,6 +234,7 @@ DECODE()
             unzip -oq "$INPUT_FILE" "res/*" -d "$OUTPUT_PATH/unknown" || return 1
         fi
     fi
+    touch "$OUTPUT_PATH/.beyoud_decode_complete" || exit 1
 }
 
 # https://github.com/google/smali/blob/3.0.9/dexlib2/src/main/java/com/android/tools/smali/dexlib2/VersionMap.java#L36-L53

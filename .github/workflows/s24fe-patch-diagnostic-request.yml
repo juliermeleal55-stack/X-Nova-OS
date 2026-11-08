@@ -18,3 +18,6 @@ jobs:
 # Retry: shared parser accepts S24 FE AP reference without requiring IMEI/SN.
 
 # Retry: accept embedded system_ext; retain actual SDK/layout evidence even on failure.
+
+# Retry: enumerate every logical DEX unit and verify descriptors before patches.
+# Keep diagnostic_only=true: no kernel, final APK assembly, images or ROM ZIP.

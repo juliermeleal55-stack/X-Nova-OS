@@ -1,4 +1,6 @@
 import json
+import os
+import zipfile
 from pathlib import Path
 import shutil
 import subprocess
@@ -35,11 +37,29 @@ class ApktoolOverlayTests(unittest.TestCase):
         worker = text[text.index('WAIT_FOR_DEX_WORKERS()\n'):text.index('BUILD()\n')]
         decode = worker + text[text.index('DECODE()\n'):text.index('DEX_TO_API()\n')]
         for name, expected in [('other.jar', {'smali': '35', 'smali_classes2': '34'}),
-                               ('services.jar', {'smali': '35', 'smali_classes2': '34'})]:
+                               ('services.jar', {'smali': '35', 'smali_classes2': '34'}),
+                               ('container.jar', {'smali': '35', 'smali_classes2': '35', 'smali_classes3': '34'})]:
             with tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 source = root / name
-                source.touch()
+                with zipfile.ZipFile(source,'w') as archive:
+                    archive.writestr('classes.dex',b'fixture-primary')
+                    archive.writestr('classes2.dex',b'fixture-secondary')
+                tools=root/'bin';tools.mkdir()
+                tool=tools/'baksmali'
+                tool.write_text("""#!/usr/bin/env python3
+import sys
+source=sys.argv[-1]
+container='container.jar' in source
+if sys.argv[1:3]==['list','dex']:
+ print('classes.dex\\nclasses.dex/2\\nclasses2.dex' if container else 'classes.dex\\nclasses2.dex')
+elif sys.argv[1:3]==['list','classes']:
+ n=1 if source.endswith('/classes.dex') else (3 if container and source.endswith('/classes2.dex') else 2)
+ print('Lp/Probe'+str(n)+';')
+else:sys.exit(2)
+""")
+                tool.chmod(0o755)
+                env=dict(os.environ,PATH=str(tools)+os.pathsep+os.environ['PATH'])
                 output = root / 'decoded'
                 harness = r'''
 LOG() { :; }; LOGE() { echo "$*" >&2; }; READ_BYTES_AT() { echo 04034b50; }
@@ -55,15 +75,29 @@ baksmali() {
  sleep 0.02
  mkdir -p "$output"
  echo "$api" >> "$output/invocations"
+ local n=1
+ [[ "$output" == */smali_classes2 ]] && n=2
+ [[ "$output" == */smali_classes3 ]] && n=3
+ mkdir -p "$output/p"
+ printf '.class public Lp/Probe%s;\n.super Ljava/lang/Object;\n' "$n" > "$output/p/Probe$n.smali"
  rmdir "$OUTPUT_PATH/inflight"
 }
 '''
                 script = root / 'test.sh'
+                (root/'integration').mkdir()
+                shutil.copyfile(ROOT/'integration/dex_entries.py',root/'integration/dex_entries.py')
+                harness='SRC_DIR='+str(root)+'\n'+harness
                 script.write_text(harness + decode + '\nINPUT_FILE="$1"; OUTPUT_PATH="$2"; FORCE=false; THREAD_COUNT=1; DECODE\n')
-                result = subprocess.run(['bash', str(script), str(source), str(output)], text=True, capture_output=True)
+                result = subprocess.run(['bash', str(script), str(source), str(output)], text=True, capture_output=True,env=env)
                 self.assertEqual(result.returncode, 0, result.stderr)
+                records=list((root/'out/beyoud-logs/dex-inventory').glob('*.json'))
+                self.assertEqual(len(records),1)
+                evidence=json.loads(records[0].read_text())
+                self.assertEqual(evidence['unique_classes'],len(expected))
+                self.assertEqual(len(evidence['units']),len(expected))
+                self.assertTrue((output/'.beyoud_decode_complete').is_file())
                 rows = (output / 'dex_api_versions.tsv').read_text().splitlines()
-                self.assertEqual(len(rows), 2)
+                self.assertEqual(len(rows), len(expected))
                 self.assertEqual(dict(line.split('\t') for line in rows), expected)
                 for folder, api in expected.items():
                     self.assertEqual((output / folder / 'invocations').read_text().splitlines(), [api])
@@ -83,6 +117,8 @@ smali() {
                 self.assertEqual(assembled.returncode, 0, assembled.stderr)
                 self.assertEqual((output / 'classes.dex').read_text(), expected['smali'])
                 self.assertEqual((output / 'classes2.dex').read_text(), expected['smali_classes2'])
+                if 'smali_classes3' in expected:
+                    self.assertEqual((output/'classes3.dex').read_text(),expected['smali_classes3'])
 
 
     def test_failed_earlier_dex_worker_cannot_be_hidden_by_last_success(self):
