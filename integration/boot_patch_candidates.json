@@ -55,5 +55,10 @@
     "original_patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
     "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
     "mode": "integration"
+  },
+  {
+    "id": "impulse-platform-signature",
+    "original_patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+    "candidate": "reference/impulse-ui9/unica/patches/signature/0001-Allow-custom-platform-signature.patch"
   }
 ]

@@ -82,7 +82,7 @@ def replay(artifacts):
             if len(prefixes)!=1:raise ValueError('Inputs span multiple decoded artifacts')
             decoded=workspace/next(iter(prefixes))
             candidate=ROOT/spec['candidate']
-            if not candidate.resolve().is_relative_to((ROOT/'reference/boot-patch-audit').resolve()):raise ValueError('Unsafe candidate source')
+            if not any(candidate.resolve().is_relative_to((ROOT/base).resolve()) for base in ('reference/boot-patch-audit','reference/impulse-ui9')):raise ValueError('Unsafe candidate source')
             raw=candidate.read_text()
             # Do not infer missing input for extra classes touched by the candidate.
             try:
@@ -97,11 +97,12 @@ def replay(artifacts):
                 item['constant_evidence']={'before':before,'after':fingerprint_facts(decoded,spec)}
             item['status']='applied-to-retained-input' if result.returncode==0 else 'rejected'
             item['reason']=('Pinned integration adaptation; original input hashes matched' if spec.get('mode')=='integration' else 'Strict git apply; original input hashes matched') if result.returncode==0 else 'Candidate rejected by strict application guards'
-    return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=42419957346,results=results)
+    return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=None,results=results)
 
 
 if __name__=='__main__':
-    result=replay(Path(sys.argv[1]));print(json.dumps(result,indent=2))
+    if len(sys.argv)!=3:raise SystemExit('Usage: replay_upstream_candidates.py ARTIFACTS SOURCE_RUN')
+    result=replay(Path(sys.argv[1]));result['source_run']=int(sys.argv[2]);print(json.dumps(result,indent=2))
     Path('upstream-candidate-replay.json').write_text(json.dumps(result,indent=2)+'\n')
     text=json.dumps(result)
     for i in range(0,len(text),2800):
