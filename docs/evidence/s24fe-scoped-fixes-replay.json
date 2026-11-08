@@ -1,0 +1,167 @@
+{
+  "workflow_run": 42438490691,
+  "check_run": 128602442932,
+  "code_commit": "0a5ae6bbf8567b29c649020320b6dd7400172bf3",
+  "source_run": 42433286986,
+  "scope": "Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation",
+  "report_projection": "Results copied from complete ordered Actions annotations. Donor method bodies omitted; full report is in the workflow artifact.",
+  "full_report_sha256": "6f5a99774f3bad4a6711f34fb2f75f3a03dfaa17caf330d67272ff248da90d22",
+  "results": [
+    {
+      "id": "fingerprint-service",
+      "original_patch": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "status": "unavailable",
+      "reason": "A required original input hash is absent"
+    },
+    {
+      "id": "fingerprint-systemui",
+      "original_patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Enable-SECURITY_FINGERPRINT_IN_DISPLAY-for-S10.patch",
+      "status": "unavailable",
+      "reason": "A required original input hash is absent"
+    },
+    {
+      "id": "resolution-framework",
+      "original_patch": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-FW_DYNAMIC_RESOLUTION_CONTROL.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/framework.jar/0001-Enable-dynamic-resolution-control.patch",
+      "status": "rejected",
+      "reason": "Candidate rejected by strict application guards"
+    },
+    {
+      "id": "resolution-game",
+      "original_patch": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+      "status": "unavailable",
+      "reason": "Exact original class inputs not retained"
+    },
+    {
+      "id": "extradim-settings",
+      "original_patch": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "candidate": "reference/boot-patch-audit/extreme/platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "status": "rejected",
+      "reason": "Candidate rejected by strict application guards"
+    },
+    {
+      "id": "extradim-systemui",
+      "original_patch": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "candidate": "reference/boot-patch-audit/extreme/platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "status": "applied-to-retained-input",
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "platform-signature",
+      "original_patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "status": "applied-to-retained-input",
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "pin-service",
+      "original_patch": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "status": "rejected",
+      "reason": "Candidate rejected by strict application guards"
+    },
+    {
+      "id": "hotspot-country",
+      "original_patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "status": "applied-to-retained-input",
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "integration-fingerprint-service",
+      "original_patch": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "mode": "integration",
+      "status": "unavailable",
+      "reason": "A required original input hash is absent"
+    },
+    {
+      "id": "integration-fingerprint-systemui",
+      "original_patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "mode": "integration",
+      "status": "unavailable",
+      "reason": "A required original input hash is absent"
+    },
+    {
+      "id": "impulse-platform-signature",
+      "original_patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "candidate": "reference/impulse-ui9/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "status": "applied-to-retained-input",
+      "reason": "Strict git apply; original input hashes matched"
+    },
+    {
+      "id": "integration-dualap-service",
+      "original_patch": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+      "mode": "integration",
+      "status": "applied-to-retained-input",
+      "reason": "Pinned integration adaptation; original input hashes matched"
+    },
+    {
+      "id": "integration-virtual-vibration",
+      "original_patch": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "mode": "integration",
+      "status": "applied-to-retained-input",
+      "reason": "Pinned integration adaptation; original input hashes matched"
+    },
+    {
+      "id": "integration-scoped-signature",
+      "original_patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "mode": "integration",
+      "configure_signature": true,
+      "status": "applied-to-retained-input",
+      "configuration": "exact policy, certificate insertion and callers verified; test-only certificate",
+      "reason": "Pinned integration adaptation; original input hashes matched"
+    },
+    {
+      "id": "integration-dualap-settings",
+      "original_patch": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+      "candidate": "reference/boot-patch-audit/artisan/unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+      "mode": "integration",
+      "status": "applied-to-retained-input",
+      "reason": "Pinned integration adaptation; original input hashes matched"
+    }
+  ],
+  "inspection_summary": [
+    {
+      "class_name": "WifiApFrameworkUtils",
+      "method_headers": [
+        ".method public static canAutoHotspotBeEnabled(Landroid/content/Context;)Z",
+        ".method public static canFamilySharingBeEnabled(Landroid/content/Context;)Z",
+        ".method public static getConnectivityManager(Landroid/content/Context;)Landroid/net/ConnectivityManager;",
+        ".method public static getMcfFamilyDeviceShareState(Landroid/content/Context;)I",
+        ".method public static getSemWifiManager(Landroid/content/Context;)Lcom/samsung/android/wifi/SemWifiManager;",
+        ".method public static getWiFiConnectedFrequency(Landroid/content/Context;)I",
+        ".method public static getWifiApMaxClientDefault()I",
+        ".method public static getWifiApMaxClientFromFramework(Landroid/content/Context;)I",
+        ".method public static getWifiApState(Landroid/content/Context;)I",
+        ".method public static getWifiManager(Landroid/content/Context;)Landroid/net/wifi/WifiManager;",
+        ".method public static isActiveNetworkisCellular(Landroid/content/Context;)Z",
+        ".method public static isAutoHotspotSetOn(Landroid/content/Context;)Z",
+        ".method public static isBandSeekBarUxSupported(Landroid/content/Context;)Z",
+        ".method public static isFamilySharingSetOn(Landroid/content/Context;)Z",
+        ".method public static isHotspotNetworkLocked(Lcom/samsung/android/wifi/SemWifiManager;)Z",
+        ".method public static isOtpConnectedClient(Landroid/content/Context;Ljava/lang/String;)Z",
+        ".method public static isOtpPasswordEnabled(Landroid/content/Context;)Z",
+        ".method public static isPrioritizeRealTimeTrafficOn(Landroid/content/Context;)Z",
+        ".method public static isWiFiStateDisablingOrDisabled(Landroid/content/Context;)Z",
+        ".method public static isWifiApStateEnabled(Landroid/content/Context;)Z",
+        ".method public static isWifiApStateEnablingOrEnabled(Landroid/content/Context;)Z",
+        ".method public static resetSoftAp(Landroid/content/Context;)V",
+        ".method public static setAutoHotspotDB(Landroid/content/Context;Z)V",
+        ".method public static setFamilySharingDB(Landroid/content/Context;Z)V",
+        ".method public static setIsHotspotScreenOpened(Landroid/content/Context;Z)V",
+        ".method public static setOtpPasswordEnabled(Landroid/content/Context;Z)V",
+        ".method public static setPrioritizeRealTimeTrafficDB(Landroid/content/Context;Z)V",
+        ".method public static setWiFiEnabledWithAutoRestoreDB(Landroid/content/Context;Z)V",
+        ".method public static setWifiApEnabled(Landroid/content/Context;ZLcom/samsung/android/wifi/SemWifiManager;)V"
+      ]
+    }
+  ]
+}

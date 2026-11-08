@@ -32,7 +32,7 @@ O objetivo é reunir essas adaptações em **um único ZIP completo**, com kerne
 
 ## Migração do doador
 
-O código do próximo build está configurado para **Galaxy S24 FE (SM-S721B/EUX)**. O firmware já foi baixado, extraído e submetido ao diagnóstico de patches, com falhas registradas; isso não valida reconstrução, instalação ou boot. A referência declara API 37, não uma garantia de versão/compatibilidade do pacote Samsung. **O download Alpha 1 continua sendo o build anterior com doador S926B**, não uma ROM S24 FE recompilada. Kernel/vendor do S10, alvo SM-G973F e base de build Artisan permanecem. [Detalhes da migração](docs/S24-FE-MIGRATION.md). [Resultados do diagnóstico](docs/S24-FE-LOGICAL-DEX-RESULTS.md) · [Patches e risco de boot](docs/PATCH-BOOT-CROSS-AUDIT.md).
+O código do próximo build está configurado para **Galaxy S24 FE (SM-S721B/EUX)**. O firmware já foi baixado, extraído e submetido ao diagnóstico de patches, com falhas registradas; isso não valida reconstrução, instalação ou boot. A referência declara API 37, não uma garantia de versão/compatibilidade do pacote Samsung. **O download Alpha 1 continua sendo o build anterior com doador S926B**, não uma ROM S24 FE recompilada. Kernel/vendor do S10, alvo SM-G973F e base de build Artisan permanecem. [Detalhes da migração](docs/S24-FE-MIGRATION.md). [Resultados do diagnóstico](docs/S24-FE-LOGICAL-DEX-RESULTS.md) · [Correções com replay real](docs/S24-FE-SCOPED-FIXES.md) · [Patches e risco de boot](docs/PATCH-BOOT-CROSS-AUDIT.md).
 
 ## Estado da alpha
 

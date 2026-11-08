@@ -1,5 +1,7 @@
 # S24 FE — resultado após correção dos DEX lógicos
 
+> **Registro histórico do diagnóstico completo.** Quatro destas falhas receberam adaptações ativas e passaram posteriormente no replay dos inputs reais. Veja [correções de assinatura, DualAP e SoundPicker](S24-FE-SCOPED-FIXES.md). O diagnóstico completo não foi reexecutado; os números abaixo permanecem os daquela execução.
+
 Diagnóstico [42433286986](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42433286986), código `98128c9`. Coleta concluída com **experimental-with-failures**. A leitura [42437306068](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42437306068) recuperou o relatório do artefato original, sem baixar firmware de novo. [Evidência JSON com resultados individuais e erros limitados aos últimos 600 caracteres](evidence/s24fe-logical-dex-diagnostic.json).
 
 ## Resultado comparado

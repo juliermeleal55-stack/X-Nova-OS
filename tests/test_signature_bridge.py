@@ -40,6 +40,9 @@ class SignatureBridgeTests(unittest.TestCase):
             self.assertIn(certificate(pem)[0],scan.read_text());verify(root,pem,receipt)
             install.write_text(install.read_text().replace('invoke-static','invoke-virtual',1))
             with self.assertRaises(ValueError):verify(root,pem,receipt)
+            install.write_text(install.read_text().replace('invoke-virtual','invoke-static'))
+            scan.write_text(scan.read_text().replace(f'invoke-static {{p0}}, {OWNER}->isSignedWithCustomPlatformKey',f'invoke-virtual {{p0}}, {OWNER}->isSignedWithCustomPlatformKey'))
+            with self.assertRaises(ValueError):verify(root,pem,receipt)
 
     def test_missing_marker_or_changed_policy_fails_without_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:

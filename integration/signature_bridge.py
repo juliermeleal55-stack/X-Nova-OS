@@ -76,7 +76,8 @@ def validate(decoded,cert):
         if normalized(method(text,signature))!=normalized(method(expected,signature)):raise ValueError('Signature bridge contract differs: '+signature)
     if len(re.findall(r'(?m)^\s*invoke-static \{[^}\n]+\}, '+re.escape(f'{OWNER}->setCustomSignatures({ARG}Lcom/android/server/pm/pkg/AndroidPackage;)V'),install.read_text()))!=2:raise ValueError('Missing/duplicate package-scan bridge callers')
     apply_policy=method(text,f'applyPolicy({ARG}ILcom/android/server/pm/pkg/AndroidPackage;Z)V')
-    if apply_policy.count(f'{OWNER}->isSignedWithCustomPlatformKey({ARG})Z')!=1:raise ValueError('Missing/duplicate platform-key policy call')
+    policy_call=f'{OWNER}->isSignedWithCustomPlatformKey({ARG})Z'
+    if apply_policy.count(policy_call)!=1 or len(re.findall(r'(?m)^\s*invoke-static \{[^}\n]+\}, '+re.escape(policy_call),apply_policy))!=1:raise ValueError('Missing/duplicate/nonstatic platform-key policy call')
     return scan,text
 
 
