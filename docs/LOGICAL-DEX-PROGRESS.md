@@ -1,5 +1,7 @@
 # Avanço: decodificação integral de DEX lógico
 
+> Resultado mais recente: [diagnóstico após correção dos DEX lógicos](S24-FE-LOGICAL-DEX-RESULTS.md). Este documento preserva o registro da etapa anterior.
+
 ## Implementado nesta revisão
 
 A hipótese identificada na [análise da Impulse UI9](IMPULSE-UI9-ANALYSIS.md) agora tem uma implementação própria no pipeline ativo:

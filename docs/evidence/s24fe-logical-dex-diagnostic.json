@@ -1,0 +1,470 @@
+{
+  "schema_version": 1,
+  "status": "experimental-with-failures",
+  "modules": 47,
+  "patches": 54,
+  "source_run": 42433286986,
+  "prior_failure_review": {
+    "source_run": 42374299228,
+    "selected_donor": "SM-S721B",
+    "scope": "Executed patch attempts only; not firmware identity or runtime/boot validation",
+    "counts": {
+      "passed": 4,
+      "failed": 15,
+      "not-executed": 0
+    },
+    "patches": [
+      {
+        "patch": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+        "status": "passed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+        "status": "passed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+        "status": "passed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/framework/framework.jar/0002-Introduce-SamsungPropsHooks.patch",
+        "status": "passed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+        "status": "failed",
+        "attempts": 1
+      },
+      {
+        "patch": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+        "status": "failed",
+        "attempts": 1
+      }
+    ]
+  },
+  "failures": [
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-FW_DYNAMIC_RESOLUTION_CONTROL.patch",
+      "status": "failed",
+      "detail": "r: while searching for:\n\n    sput-boolean v5, Lcom/samsung/android/rune/CoreRune;->FW_MULTI_RESOLUTION_POLICY:Z\n\n    sput-boolean v5, Lcom/samsung/android/rune/CoreRune;->FW_DYNAMIC_RESOLUTION_CONTROL:Z\n\n    const-string v2, \"2\"\n\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/framework.jar/smali_classes6/com/samsung/android/rune/CoreRune.smali:2839\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/framework.jar/smali_classes6/com/samsung/android/rune/CoreRune.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+      "status": "failed",
+      "detail": "Expected exactly one Lcom/samsung/android/game/GameManagerService$DisplayListener;; found 0 in /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/gamemanager.jar"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+      "status": "failed",
+      "detail": "apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes3/com/samsung/android/settings/eternal/provider/items/AdvancedFeatureItem.smali:922\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes3/com/samsung/android/settings/eternal/provider/items/AdvancedFeatureItem.smali: patch does not apply\nVerified DEX relocation:\nsmali_classes4/com/samsung/android/settings/eternal/provider/items/AdvancedFeatureItem.smali -> smali_classes3/com/samsung/android/settings/eternal/provider/items/AdvancedFeatureItem.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-And-EAD-Settings.patch",
+      "status": "failed",
+      "detail": "/String;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)Z\n\n    :goto_9\n    invoke-static {}, Landroid/os/FactoryTest;->isFactoryBinary()Z\n\n    move-result v1\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SettingsProvider/SettingsProvider.apk/smali/com/android/providers/settings/SecUpgradeController.smali:1153\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SettingsProvider/SettingsProvider.apk/smali/com/android/providers/settings/SecUpgradeController.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+      "status": "failed",
+      "detail": "pktool/system_ext/priv-app/SystemUI/SystemUI.apk/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithm.smali: patch does not apply\nChecking patch /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system_ext/priv-app/SystemUI/SystemUI.apk/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithmFactory.smali...\nChecking patch /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system_ext/priv-app/SystemUI/SystemUI.apk/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithmRightCutout.smali...\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+      "status": "failed",
+      "detail": " move-result-object p0\n\n    const-string v1, \"SemSoftApConfiguration\"\n\n    invoke-static {v1, p0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I\n\n    return v0\n.end method\n\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/semwifi-service.jar/smali/com/samsung/android/server/wifi/ap/SemSoftApConfiguration.smali:2469\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/semwifi-service.jar/smali/com/samsung/android/server/wifi/ap/SemSoftApConfiguration.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+      "status": "failed",
+      "detail": "roid/settings/wifi/mobileap/utils/WifiApFrameworkUtils.smali:621\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes4/com/samsung/android/settings/wifi/mobileap/utils/WifiApFrameworkUtils.smali: patch does not apply\nVerified DEX relocation:\nsmali_classes2/com/android/settings/Utils.smali -> smali/com/android/settings/Utils.smali\nsmali_classes3/com/samsung/android/settings/wifi/mobileap/utils/WifiApFrameworkUtils.smali -> smali_classes4/com/samsung/android/settings/wifi/mobileap/utils/WifiApFrameworkUtils.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "status": "failed",
+      "detail": "g/CharSequence;)Z\n\n    move-result p0\n\n    if-eqz p0, :cond_1\n\n    :cond_0\n    const/4 p0, 0x1\n\n    goto :goto_0\n\n    :cond_1\n    const/4 p0, 0x0\n\n    :goto_0\n    return p0\n.end method\n\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSoundPicker/SecSoundPicker.apk/smali/com/samsung/android/secsoundpicker/util/Utils.smali:1547\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSoundPicker/SecSoundPicker.apk/smali/com/samsung/android/secsoundpicker/util/Utils.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "status": "failed",
+      "detail": "arching for:\n    return-object v0\n.end method\n\n.method public static applyPolicy(Lcom/android/internal/pm/parsing/pkg/ParsedPackage;ILcom/android/server/pm/pkg/AndroidPackage;Z)V\n    .locals 5\n\n    const/high16 v0, 0x10000\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/android/server/pm/ScanPackageUtils.smali:179\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/android/server/pm/ScanPackageUtils.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "status": "failed",
+      "detail": "pace/out/target/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes3/com/samsung/android/settings/accessibility/SecAccessibilityUtils.smali:1472\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes3/com/samsung/android/settings/accessibility/SecAccessibilityUtils.smali: patch does not apply\nVerified DEX relocation:\nsmali_classes4/com/samsung/android/settings/accessibility/SecAccessibilityUtils.smali -> smali_classes3/com/samsung/android/settings/accessibility/SecAccessibilityUtils.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "status": "failed",
+      "detail": "r: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system_ext/priv-app/SystemUI/SystemUI.apk/smali_classes3/com/android/systemui/qs/tiles/ReduceBrightColorsTile.smali:455\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system_ext/priv-app/SystemUI/SystemUI.apk/smali_classes3/com/android/systemui/qs/tiles/ReduceBrightColorsTile.smali: patch does not apply\nVerified DEX relocation:\nsmali_classes2/com/android/systemui/qs/tiles/ReduceBrightColorsTile.smali -> smali_classes3/com/android/systemui/qs/tiles/ReduceBrightColorsTile.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+      "status": "failed",
+      "detail": "m/samsung/android/security/keystore/AttestParameterSpec;->mVerifiableIntegrity:Z\n\n    iput-boolean p3, p0, Lcom/samsung/android/security/keystore/AttestParameterSpec;->mSAKUidRequired:Z\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/samsung/android/security/keystore/AttestParameterSpec.smali:53\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/samsung/android/security/keystore/AttestParameterSpec.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "status": "failed",
+      "detail": "eImpl;->isRegionFor5GCountry()Z\n\n    move-result p0\n\n    if-eqz p0, :cond_2\n\n    return v1\n\n    :cond_2\n    :goto_0\n    return v2\n.end method\n\n.method public supportWifiAp6GBasedOnCountry()Z\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/semwifi-service.jar/smali/com/samsung/android/server/wifi/ap/SemWifiApServiceImpl.smali:12029\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/semwifi-service.jar/smali/com/samsung/android/server/wifi/ap/SemWifiApServiceImpl.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "status": "failed",
+      "detail": "2, :cond_2\n\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/android/server/locksettings/SyntheticPasswordManager.smali:908\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/android/server/locksettings/SyntheticPasswordManager.smali: patch does not apply\nVerified DEX relocation:\nsmali/com/android/server/locksettings/SyntheticPasswordManager.smali -> smali_classes2/com/android/server/locksettings/SyntheticPasswordManager.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+      "status": "failed",
+      "detail": "ckageHelper.smali...\nerror: while searching for:\n\n    move-result v6\n\n    sget v11, Landroid/os/Build$VERSION;->DEVICE_INITIAL_SDK_INT:I\n\n    const/16 v7, 0x23\n\n    if-lt v11, v7, :cond_8\n\n    if-eqz v0, :cond_8\n\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/android/server/pm/InstallPackageHelper.smali:10979\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/services.jar/smali_classes2/com/android/server/pm/InstallPackageHelper.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+      "status": "failed",
+      "detail": "EPHEMERAL_COOKIE_MAX_SIZE_BYTES:I = 0x4000\n\n.field private static final blacklist HAS_SYSTEM_FEATURE_API:Ljava/lang/String; = \"has_system_feature\"\n\n.field private static final blacklist LIVE_ICON_SUFFIX:Ljava/lang/String; = \".LiveIconLoader\"\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/framework.jar/smali/android/app/ApplicationPackageManager.smali:30\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/framework/framework.jar/smali/android/app/ApplicationPackageManager.smali: patch does not apply\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "status": "failed",
+      "detail": "system/priv-app/SecSettings/SecSettings.apk/smali_classes2/com/android/settings/password/ChooseLockPassword$ChooseLockPasswordFragment.smali:2309\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes2/com/android/settings/password/ChooseLockPassword$ChooseLockPasswordFragment.smali: patch does not apply\nVerified DEX relocation:\nsmali/com/android/settings/password/ChooseLockPassword$ChooseLockPasswordFragment.smali -> smali_classes2/com/android/settings/password/ChooseLockPassword$ChooseLockPasswordFragment.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+      "status": "failed",
+      "detail": "/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes3/com/samsung/android/settings/navigationbar/NavigationBarSettingsUtil.smali:119\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SecSettings/SecSettings.apk/smali_classes3/com/samsung/android/settings/navigationbar/NavigationBarSettingsUtil.smali: patch does not apply\nVerified DEX relocation:\nsmali_classes4/com/samsung/android/settings/navigationbar/NavigationBarSettingsUtil.smali -> smali_classes3/com/samsung/android/settings/navigationbar/NavigationBarSettingsUtil.smali\n"
+    },
+    {
+      "kind": "patch",
+      "patch": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+      "status": "failed",
+      "detail": ".apk/smali/com/android/providers/settings/SecUpgradeController.smali...\nerror: while searching for:\n\n    move-result p0\n\n    const/4 v0, 0x0\n\n    if-eqz p0, :cond_b\n\n\nerror: patch failed: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SettingsProvider/SettingsProvider.apk/smali/com/android/providers/settings/SecUpgradeController.smali:4574\nerror: /home/runner/work/_temp/beyoud-workspace/out/target/beyond1lte/apktool/system/priv-app/SettingsProvider/SettingsProvider.apk/smali/com/android/providers/settings/SecUpgradeController.smali: patch does not apply\n"
+    }
+  ],
+  "all_patch_results": [
+    {
+      "patch": "unica/patches/product_feature/fingerprint/framework.jar/0001-Set-mSensorType-to-SENSOR_TYPE_ULTRASONIC.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/fingerprint/services.jar/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/fingerprint/BiometricSetting.apk/0001-Set-FP_FEATURE_SENSOR_IS_OPTICAL-to-false.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/fingerprint/SystemUI.apk/0001-Set-SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL-to-false.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/resolution/framework.jar/0001-Enable-FW_DYNAMIC_RESOLUTION_CONTROL.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/resolution/gamemanager.jar/0001-Enable-dynamic-resolution-control.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/mdnie/hdr/SecSettings.apk/0001-Enable-HDR-Settings.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/mdnie/hdr/SettingsProvider.apk/0001-Enable-HDR-And-EAD-Settings.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/cutout/SystemUI.apk/0001-Add-right-cutout-support.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/strongbox/framework.jar/0001-Disable-StrongBox-in-DevRootKeyATCmd.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/product_feature/wifi/semwifi-service.jar/0002-Disable-Hotspot-WPA3-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/wifi/semwifi-service.jar/0003-Disable-Hotspot-6GHz-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/wifi/SecSettings.apk/0003-Disable-Hotspot-Enhanced-Open.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/audio/SecSettings.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/patches/telecom/0001-Modify-SamsungBluetoothRouteManager.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "platform/exynos9820/patches/extradim/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Remove-device-specific-checks.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "platform/exynos9820/patches/extradim/smali/system_ext/priv-app/SystemUI/SystemUI.apk/0001-Remove-device-specific-checks.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/applock/smali/system/framework/framework.jar/0001-Force-AppLock-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/applock/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Force-AppLock-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/services.jar/0001-Nuke-BlockchainTZService.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/services.jar/0002-Nuke-KnoxGuardService.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/services.jar/0003-Nuke-MPOS-Service.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/services.jar/0004-Nuke-SemService.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/services.jar/0005-Nuke-HDMService.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/knoxsdk.jar/0001-Nuke-Knox-DualDAR-and-HDM-version.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/framework.jar/0001-Disable-SemService.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/framework/framework.jar/0002-Disable-MDF.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Nuke-Knox-DualDAR-version.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Nuke-Knox-HDM-version.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/priv-app/SecSettings/SecSettings.apk/0003-Nuke-eSE-COS-version.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk/0001-Nuke-Knox-DualDAR-and-HDM-version.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/deknox/smali/system_ext/priv-app/StorageManager/StorageManager.apk/0001-Nuke-Knox-DualDAR-and-HDM-version.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/knoxpatch/smali/system/framework/services.jar/0001-Bypass-ICD-verification.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/knoxpatch/smali/system/framework/services.jar/0002-Disable-SAK-in-DarManagerService.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/knoxpatch/smali/system/framework/samsungkeystoreutils.jar/0001-Bypass-ICD-verification.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/knoxpatch/smali/system/framework/knoxsdk.jar/0001-Introduce-SamsungPropsHooks.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/knoxpatch/smali/system/framework/framework.jar/0001-Introduce-SamsungPropsHooks.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/multiuser/smali/system/framework/framework.jar/0001-Enable-multi-user-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/services.jar/0004-Allow-Zipped-Overlay-APKs.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/framework.jar/0001-Allow-unlimited-storage-for-Google-Photos.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/framework/framework.jar/0002-Introduce-SamsungPropsHooks.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0001-Enable-Outdoor-mode-support.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0002-Set-auto-confirm-PIN-min-digits-to-4.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0004-Enable-gestures-by-default.patch",
+      "status": "failed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/priv-app/SecSettings/SecSettings.apk/0005-Add-ExtremeROM-Logo.patch",
+      "status": "passed"
+    },
+    {
+      "patch": "unica/mods/settings/smali/system/priv-app/SettingsProvider/SettingsProvider.apk/0001-Enable-gestures-by-default.patch",
+      "status": "failed"
+    }
+  ],
+  "decode_inventory_log_lines": [
+    "Logical DEX inventory verified: 1 units, 1043 unique classes",
+    "Logical DEX inventory verified: 1 units, 12 unique classes",
+    "Logical DEX inventory verified: 1 units, 136 unique classes",
+    "Logical DEX inventory verified: 1 units, 140 unique classes",
+    "Logical DEX inventory verified: 1 units, 2201 unique classes",
+    "Logical DEX inventory verified: 1 units, 280 unique classes",
+    "Logical DEX inventory verified: 1 units, 4586 unique classes",
+    "Logical DEX inventory verified: 1 units, 469 unique classes",
+    "Logical DEX inventory verified: 1 units, 5160 unique classes",
+    "Logical DEX inventory verified: 1 units, 5385 unique classes",
+    "Logical DEX inventory verified: 1 units, 6884 unique classes",
+    "Logical DEX inventory verified: 2 units, 11365 unique classes",
+    "Logical DEX inventory verified: 2 units, 18871 unique classes",
+    "Logical DEX inventory verified: 3 units, 21044 unique classes",
+    "Logical DEX inventory verified: 4 units, 36370 unique classes",
+    "Logical DEX inventory verified: 5 units, 64540 unique classes",
+    "Logical DEX inventory verified: 7 units, 43513 unique classes"
+  ],
+  "source_commit": "98128c928c75fa5f895f495e8d9120ebbca0e07e",
+  "reader_run": 42437306068,
+  "scope": "Completed donor patch diagnostic; bounded error excerpts recovered from original artifact; no APK/JAR reconstruction or boot validation"
+}

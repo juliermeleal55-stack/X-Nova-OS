@@ -1,5 +1,7 @@
 # Resultados reais — diagnóstico S24 FE
 
+> Resultado mais recente: [diagnóstico após correção dos DEX lógicos](S24-FE-LOGICAL-DEX-RESULTS.md). Este documento preserva o registro da etapa anterior.
+
 Execução [42419957346](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42419957346), código c3b6b4842408696ed6f722c79b4de9502e7381eb. Relatório recuperado do artefato original pelas leituras 42431093976/42431154284, sem nova compilação ou download de firmware.
 
 ## Resultado global
