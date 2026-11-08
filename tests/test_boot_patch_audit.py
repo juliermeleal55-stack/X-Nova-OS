@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from integration.smali_patch import apply
-from scripts.replay_upstream_candidates import replay
+from scripts.replay_upstream_candidates import replay, fixed_boolean
 
 ROOT=Path(__file__).resolve().parents[1]
 KEY='unica/mods/settings/smali/system/framework/services.jar/0002-Allow-app-downgrade.patch'
@@ -39,7 +39,7 @@ class BootPatchAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'patch-preflight.json').write_text(json.dumps({'events':[]}))
             result=replay(root)
-            self.assertEqual(len(result['results']),8)
+            self.assertEqual(len(result['results']),9)
             self.assertTrue(all(x['status']=='unavailable' for x in result['results']))
 
     def test_upstream_replay_requires_exact_hash_and_checks_context(self):
@@ -61,3 +61,9 @@ class BootPatchAuditTests(unittest.TestCase):
                 (captured/'snapshot.smali').write_text(source+'# changed\n')
                 self.assertEqual(replay(captured)['results'][0]['status'],'unavailable')
             self.assertEqual((captured/'snapshot.smali').read_text(),source+'# changed\n')
+
+    def test_boolean_proof_rejects_assumed_or_overwritten_register(self):
+        text='.method static constructor <clinit>()V\n.locals 4\nconst/4 v3, 0x0\nif-eqz v0, :end\n:end\nsput-boolean v3, Lp/A;->FLAG:Z\nreturn-void\n.end method\n'
+        self.assertIs(fixed_boolean(text,'FLAG'),False)
+        self.assertEqual(fixed_boolean(text.replace(':end\nsput',':end\nmove-result v3\nsput'),'FLAG'),'unknown')
+        self.assertEqual(fixed_boolean(text.replace('const/4 v3, 0x0','const/4 v2, 0x0'),'FLAG'),'unknown')

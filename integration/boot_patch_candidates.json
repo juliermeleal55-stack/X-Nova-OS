@@ -38,5 +38,10 @@
     "id": "pin-service",
     "original_patch": "unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch",
     "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/services.jar/0003-Set-auto-confirm-PIN-min-digits-to-4.patch"
+  },
+  {
+    "id": "hotspot-country",
+    "original_patch": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+    "candidate": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch"
   }
 ]

@@ -79,6 +79,12 @@
           "sha": "49da53cccac1c898960dc8a60457cb14c33bc0cc"
         },
         {
+          "path": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+          "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+          "size": 3670,
+          "sha": "3b7ff156e3a9cc890f75271e69e6d731a629d8b0"
+        },
+        {
           "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
           "reference": "reference/boot-patch-audit/artisan/unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
           "size": 5264,
@@ -281,6 +287,12 @@
           "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/customize.sh",
           "size": 1442,
           "sha": "fae111b16181b2f8d2b1ba58b85c15e5c15faf55"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+          "reference": "reference/boot-patch-audit/extreme/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+          "size": 1981,
+          "sha": "e71d90898e62f3b6377c7d36cacf5f983d179c9d"
         },
         {
           "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",
@@ -491,6 +503,12 @@
           "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/customize.sh",
           "size": 1588,
           "sha": "d98111a413f7dce2018afcdab1d4f785aebbb39b"
+        },
+        {
+          "path": "unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+          "reference": "reference/boot-patch-audit/onerom/unica/mods/settings/smali/system/framework/semwifi-service.jar/0001-Disable-5GHz-Hotspot-Country-Check.patch",
+          "size": 3893,
+          "sha": "21f5620839cef49085decebd9bae47f547cb8b1d"
         },
         {
           "path": "unica/mods/settings/smali/system/framework/services.jar/0001-Allow-secure-screenshot.patch",

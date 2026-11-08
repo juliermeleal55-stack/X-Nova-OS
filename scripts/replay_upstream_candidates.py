@@ -14,6 +14,43 @@ from integration.smali_paths import resolve
 ROOT=Path(__file__).resolve().parents[1]
 
 
+def fixed_boolean(text, field):
+    """Prove an unchanged constant from the entry block; otherwise unknown.
+
+    Reject any other write to the register before the field store. No CFG/value
+    inference across branches or arbitrary donor register-number assumptions.
+    """
+    methods=re.findall(r'(?ms)^\.method [^\n]*<clinit>\(\)V\n(.*?)^\.end method',text)
+    if len(methods)!=1:return 'unknown'
+    body=methods[0]
+    stores=list(re.finditer(r'(?m)^\s*sput-boolean ([vp][0-9]+), L[^;]+;->'+re.escape(field)+r':Z\s*$',body))
+    if len(stores)!=1:return 'unknown'
+    register=stores[0][1];lines=body[:stores[0].start()].splitlines()
+    branch=next((i for i,line in enumerate(lines) if re.match(r'^(?::|if-|goto|packed-switch|sparse-switch|return|throw)',line.strip())),len(lines))
+    writers=[]
+    for i,line in enumerate(lines):
+        line=line.strip()
+        if not line or line.startswith(('.',':','#')):continue
+        if re.match(r'^(?:invoke-|filled-new-array|if-|goto|[ais]put|monitor-|return|throw|packed-switch|sparse-switch|fill-array-data|nop)',line):continue
+        if re.match(r'^\S+ '+register+r'(?:,|$)',line):writers.append((i,line))
+    if not writers or writers[0][0]>=branch:return 'unknown'
+    constants=[re.fullmatch(r'const/(?:4|16) '+register+r', (0x[01])',line) for _,line in writers]
+    if not all(constants) or len({m[1] for m in constants})!=1:return 'unknown'
+    return constants[0][1]=='0x1'
+
+
+def fingerprint_facts(decoded, spec):
+    if spec['id'] not in ('fingerprint-service','fingerprint-systemui'):return None
+    if spec['id']=='fingerprint-service':
+        target='smali/com/android/server/biometrics/SemBiometricFeature.smali'
+        fields=['FP_FEATURE_SENSOR_IS_IN_DISPLAY_TYPE','FP_FEATURE_SENSOR_IS_OPTICAL']
+    else:
+        target='smali/com/android/systemui/LsRune.smali'
+        fields=['SECURITY_FINGERPRINT_IN_DISPLAY','SECURITY_FINGERPRINT_IN_DISPLAY_OPTICAL']
+    text=resolve(decoded,target).read_text()
+    return {field:fixed_boolean(text,field) for field in fields}
+
+
 def replay(artifacts):
     reports=list(artifacts.rglob('patch-preflight.json'))
     if len(reports)!=1:raise ValueError('Expected exactly one donor patch report')
@@ -50,7 +87,10 @@ def replay(artifacts):
             except ValueError:
                 item['reason']='Candidate needs additional/absent class input';continue
             patch=workspace/'candidate.patch';patch.write_text(raw)
+            before=fingerprint_facts(decoded,spec)
             result,_=apply(workspace,decoded,patch)
+            if before is not None and result.returncode==0:
+                item['constant_evidence']={'before':before,'after':fingerprint_facts(decoded,spec)}
             item['status']='applied-to-retained-input' if result.returncode==0 else 'rejected'
             item['reason']='Strict git apply; original input hashes matched' if result.returncode==0 else 'Candidate context rejected by strict apply'
     return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=42419957346,results=results)

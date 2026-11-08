@@ -19,7 +19,7 @@ jobs:
           run-id: 42419957346
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/retained-inputs
-      - name: Test exact captured classes, no firmware or kernel build
+      - name: Test nine candidates and constant provenance, no firmware or kernel build
         run: python3 scripts/replay_upstream_candidates.py "$RUNNER_TEMP/retained-inputs"
       - uses: actions/upload-artifact@v4
         with:
