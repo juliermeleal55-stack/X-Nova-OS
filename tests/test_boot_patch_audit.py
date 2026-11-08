@@ -39,7 +39,7 @@ class BootPatchAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'patch-preflight.json').write_text(json.dumps({'events':[]}))
             result=replay(root)
-            self.assertEqual(len(result['results']),15)
+            self.assertEqual(len(result['results']),16)
             self.assertTrue(all(x['status']=='unavailable' for x in result['results']))
 
     def test_upstream_replay_requires_exact_hash_and_checks_context(self):

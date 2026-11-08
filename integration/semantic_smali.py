@@ -32,6 +32,23 @@ def method_return(text, signature, value, static, absent_if_unreferenced=False):
     return text[:m.start()]+m[1]+'\n'+code+'.end method'+text[m.end():]
 
 
+def method_instruction(text, signature, static, digest, old, new):
+    """One instruction in an exact donor method; no register/label inference."""
+    pattern=re.compile(r'(?ms)^\.method [^\n]* '+re.escape(signature)+r'\n.*?^\.end method[^\n]*')
+    matches=list(pattern.finditer(text))
+    if len(matches)!=1:raise ValueError('Missing/ambiguous instruction method '+signature)
+    m=matches[0];body=m[0];flags=body.splitlines()[0].split()
+    if ('static' in flags)!=static or 'native' in flags or 'abstract' in flags:raise ValueError('Unexpected instruction method modifiers')
+    normalized='\n'.join(line.strip() for line in body.splitlines() if line.strip())
+    if hashlib.sha256(normalized.encode()).hexdigest()!=digest:raise ValueError('Instruction method differs from inspected donor')
+    if not all(re.fullmatch(r'move v[0-9]+, v[0-9]+',code) for code in (old,new)):raise ValueError('Unsupported instruction edit')
+    lines=body.splitlines(keepends=True)
+    positions=[i for i,line in enumerate(lines) if line.strip()==old]
+    if len(positions)!=1:raise ValueError('Missing/ambiguous donor instruction')
+    i=positions[0];lines[i]=lines[i].replace(old,new)
+    return text[:m.start()]+''.join(lines)+text[m.end():]
+
+
 def force_applock(text):
     matches=list(re.finditer(r'(?ms)^\.method [^\n]*<clinit>\(\)V\n.*?^\.end method',text))
     if len(matches)!=1:raise ValueError('Expected one CoreRune static initializer')
@@ -66,7 +83,7 @@ def force_boolean_fields(text, fields):
     if len(locals_)!=1 or int(locals_[0][2])>255:raise ValueError('Unsupported boolean local register budget')
     patterns={}
     for field in fields:
-        if not re.fullmatch('[A-Z][A-Z0-9_]*',field):raise ValueError('Unexpected boolean field name')
+        if not re.fullmatch('[A-Za-z_][A-Za-z0-9_]*',field):raise ValueError('Unexpected boolean field name')
         declarations=re.findall(r'(?m)^\.field [^\n]* '+re.escape(field)+r':Z(?: = [^\n]+)?$',text)
         pattern=re.compile(r'(?m)^\s*sput-boolean [vp][0-9]+, '+re.escape(owner)+'->'+field+r':Z\s*$')
         if len(declarations)!=1 or len(list(pattern.finditer(body)))!=1:raise ValueError('Missing/ambiguous boolean field '+field)
@@ -97,7 +114,11 @@ def plan(workspace, decoded, patch):
             text=force_boolean_fields(text,item['booleans'])
         else:
             for change in item['methods']:
-                text=method_return(text,change['signature'],change['value'],change['static'],change.get('absent_if_unreferenced',False))
+                if 'instruction' in change:
+                    edit=change['instruction']
+                    text=method_instruction(text,change['signature'],change['static'],edit['method_sha256'],edit['old'],edit['new'])
+                else:
+                    text=method_return(text,change['signature'],change['value'],change['static'],change.get('absent_if_unreferenced',False))
         targets[path]=text
     # Caller validates every class before committing any of them.
     return targets

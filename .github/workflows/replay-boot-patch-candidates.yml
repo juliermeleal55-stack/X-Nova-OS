@@ -19,7 +19,7 @@ jobs:
           run-id: 42433286986
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/retained-inputs
-      - name: Verify scoped fixes and inspect paired DualAP methods on retained inputs
+      - name: Verify scoped signature and paired DualAP UI/service fixes on retained inputs
         run: python3 scripts/replay_upstream_candidates.py "$RUNNER_TEMP/retained-inputs" 42433286986
       - uses: actions/upload-artifact@v4
         with:

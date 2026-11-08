@@ -104,3 +104,27 @@ class SignatureBridgeTests(unittest.TestCase):
             result=subprocess.run(['bash','-c',harness+'guard() {\n'+overlay[begin:end]+'\n}; guard','test',str(workspace)],capture_output=True,text=True)
             self.assertNotEqual(result.returncode,0);self.assertNotIn('SIGNING_REACHED',result.stdout)
             self.assertIn('receipt',result.stderr.lower())
+
+    def test_instruction_edit_preserves_threshold_country_checks_and_registers(self):
+        import hashlib
+        from integration.semantic_smali import method_instruction
+        method='.method public static band(Landroid/content/Context;)Z\n.locals 3\nconst/4 v1, 0x2\nconst/4 v2, 0x1\nmove v0, v1\ninvoke-virtual {p0}, Lp/Manager;->supportWifiAp5GBasedOnCountry()Z\nmove-result v0\nif-le v0, v1, :no\nreturn v2\n:no\nreturn v0\n.end method'
+        digest=hashlib.sha256(method.encode()).hexdigest()
+        result=method_instruction(method,'band(Landroid/content/Context;)Z',True,digest,'move v0, v1','move v0, v2')
+        self.assertEqual(result,method.replace('move v0, v1','move v0, v2'))
+        for changed in [method.replace('.locals 3','.locals 4'),method.replace('if-le','if-lt')]:
+            with self.assertRaises(ValueError):method_instruction(changed,'band(Landroid/content/Context;)Z',True,digest,'move v0, v1','move v0, v2')
+
+    def test_dualap_ui_class_pair_is_atomic_when_donor_method_changed(self):
+        from integration.smali_patch import apply
+        key='unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch'
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace=Path(tmp);decoded=workspace/'decoded';base=decoded/'smali'
+            utils=base/'com/android/settings/Utils.smali';utils.parent.mkdir(parents=True)
+            utils.write_text('.class public Lcom/android/settings/Utils;\n.super Ljava/lang/Object;\n.field public static final SPF_SupportMobileApDualAp:Z\n.method static constructor <clinit>()V\n.locals 3\nconst/4 v0, 0x1\nsput-boolean v0, Lcom/android/settings/Utils;->SPF_SupportMobileApDualAp:Z\nreturn-void\n.end method\n')
+            wifi=base/'com/samsung/android/settings/wifi/mobileap/utils/WifiApFrameworkUtils.smali';wifi.parent.mkdir(parents=True)
+            wifi.write_text('.class public Lcom/samsung/android/settings/wifi/mobileap/utils/WifiApFrameworkUtils;\n.super Ljava/lang/Object;\n.method public static isBandSeekBarUxSupported(Landroid/content/Context;)Z\n.locals 1\nconst/4 v0, 0x1\nreturn v0\n.end method\n')
+            patch=workspace/key;patch.parent.mkdir(parents=True);shutil.copyfile(ROOT.parent/'reference/boot-patch-audit/artisan'/key,patch)
+            before=utils.read_bytes(),wifi.read_bytes();result,_=apply(workspace,decoded,patch)
+            self.assertNotEqual(result.returncode,0);self.assertEqual((utils.read_bytes(),wifi.read_bytes()),before)
+            self.assertIn('inspected donor',result.stderr)

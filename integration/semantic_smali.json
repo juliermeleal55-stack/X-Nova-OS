@@ -220,5 +220,30 @@
         ]
       }
     ]
+  },
+  "unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch": {
+    "sha": "a912e67997eb96dcb103d636d1467c0b58a1fbbd",
+    "classes": [
+      {
+        "path": "smali/com/android/settings/Utils.smali",
+        "booleans": {
+          "SPF_SupportMobileApDualAp": false
+        }
+      },
+      {
+        "path": "smali/com/samsung/android/settings/wifi/mobileap/utils/WifiApFrameworkUtils.smali",
+        "methods": [
+          {
+            "signature": "isBandSeekBarUxSupported(Landroid/content/Context;)Z",
+            "static": true,
+            "instruction": {
+              "method_sha256": "96b7018094dc7cc143d5c665bf90b4ecc1b60ccb3cbcd0467460476711103b4b",
+              "old": "move v0, v1",
+              "new": "move v0, v2"
+            }
+          }
+        ]
+      }
+    ]
   }
 }
