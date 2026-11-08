@@ -35,9 +35,10 @@ jobs:
           summary['all_patch_results']=[{k:e.get(k) for k in ('patch','status')} for e in report['events'] if e.get('kind')=='patch']
           summary['decode_inventory_log_lines']=sorted(set(line.strip() for log in Path(os.environ['DIAG_ROOT']).rglob('*.log') for line in log.read_text(errors='replace').splitlines() if 'Logical DEX inventory verified:' in line))
           text=json.dumps(summary,ensure_ascii=False)
-          for i in range(0,len(text),12000):
-              chunk=text[i:i+12000].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
-              print(f'::notice title=Tolerated-review-{i//12000}::{chunk}')
+          if len(text)>28000:raise SystemExit("Bounded review exceeds ten annotation chunks")
+          for i in range(0,len(text),2800):
+              chunk=text[i:i+2800].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+              print(f'::notice title=Tolerated-review-{i//2800}::{chunk}')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'w') as stream:
               stream.write('# Actual failures from previous donor\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
           PY
