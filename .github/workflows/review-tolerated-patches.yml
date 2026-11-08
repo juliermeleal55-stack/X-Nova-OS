@@ -15,7 +15,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: beyond1lte-alpha-build-diagnostics
-          run-id: 42419957346
+          run-id: 42433286986
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/prior-alpha
       - name: Report all actual tolerated failures without rebuilding ROM
@@ -29,13 +29,15 @@ jobs:
           if len(reports)!=1:raise SystemExit('Expected exactly one original preflight report')
           report=json.loads(reports[0].read_text())
           summary={k:report[k] for k in ('schema_version','status','modules','patches')}
-          summary['source_run']=42419957346
+          summary['source_run']=42433286986
           summary['prior_failure_review']=report.get('prior_failure_review')
           summary['failures']=[{k:v for k,v in e.items() if k in ('kind','patch','module','status')} | {'detail':e.get('detail','')[-600:]} for e in report['failures']]
+          summary['all_patch_results']=[{k:e.get(k) for k in ('patch','status')} for e in report['events'] if e.get('kind')=='patch']
+          summary['decode_inventory_log_lines']=sorted(set(line.strip() for log in Path(os.environ['DIAG_ROOT']).rglob('*.log') for line in log.read_text(errors='replace').splitlines() if 'Logical DEX inventory verified:' in line))
           text=json.dumps(summary,ensure_ascii=False)
-          for i in range(0,len(text),2800):
-              chunk=text[i:i+2800].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
-              print(f'::notice title=Tolerated-review-{i//2800}::{chunk}')
+          for i in range(0,len(text),12000):
+              chunk=text[i:i+12000].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+              print(f'::notice title=Tolerated-review-{i//12000}::{chunk}')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'w') as stream:
               stream.write('# Actual failures from previous donor\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
           PY
