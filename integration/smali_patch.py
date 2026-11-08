@@ -103,6 +103,18 @@ def apply(workspace, decoded, patch):
             result=subprocess.CompletedProcess(['semantic_smali'],0,'Verified pinned semantic equivalent: '+str(patch)+'\n','')
             result.input_hashes=inputs
             return result,list(semantic)
+        # A security-scoped replacement must not fall back to the broader legacy
+        # policy just because the legacy hunks happen to fit another donor.
+        registry=json.loads(Path(__file__).with_name('rebased_smali.json').read_text())
+        key=str(patch.resolve().relative_to(workspace.resolve()))
+        preferred=registry.get(key,{})
+        if preferred.get('preferred'):
+            raw=patch.read_bytes()
+            digest=lambda b:hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+            if digest(raw)!=preferred['legacy_sha']:raise ValueError('Preferred legacy patch hash changed')
+            data=(Path(__file__).parent/preferred['file']).read_bytes()
+            if digest(data)!=preferred['sha']:raise ValueError('Preferred rebase hash changed')
+            return apply_text(workspace,decoded,data.decode())
         try:
             result,targets=apply_text(workspace,decoded,patch.read_text())
         except (OSError,ValueError) as exc:

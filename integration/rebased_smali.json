@@ -18,5 +18,11 @@
     "legacy_sha": "8bc98f4faf65127b0514edbf2f96d8712ea794ce",
     "file": "rebased-patches/0005-Nuke-HDMService.patch",
     "sha": "fe7245f497b309e8d374af310184c6c66ffea32e"
+  },
+  "unica/patches/signature/0001-Allow-custom-platform-signature.patch": {
+    "legacy_sha": "ffbe361238cf605ebcc890ac63659f998d273e18",
+    "file": "rebased-patches/0001-Scoped-platform-signature.patch",
+    "sha": "252364537f92af9d645f0c6883409c33f0836b78",
+    "preferred": true
   }
 }

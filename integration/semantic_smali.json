@@ -190,5 +190,35 @@
         }
       }
     ]
+  },
+  "unica/patches/product_feature/wifi/semwifi-service.jar/0001-Disable-DualAP-support.patch": {
+    "sha": "cea0ea29a6bda671b63d30c2d61c3f9252a4eb7a",
+    "classes": [
+      {
+        "path": "smali/com/samsung/android/server/wifi/ap/SemSoftApConfiguration.smali",
+        "methods": [
+          {
+            "signature": "isWifiApEnabledWithDualBand()Z",
+            "value": "false",
+            "static": false
+          }
+        ]
+      }
+    ]
+  },
+  "unica/patches/product_feature/audio/SecSoundPicker.apk/0001-Disable-Virtual-Vibration-support.patch": {
+    "sha": "ec7c48fa04bd3d827e9db89f7678b2ccdf091758",
+    "classes": [
+      {
+        "path": "smali/com/samsung/android/secsoundpicker/util/Utils.smali",
+        "methods": [
+          {
+            "signature": "isShowVibrateWhileRingingView(Ljava/lang/String;)Z",
+            "value": "false",
+            "static": true
+          }
+        ]
+      }
+    ]
   }
 }

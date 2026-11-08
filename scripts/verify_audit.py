@@ -97,6 +97,13 @@ def verify():
         path=ROOT/entry['reference']
         if not path.resolve().is_relative_to((ROOT/'reference/impulse-ui9').resolve()):raise ValueError('Unsafe Impulse evidence path')
         blob(path,entry);count+=1
+    signature=json.loads((ROOT/'manifests/signature-bridge.json').read_text())
+    for pathkey,hashkey in (('upstream_reference','upstream_blob'),('installed','installed_blob')):
+        path=ROOT/signature[pathkey]
+        if not path.resolve().is_relative_to(ROOT):raise ValueError('Unsafe signature evidence path')
+        raw=path.read_bytes()
+        if hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=signature[hashkey]:raise ValueError('Signature bridge provenance changed')
+        count+=1
     return count
 
 

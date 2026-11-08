@@ -1,0 +1,10 @@
+{
+  "com.android.systemui": ["/system/system_ext/priv-app/SystemUI/SystemUI.apk", "/system_ext/priv-app/SystemUI/SystemUI.apk"],
+  "com.samsung.accessibility": ["/system/priv-app/Accessibility/Accessibility.apk"],
+  "com.samsung.android.biometrics.app.setting": ["/system/priv-app/BiometricSetting/BiometricSetting.apk"],
+  "com.samsung.android.sead": ["/system/priv-app/EnvironmentAdaptiveDisplay/EnvironmentAdaptiveDisplay.apk"],
+  "com.android.settings": ["/system/priv-app/SecSettings/SecSettings.apk"],
+  "com.android.providers.settings": ["/system/priv-app/SettingsProvider/SettingsProvider.apk"],
+  "com.sec.android.app.camera": ["/system/priv-app/SamsungCamera/SamsungCamera.apk"],
+  "com.samsung.android.secsoundpicker": ["/system/priv-app/SecSoundPicker/SecSoundPicker.apk"]
+}

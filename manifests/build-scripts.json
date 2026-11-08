@@ -181,6 +181,11 @@
       "path": "scripts/internal/create_work_dir.sh",
       "size": 8908,
       "sha": "5fa53805b700160cb2d1415e75122d1db892273b"
+    },
+    {
+      "path": "unica/patches/signature/customize.sh",
+      "sha": "7da2cbf1b2ccb75ffc060bd72d926951b7c72944",
+      "size": 468
     }
   ]
 }

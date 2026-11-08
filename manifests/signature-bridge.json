@@ -1,0 +1,9 @@
+{
+  "upstream_repository": "TomasULR/ImpulseROM",
+  "upstream_commit": "092fd6aa0abe743591d76cb018191a364aad6eda",
+  "upstream_reference": "reference/impulse-ui9/unica/patches/signature/0001-Allow-custom-platform-signature.patch",
+  "upstream_blob": "7e0af04c587345264958e7a106f49f430e872e9a",
+  "installed": "integration/rebased-patches/0001-Scoped-platform-signature.patch",
+  "installed_blob": "252364537f92af9d645f0c6883409c33f0836b78",
+  "scope": "Scanning and certificate check derived from ImpulseROM; exact package/path policy and recipe/postconditions implemented in X-Nova"
+}

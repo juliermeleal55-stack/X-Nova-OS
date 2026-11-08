@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -95,9 +96,30 @@ def replay(artifacts):
             result,_=apply(workspace,decoded,patch)
             if before is not None and result.returncode==0:
                 item['constant_evidence']={'before':before,'after':fingerprint_facts(decoded,spec)}
+            if spec.get('configure_signature') and result.returncode==0:
+                from integration.signature_bridge import configure, verify
+                pem=workspace/'test-platform.pem'
+                subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(workspace/'test-only.key'),'-out',str(pem),'-subj','/CN=XNova replay test only','-days','1'],check=True,capture_output=True)
+                try:
+                    receipt=workspace/'signature-receipt.json'
+                    configure(decoded,pem,receipt);verify(decoded,pem,receipt)
+                    item['configuration']='exact policy, certificate insertion and callers verified; test-only certificate'
+                except (OSError,ValueError,subprocess.SubprocessError) as exc:
+                    result.returncode=1;item['configuration']='rejected: '+str(exc)
             item['status']='applied-to-retained-input' if result.returncode==0 else 'rejected'
             item['reason']=('Pinned integration adaptation; original input hashes matched' if spec.get('mode')=='integration' else 'Strict git apply; original input hashes matched') if result.returncode==0 else 'Candidate rejected by strict application guards'
-    return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=None,results=results)
+    inspection=[]
+    # Read-only method context for the next paired UI/backend rebase. Only
+    # snapshots whose hashes match the original event are inspected.
+    for event in report['events']:
+        if event.get('patch')!='unica/patches/product_feature/wifi/SecSettings.apk/0001-Disable-DualAP-support.patch':continue
+        for name,digest in event.get('inputs',{}).items():
+            source=sources.get(digest)
+            if source is None or not name.endswith('WifiApFrameworkUtils.smali'):continue
+            methods=re.findall(r'(?ms)^\.method [^\n]*\n.*?^\.end method',source.read_text())
+            selected=[m for m in methods if re.search(r'const/4 [vp][0-9]+, 0x2',m) and ')I' in m.splitlines()[0]]
+            inspection.append(dict(class_name='WifiApFrameworkUtils',band_method_headers=[m.splitlines()[0] for m in methods if re.search('Band|Dual',m.splitlines()[0],re.I)],small_integer_methods=[m for m in selected if len(m)<=4000][:2]))
+    return dict(scope='Exact retained diagnostic inputs only; NOT assembly/runtime/boot validation',source_run=None,results=results,inspection=inspection)
 
 
 if __name__=='__main__':

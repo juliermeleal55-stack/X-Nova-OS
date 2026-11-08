@@ -37,6 +37,10 @@ python3 "$SRC_DIR/integration/corerune.py" "$APKTOOL_DIR/system/framework/framew
 '''
     (workspace / CUSTOMIZE).write_bytes(original_script + addition.encode())
     # Removed ONLY after the replacement was installed. This is not a skipped fix.
+    signature=Path('unica/patches/signature/customize.sh')
+    expected=ROOT/'reference/boot-patch-audit/artisan'/signature
+    if (workspace/signature).read_bytes()!=expected.read_bytes():raise ValueError('Unexpected signature recipe')
+    (workspace/signature).write_text((ROOT/'integration/artisan/signature.sh').read_text())
     (workspace / APKTOOL).write_text(apktool)
     (workspace / PRODUCT).write_text(product)
     (workspace / HFR_PATCH).unlink()

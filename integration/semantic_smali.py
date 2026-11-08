@@ -10,7 +10,7 @@ SPECS = Path(__file__).with_name('semantic_smali.json')
 
 
 def method_return(text, signature, value, static, absent_if_unreferenced=False):
-    expected={'null':'Ljava/lang/String;','true':'Z','void':'V'}.get(value)
+    expected={'null':'Ljava/lang/String;','true':'Z','false':'Z','void':'V'}.get(value)
     if expected is None or not signature.endswith(')'+expected):raise ValueError('Unexpected return contract')
     pattern=re.compile(r'(?ms)^(\.method ([^\n]* )?'+re.escape(signature)+r')\n(.*?)^\.end method[^\n]*')
     matches=list(pattern.finditer(text))
@@ -27,7 +27,7 @@ def method_return(text, signature, value, static, absent_if_unreferenced=False):
     if value=='void':code='    .locals 0\n'+annotations+'\n    return-void\n'
     else:
         opcode='return-object' if value=='null' else 'return'
-        constant='0x0' if value=='null' else '0x1'
+        constant='0x1' if value=='true' else '0x0'
         code=f'    .locals 1\n{annotations}\n    const/4 v0, {constant}\n\n    {opcode} v0\n'
     return text[:m.start()]+m[1]+'\n'+code+'.end method'+text[m.end():]
 

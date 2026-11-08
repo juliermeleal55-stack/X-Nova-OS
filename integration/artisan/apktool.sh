@@ -133,6 +133,13 @@ BUILD()
         local CERT_PREFIX="aosp"
         $ROM_IS_OFFICIAL && CERT_PREFIX="extremerom"
 
+        # Never sign modified APKs after a merely "successful" experimental
+        # signature module unless the actual restricted bridge is configured.
+        python3 "$SRC_DIR/integration/signature_bridge.py" verify \
+            "$APKTOOL_DIR/system/framework/services.jar" \
+            "$SRC_DIR/security/${CERT_PREFIX}_platform.x509.pem" \
+            "$SRC_DIR/out/beyoud-logs/platform-signature.json" || exit 1
+
         LOG "- Signing ${INPUT_FILE//$WORK_DIR/}"
         EVAL "signapk \"$SRC_DIR/security/${CERT_PREFIX}_platform.x509.pem\" \"$SRC_DIR/security/${CERT_PREFIX}_platform.pk8\" \"$OUTPUT_PATH/dist/$FILE_NAME\" \"$OUTPUT_PATH/dist/temp.apk\"" || exit 1
         mv -f "$OUTPUT_PATH/dist/temp.apk" "$OUTPUT_PATH/dist/$FILE_NAME"
