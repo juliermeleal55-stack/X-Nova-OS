@@ -125,7 +125,20 @@ def main():
         source=Path(sys.argv[2]);decoded=Path(sys.argv[3]);data=create(source)
         (decoded/MAP).write_text(json.dumps(data,indent=2)+'\n')
         for u in data['units']:print(u['entry']+'\t'+u['smali'])
-    elif action=='verify-decode':verify_decode(Path(sys.argv[2]),Path(sys.argv[3]),Path(sys.argv[4]) if len(sys.argv)>4 else None)
+    elif action=='verify-decode':
+        # Parse headers independently of baksmali before accepting its inventory.
+        sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+        from integration.dex_container_probe import inspect, verify_mapping
+        source=Path(sys.argv[2]);decoded=Path(sys.argv[3])
+        report=verify_mapping(inspect(source),decoded,load(decoded))
+        verify_decode(source,decoded,Path(sys.argv[4]) if len(sys.argv)>4 else None)
+        if len(sys.argv)>4:
+            digest=hashlib.sha256()
+            with source.open('rb') as stream:
+                for chunk in iter(lambda:stream.read(1024*1024),b''):digest.update(chunk)
+            report['source_sha256']=digest.hexdigest()
+            evidence=Path(sys.argv[4]);evidence.mkdir(parents=True,exist_ok=True)
+            (evidence/(source.name+'-'+digest.hexdigest()[:12]+'-independent.json')).write_text(json.dumps(report,indent=2)+'\n')
     elif action=='build-rows':
         for row in build_rows(Path(sys.argv[2])):print('\t'.join(map(str,row)))
     else:raise ValueError('Unknown logical DEX operation')

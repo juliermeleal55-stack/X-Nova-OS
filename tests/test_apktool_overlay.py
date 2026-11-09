@@ -1,4 +1,5 @@
 import json
+import struct
 import os
 import zipfile
 from pathlib import Path
@@ -43,8 +44,17 @@ class ApktoolOverlayTests(unittest.TestCase):
                 root = Path(tmp)
                 source = root / name
                 with zipfile.ZipFile(source,'w') as archive:
-                    archive.writestr('classes.dex',b'fixture-primary')
-                    archive.writestr('classes2.dex',b'fixture-secondary')
+                    def header(version, total=0, offset=0):
+                        # Header-only synthetic fixture, not a real assembled DEX.
+                        data=bytearray(0x80)
+                        data[:8]=b'dex\n%03d\0' % version
+                        struct.pack_into('<III',data,0x20,0x80,0x78 if version==41 else 0x70,0x12345678)
+                        struct.pack_into('<I',data,0x60,1)
+                        if version==41:struct.pack_into('<II',data,0x70,total,offset)
+                        return bytes(data)
+                    primary=(header(41,0x100)+header(41,0x100,0x80)) if name=='container.jar' else header(41,0x80)
+                    archive.writestr('classes.dex',primary)
+                    archive.writestr('classes2.dex',header(40))
                 tools=root/'bin';tools.mkdir()
                 tool=tools/'baksmali'
                 tool.write_text("""#!/usr/bin/env python3
@@ -86,13 +96,16 @@ baksmali() {
                 script = root / 'test.sh'
                 (root/'integration').mkdir()
                 shutil.copyfile(ROOT/'integration/dex_entries.py',root/'integration/dex_entries.py')
+                shutil.copyfile(ROOT/'integration/dex_container_probe.py',root/'integration/dex_container_probe.py')
                 harness='SRC_DIR='+str(root)+'\n'+harness
                 script.write_text(harness + decode + '\nINPUT_FILE="$1"; OUTPUT_PATH="$2"; FORCE=false; THREAD_COUNT=1; DECODE\n')
                 result = subprocess.run(['bash', str(script), str(source), str(output)], text=True, capture_output=True,env=env)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 records=list((root/'out/beyoud-logs/dex-inventory').glob('*.json'))
-                self.assertEqual(len(records),1)
-                evidence=json.loads(records[0].read_text())
+                self.assertEqual(len(records),2)
+                independent=json.loads(next(p for p in records if p.name.endswith('-independent.json')).read_text())
+                self.assertEqual(independent['total_class_defs'],len(expected))
+                evidence=json.loads(next(p for p in records if not p.name.endswith('-independent.json')).read_text())
                 self.assertEqual(evidence['unique_classes'],len(expected))
                 self.assertEqual(len(evidence['units']),len(expected))
                 self.assertTrue((output/'.beyoud_decode_complete').is_file())
