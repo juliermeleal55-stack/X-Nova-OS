@@ -86,8 +86,22 @@ class InstallerIntegrityTests(unittest.TestCase):
         self.assertLess(text.index('installer_integrity.py" image'), text.index('EVAL "img2sdat'))
         self.assertLess(text.index('installer_integrity.py" brotli'), text.index('rm -f "$TMP_DIR/$PARTITION.new.dat"'))
         self.assertLess(text.index('installer_integrity.py" updater'), text.index('cp -a "$SRC_DIR/prebuilts/bootable'))
-        self.assertIn('for mountpoint in /system /system_root', text)
+        self.assertNotIn("echo 'unmount(", text)
+        self.assertIn('partition-layout-check.sh', text)
         self.assertIn('system write completed.', text)
+
+    def test_recovery_system_root_without_system_alias_does_not_emit_fatal_unmount(self):
+        # Observed recovery-1.log: recovery already unmounted System, then the
+        # updater aborted on an unknown /system volume. No blind Edify aliases.
+        text = zip_policy((ROOT / 'reference/build/scripts/internal/build_flashable_zip.sh').read_text())
+        start = text.index('        PRINT_HEADER\n')
+        end = text.index('        if [ "$TARGET_SUPER_PARTITION_SIZE"', start)
+        result = subprocess.run(['bash', '-c', 'PRINT_HEADER() { :; }; TARGET_BOOT_DEVICE_PATH=/dev/block/by-name;\n' + text[start:end]], check=True, capture_output=True, text=True)
+        self.assertNotIn('unmount(', result.stdout)
+        self.assertNotIn('umount', result.stdout)
+        self.assertIn('package_extract_file("partition-layout-check.sh"', result.stdout)
+        self.assertIn('run_program("/sbin/sh", "/tmp/partition-layout-check.sh"', result.stdout)
+        self.assertNotIn('format(', result.stdout)
 
     def test_release_refuses_expired_or_empty_artifacts(self):
         for artifact in [{'expired': True, 'size_in_bytes': 1}, {'expired': False, 'size_in_bytes': 0}]:

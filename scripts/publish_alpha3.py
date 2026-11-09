@@ -16,7 +16,7 @@ def release_notes(artifact, repo, run_id, sha):
     if artifact.get('expired') or size <= 0:
         raise ValueError('Missing/expired/empty ROM artifact')
     url = f'https://github.com/{repo}/actions/runs/{run_id}'
-    return f'''# X-Nova OS — Alpha 3 S24 FE — SM-G973F — TESTE / UNTESTED
+    return f'''# X-Nova OS — Alpha 3.1 S24 FE — SM-G973F — TESTE / UNTESTED
 
 > **Sem validação de instalação/boot em hardware. Não usar como sistema principal.**
 
@@ -34,7 +34,7 @@ O binário ultrapassa o limite por arquivo do Releases; é distribuído inteiro 
 - Exclusiva para **Galaxy S10 Exynos SM-G973F / beyond1lte**.
 - Sistema/framework doador **S24 FE SM-S721B S721BXXSFEZJ1**; kernel/vendor Exynos9820 do S10 preservados.
 - Procedimento/binary OTA da **ArtisanROM S10**, com origem exata conferida no build. O instalador anterior já tinha essa origem; não é alegada troca por um binário diferente.
-- Desmontagem explícita de aliases conhecidos e bloqueio se a partição alvo continuar montada, antes de gravar.
+- Corrigido aborto confirmado da Alpha 3: removidas chamadas Edify incondicionais a aliases ausentes como `/system`. O recovery gerencia a desmontagem; a proteção bloqueia qualquer alvo ainda montado antes da gravação.
 - Verificação do filesystem gerado, incluindo descompressão dos arquivos EROFS no host antes de converter a imagem.
 - Comparação integral do payload Brotli descomprimido com a saída original img2sdat.
 - Mensagens de início/conclusão da escrita de system e preservação de verificações físicas de capacidade.
@@ -52,7 +52,7 @@ O modo experimental tolera falhas individuais de patches/módulos; não signific
 Montagem de APK/DEX, assinatura, imagens, integridade do payload e ZIP continuam podendo reprovar o build.
 Câmera, rádio, biometria, criptografia, gráficos e demais funções não foram validados no aparelho.
 
-Alpha 3 é a identificação pública; nomes internos Beyoud/alpha1 legados do pipeline podem permanecer. Não houve edição manual pós-build do ZIP.
+Alpha 3.1 é a identificação pública; nomes internos Beyoud/alpha1 legados do pipeline podem permanecer. Não houve edição manual pós-build do ZIP.
 Base Artisan/Extreme e demais créditos/licenças/proveniência permanecem preservados no código.
 
 ## Fonte e evidência
@@ -75,12 +75,12 @@ def main():
         raise ValueError('Expected exactly one validated complete-ROM artifact')
     notes = release_notes(artifacts[0], repo, run_id, sha)
     # Run suffix prevents overwriting an older binary/release on a later rebuild.
-    tag = f'v0.1.0-alpha3-sm-g973f-s24fe-test-{run_id}'
+    tag = f'v0.1.0-alpha3.1-sm-g973f-s24fe-test-{run_id}'
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / 'notes.md'
         path.write_text(notes)
         subprocess.run(['gh', 'release', 'create', tag, '--repo', repo, '--target', sha,
-                        '--prerelease', '--title', 'X-Nova OS — Galaxy S10 — Alpha 3 S24 FE — TESTE / UNTESTED',
+                        '--prerelease', '--title', 'X-Nova OS — Galaxy S10 — Alpha 3.1 S24 FE — TESTE / UNTESTED',
                         '--notes-file', str(path)], check=True)
 
 

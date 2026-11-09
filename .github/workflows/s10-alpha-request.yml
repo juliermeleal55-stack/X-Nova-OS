@@ -1,6 +1,6 @@
 # Explicit build request for SM-G973F, authorized by the repository owner.
 # Only editing this request file on the session branch starts another attempt.
-name: Requested S10 SM-G973F Alpha 3 Artisan installer
+name: Requested S10 SM-G973F Alpha 3.1 Artisan installer
 on:
   push:
     branches: [arena/0d47b1d6-artisanrom-beyoud]
@@ -17,7 +17,7 @@ jobs:
       partition_layout: content-sized
 
   publish:
-    name: Publish validated Alpha 3 as an Actions-linked prerelease
+    name: Publish validated Alpha 3.1 as an Actions-linked prerelease
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -70,3 +70,6 @@ jobs:
 # Recovery stall root cause and hardware installation/boot remain unconfirmed.
 
 # Retry Alpha 3: isolate synthetic mount tables from the hosted runner and retain test failure evidence.
+
+# Retry Alpha 3.1: recovery-1.log confirms unknown /system alias aborts Edify unmount.
+# Remove unconditional volume unmount calls; retain block-device mount and capacity guards.

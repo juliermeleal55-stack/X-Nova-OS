@@ -77,9 +77,9 @@ BEYOUD_COMPRESS_PARTITION()
                 'python3 "$SRC_DIR/integration/package_inputs.py" layout-check "$SRC_DIR" "$TMP_DIR/partition-layout-check.sh" || exit 1\nLOG "- Generating updater-script"\nGENERATE_UPDATER_SCRIPT')
     text = once(text, '        PRINT_HEADER\n', '''        PRINT_HEADER
         echo 'ui_print("ArtisanROM S10: preparing static partitions (no formatting/repartition).");'
-        for mountpoint in /system /system_root /vendor /product /system_ext /odm /prism /optics; do
-            echo 'unmount("'"$mountpoint"'");'
-        done
+        # Recovery owns volume aliases and already unmounts System before OTA.
+        # An unknown alias passed to Edify unmount() is fatal on this updater.
+        # Keep the read-only block-device mount guard below, not blind unmounts.
         echo 'package_extract_file("partition-layout-check.sh", "/tmp/partition-layout-check.sh") || abort("Cannot extract partition layout check.");'
         echo 'run_program("/sbin/sh", "/tmp/partition-layout-check.sh", "'"$TARGET_BOOT_DEVICE_PATH"'") == 0 || abort("Partition verification failed. See /tmp/partition-layout-check.log and recovery.log for partition, path and actual/required bytes. No automatic repartition performed.");'
 ''')
