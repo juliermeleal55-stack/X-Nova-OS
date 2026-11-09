@@ -38,3 +38,10 @@ A versão corrigida será identificada publicamente como **Alpha 3.1**, com outr
 ## Validação DEX separada
 
 O fluxo diagnóstico anterior `42637545811` terminou com falha na etapa de validação real; não é anunciado como validação completa bem-sucedida dos originais. O build Alpha 3 `42640447138` terminou com sucesso e incluiu os checks da sonda durante suas decodificações, mas esse fato não transforma o fluxo separado em sucesso. O motivo específico dessa falha diagnóstica ainda precisa ser inspecionado; não foi tratado como falha do instalador.
+
+## Execução iniciada
+
+- Código da correção: `ee6adac`.
+- [Alpha 3.1 — build e publicação condicionada, execução 42696050466](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42696050466): **queued** na última consulta; geração/publicação ainda não confirmadas.
+- [CI de fontes 42696049801](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42696049801): queued na mesma consulta.
+- Aviso de defeito confirmado adicionado à pré-release Alpha 3 anterior, sem modificar seus arquivos.
