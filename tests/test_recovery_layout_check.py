@@ -60,6 +60,19 @@ class RecoveryCapacityTests(unittest.TestCase):
         self.assertEqual(result.returncode,1);self.assertIn('ERR_READ partition=system',log)
         self.assertNotIn('ERR_TOO_SMALL',log)
 
+    def test_mounted_target_is_blocked_even_with_sufficient_capacity(self):
+        result,log=self.run_check('is_block() { return 0; }; blockdev() { echo 16106127360; }; mount_table() { echo "/dev/block/sda25 /system_root erofs ro 0 0"; }; mount_source_matches() { return 0; }',
+                                 'check_partition system 8481766531 || failures=1')
+        self.assertEqual(result.returncode,1)
+        self.assertIn('ERR_MOUNTED partition=system',log)
+        self.assertNotIn('OK partition=system',log)
+
+    def test_unreadable_mount_table_is_blocked_not_treated_as_unmounted(self):
+        result,log=self.run_check('is_block() { return 0; }; blockdev() { echo 16106127360; }; mount_table() { return 1; }',
+                                 'check_partition system 8481766531 || failures=1')
+        self.assertEqual(result.returncode,1)
+        self.assertIn('ERR_MOUNT_READ partition=system',log)
+
     def test_package_rejects_duplicate_installer_paths(self):
         from test_alpha import alpha,package
         import warnings

@@ -53,6 +53,32 @@ read_capacity()
     decimal_ge "$candidate" 1 || return 1
     size=$candidate; reader=sysfs; return 0
 }
+mount_table() { cat /proc/mounts; }
+mount_source_matches()
+{
+    [ -b "$1" ] || return 1
+    mounted_device=$(readlink -f "$1") || return 2
+    target_device=$(readlink -f "$part") || return 2
+    [ -n "$mounted_device" ] && [ "$mounted_device" = "$target_device" ]
+}
+partition_is_unmounted()
+{
+    mounts=$(mount_table) || return 2
+    [ -n "$mounts" ] || return 2
+    while read -r source mountpoint remainder; do
+        if mount_source_matches "$source"; then
+            log "ERR_MOUNTED partition=$name path=$part mountpoint=$mountpoint"
+            log 'Target still mounted. Unmount it in recovery before installing; no writes permitted.'
+            return 1
+        else
+            match_status=$?
+            [ "$match_status" -ne 2 ] || return 2
+        fi
+    done <<MOUNTS
+$mounts
+MOUNTS
+    return 0
+}
 check_partition()
 {
     name=$1; required=$2; part="$base/$name"
@@ -68,6 +94,12 @@ check_partition()
     fi
     if ! decimal_ge "$size" "$required"; then
         log "ERR_TOO_SMALL partition=$name path=$part actual_bytes=$size required_bytes=$required reader=$reader"
+        return 1
+    fi
+    partition_is_unmounted
+    mounted_status=$?
+    if [ "$mounted_status" -ne 0 ]; then
+        [ "$mounted_status" -ne 2 ] || log "ERR_MOUNT_READ partition=$name: cannot read mount table"
         return 1
     fi
     log "OK partition=$name path=$part actual_bytes=$size required_bytes=$required reader=$reader"

@@ -38,9 +38,11 @@ BEYOUD_COMPRESS_PARTITION()
 {
     local f="$1"
     local PARTITION="$(basename "$f" .img)"
+    python3 "$SRC_DIR/integration/installer_integrity.py" image "$f" "$OUT_DIR/beyoud-logs/$PARTITION-filesystem-check.json" || return 1
     EVAL "img2sdat -o \\"$TMP_DIR\\" \\"$f\\"" || return 1
     rm -f "$f"
     EVAL "brotli --quality=\\"$BROTLI_QUALITY\\" --output=\\"$TMP_DIR/$PARTITION.new.dat.br\\" \\"$TMP_DIR/$PARTITION.new.dat\\"" || return 1
+    python3 "$SRC_DIR/integration/installer_integrity.py" brotli "$TMP_DIR/$PARTITION.new.dat.br" "$OUT_DIR/beyoud-logs/$PARTITION-brotli-check.json" --original "$TMP_DIR/$PARTITION.new.dat" || return 1
     rm -f "$TMP_DIR/$PARTITION.new.dat"
 }
 
@@ -54,6 +56,13 @@ BEYOUD_COMPRESS_PARTITION()
         fi
         LOG_STEP_OUT'''))
     text = once(text, 'source \"$SRC_DIR/scripts/utils/build_utils.sh\" || exit 1', 'source \"$SRC_DIR/scripts/utils/build_utils.sh\" || exit 1\npython3 \"$SRC_DIR/integration/package_inputs.py\" verify \"$SRC_DIR\" || exit 1')
+    text = once(text, 'cp -a "$SRC_DIR/prebuilts/bootable/deprecated-ota/updater"',
+                'python3 "$SRC_DIR/integration/installer_integrity.py" updater "$SRC_DIR" "$OUT_DIR/beyoud-logs/artisan-installer-provenance.json" || exit 1\ncp -a "$SRC_DIR/prebuilts/bootable/deprecated-ota/updater"')
+    # Explicit per-partition start/end diagnostics; no changes to block_image_update.
+    text = once(text, "            echo    'ui_print(\"Patching system image unconditionally...\");'",
+                "            echo    'ui_print(\"ArtisanROM S10: writing system; decompression and write may take several minutes.\");'")
+    text = once(text, "            echo    '  abort(\"E1001: Failed to update system image.\");'",
+                "            echo    '  abort(\"E1001: Failed to update system image. Save /tmp/recovery.log before reboot.\");'\n            echo    'ui_print(\"ArtisanROM S10: system write completed.\");'")
     # No package code may read deleted firmware trees: compact identifiers are
     # captured and checked against the firmware lock by the staged orchestrator.
     source = '$(GET_PROP "$FW_DIR/$SOURCE_FIRMWARE_PATH/system/system/build.prop" "ro.build.product")'
@@ -67,6 +76,10 @@ BEYOUD_COMPRESS_PARTITION()
     text = once(text, 'LOG "- Generating updater-script"\nGENERATE_UPDATER_SCRIPT',
                 'python3 "$SRC_DIR/integration/package_inputs.py" layout-check "$SRC_DIR" "$TMP_DIR/partition-layout-check.sh" || exit 1\nLOG "- Generating updater-script"\nGENERATE_UPDATER_SCRIPT')
     text = once(text, '        PRINT_HEADER\n', '''        PRINT_HEADER
+        echo 'ui_print("ArtisanROM S10: preparing static partitions (no formatting/repartition).");'
+        for mountpoint in /system /system_root /vendor /product /system_ext /odm /prism /optics; do
+            echo 'unmount("'"$mountpoint"'");'
+        done
         echo 'package_extract_file("partition-layout-check.sh", "/tmp/partition-layout-check.sh") || abort("Cannot extract partition layout check.");'
         echo 'run_program("/sbin/sh", "/tmp/partition-layout-check.sh", "'"$TARGET_BOOT_DEVICE_PATH"'") == 0 || abort("Partition verification failed. See /tmp/partition-layout-check.log and recovery.log for partition, path and actual/required bytes. No automatic repartition performed.");'
 ''')

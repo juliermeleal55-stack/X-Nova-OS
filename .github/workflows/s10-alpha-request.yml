@@ -1,6 +1,6 @@
 # Explicit build request for SM-G973F, authorized by the repository owner.
 # Only editing this request file on the session branch starts another attempt.
-name: Requested S10 SM-G973F alpha
+name: Requested S10 SM-G973F Alpha 3 Artisan installer
 on:
   push:
     branches: [arena/0d47b1d6-artisanrom-beyoud]
@@ -15,6 +15,20 @@ jobs:
       diagnostic_only: false
       experimental_patch_failures: true
       partition_layout: content-sized
+
+  publish:
+    name: Publish validated Alpha 3 as an Actions-linked prerelease
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish complete package link without editing or splitting the ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/publish_alpha3.py
 
 # Attempt: guarded Freecess adaptation and additional build checks (2026-11-05).
 
@@ -49,3 +63,8 @@ jobs:
 # Current policy: content-sized, no fixed stock/ExtremeROM ceiling; no auto repartition.
 # Known unported patches are recorded/tolerated; assembly/signature/ZIP integrity stay fatal.
 # Includes logical DEX inventory and real-input-tested scoped signature/DualAP/audio fixes.
+
+# Owner-authorized Alpha 3: verify the genuine Artisan S10 updater, check all
+# EROFS file encodings, verify full Brotli roundtrip, unmount/check target aliases.
+# Includes independent DEX probe. Publish only after build/collection succeeds.
+# Recovery stall root cause and hardware installation/boot remain unconfirmed.
