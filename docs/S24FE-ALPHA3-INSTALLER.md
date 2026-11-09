@@ -45,3 +45,9 @@ O pedido Alpha 3 mantém **SM-G973F/beyond1lte**, doador **SM-S721B/S24 FE**, mo
 Somente então cria uma pré-release Alpha 3 com link para o artefato inteiro do Actions, sem dividir, editar ou recomprimir manualmente o ZIP. A nota informa tamanho/expiração reais, SHA256SUMS interno, requisitos físicos e ausência de validação de boot. Se o build ou a publicação falharem, não há alegação de ROM nova publicada. Os nomes internos legados Beyoud/alpha1 podem permanecer; Alpha 3 é a versão pública da nova execução.
 
 **Não é uma correção comprovada do travamento em hardware.** É um endurecimento verificável do caminho Artisan contra imagens/payloads inválidos e gravação sobre filesystem ainda montado. Sem o log da tentativa real, o diagnóstico original permanece em aberto.
+
+### Execução iniciada
+
+- Código: `d5ca1a0`.
+- [Build Alpha 3 e publicação condicionada — 42640152539](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42640152539).
+- Iniciado e em andamento na última consulta. Conclusão da compilação, geração do ZIP, checagens reais de imagem e publicação ainda não confirmadas.
