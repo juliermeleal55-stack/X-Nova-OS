@@ -70,3 +70,10 @@ Próximas etapas antes de qualquer ROM: validar ferramentas/ZIP64 no recovery se
 **282 testes passaram** em export limpo; 69 referências Artisan, 37 adicionais e 208 arquivos de evidência conferidos; sintaxe shell aprovada. Dez testes novos exercitam o candidato. O CI remoto deve confirmar isso após o push; resultado remoto ainda não presumido.
 
 Há também `integration/new_installer/probe-recovery.sh`, uma sonda opcional separada que apenas relata ferramentas/modelo/bateria/mount de data e testa dd/fsync em arquivo minúsculo privado em `/tmp`. Não escreve em partições, não monta, não formata e não prova suporte a ZIP64 gigante nem funcionamento do instalador. Serve à próxima fase de análise sem flash de ROM.
+
+### Registro final desta etapa
+
+- Código do candidato: `6e1849d`.
+- [CI 42697818181](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42697818181): **SUCCESS**, confirmado após o push.
+- Alpha 3.1 / `42696050466`: confirmado **completed / cancelled**.
+- Somente testes de fontes foram executados depois do cancelamento; nenhum build/publicação de ROM nova foi iniciado nesta etapa.
