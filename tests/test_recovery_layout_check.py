@@ -11,7 +11,7 @@ HELPER=(ROOT/'integration/recovery_layout_check.sh').read_text()
 class RecoveryCapacityTests(unittest.TestCase):
     def run_check(self, overrides, checks):
         with tempfile.TemporaryDirectory() as tmp:
-            script='PARTITION_CHECK_LOG='+tmp+'/check.log\n'+HELPER+'\n'+overrides+'\n'+checks+'\nexit "$failures"\n'
+            script='PARTITION_CHECK_LOG='+tmp+'/check.log\n'+HELPER+'\nmount_table() { echo none /synthetic-test tmpfs rw 0 0; }\n'+overrides+'\n'+checks+'\nexit "$failures"\n'
             result=subprocess.run(['sh','-s','--','/dev/block/test-by-name'],input=script,text=True,capture_output=True)
             log=(Path(tmp)/'check.log').read_text()
             return result,log

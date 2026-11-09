@@ -68,3 +68,5 @@ jobs:
 # EROFS file encodings, verify full Brotli roundtrip, unmount/check target aliases.
 # Includes independent DEX probe. Publish only after build/collection succeeds.
 # Recovery stall root cause and hardware installation/boot remain unconfirmed.
+
+# Retry Alpha 3: isolate synthetic mount tables from the hosted runner and retain test failure evidence.

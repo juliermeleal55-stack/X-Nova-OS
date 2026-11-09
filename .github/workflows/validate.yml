@@ -12,7 +12,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python3 -m unittest discover -s tests -v
+      - run: |
+          if ! python3 -m unittest discover -s tests -v > "$RUNNER_TEMP/integration-tests.log" 2>&1; then
+            tail -80 "$RUNNER_TEMP/integration-tests.log"
+            python3 scripts/annotate_test_failure.py "$RUNNER_TEMP/integration-tests.log"
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/integration-tests.log"
       - run: python3 scripts/verify_reference.py
       - run: python3 scripts/verify_audit.py
       - name: Check legacy shell syntax without executing it

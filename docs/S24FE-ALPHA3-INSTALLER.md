@@ -50,4 +50,4 @@ Somente então cria uma pré-release Alpha 3 com link para o artefato inteiro do
 
 - Código: `d5ca1a0`.
 - [Build Alpha 3 e publicação condicionada — 42640152539](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42640152539).
-- Iniciado e em andamento na última consulta. Conclusão da compilação, geração do ZIP, checagens reais de imagem e publicação ainda não confirmadas.
+- Esta primeira tentativa falhou em Validate integration; não chegou a baixar firmware nem gerar/publicar ROM. O acesso local ao blob de logs falhou (EOF). Ajustado isolamento da tabela de mounts nos testes sintéticos, para não depender dos dispositivos montados no runner; adicionadas anotações limitadas com falhas de testes para diagnóstico acessível pela API. Nova tentativa necessária; causa exata da primeira falha não foi confirmada pelo log completo.

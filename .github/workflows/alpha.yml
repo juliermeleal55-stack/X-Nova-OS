@@ -74,7 +74,12 @@ jobs:
           BEYOUD_PARTITION_LAYOUT: stock
           BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES: '0'
         run: |
-          python3 -m unittest discover -s tests -v
+          if ! python3 -m unittest discover -s tests -v > "$RUNNER_TEMP/integration-tests.log" 2>&1; then
+            tail -80 "$RUNNER_TEMP/integration-tests.log"
+            python3 scripts/annotate_test_failure.py "$RUNNER_TEMP/integration-tests.log"
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/integration-tests.log"
           python3 scripts/verify_reference.py
           python3 scripts/verify_audit.py
       - name: Install host build dependencies
