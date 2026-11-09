@@ -51,3 +51,11 @@ Somente então cria uma pré-release Alpha 3 com link para o artefato inteiro do
 - Código: `d5ca1a0`.
 - [Build Alpha 3 e publicação condicionada — 42640152539](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42640152539).
 - Esta primeira tentativa falhou em Validate integration; não chegou a baixar firmware nem gerar/publicar ROM. O acesso local ao blob de logs falhou (EOF). Ajustado isolamento da tabela de mounts nos testes sintéticos, para não depender dos dispositivos montados no runner; adicionadas anotações limitadas com falhas de testes para diagnóstico acessível pela API. Nova tentativa necessária; causa exata da primeira falha não foi confirmada pelo log completo.
+
+### Retentativa atual
+
+- Código corrigido: `4cdf993`.
+- [CI de fontes 42640447054](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42640447054): **SUCCESS**.
+- [Build Alpha 3 42640447138](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42640447138): **in_progress**, `Validate integration` **SUCCESS**, instalando dependências na última consulta. ZIP/publicação ainda não concluídos.
+- Fluxo real DEX anterior `42637545811`: em andamento, etapa de download/extração do doador na última consulta.
+- Não iniciar outro build enquanto a retentativa atual estiver ativa. O job de publicação aguardará sucesso do build e criará a pré-release com o artefato desta mesma execução.
