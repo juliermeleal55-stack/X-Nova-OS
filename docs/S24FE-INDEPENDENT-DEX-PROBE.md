@@ -44,3 +44,9 @@ Fluxo separado `.github/workflows/validate-independent-dex-s24fe.yml`:
 ## Efeito sobre a ROM
 
 A integração é fonte para próximos builds da base S24 FE. O ZIP Alpha 2 já publicado permanece inalterado. Nenhum build completo foi disparado para esta alteração. A sonda não modifica partições, formato EROFS, payload Brotli, kernel/vendor do S10 ou os 15 patches ainda pendentes e não corrige, por si só, a parada do instalador em 3%.
+
+### Execuções desta implementação
+
+- Código integrado: `119b0e0`.
+- [CI de fontes 42637545825](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42637545825): **SUCCESS**, confirmando a validação em checkout limpo no GitHub.
+- [Validação real S24 FE 42637545811](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/42637545811): iniciada; último estado consultado **in_progress**, instalando dependências do host. Resultado final ainda desconhecido. Não foi iniciado outro build completo de ROM.
