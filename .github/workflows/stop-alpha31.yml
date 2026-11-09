@@ -1,0 +1,23 @@
+name: Stop owner-cancelled Alpha 3.1 build
+on:
+  push:
+    branches: [arena/0d47b1d6-artisanrom-beyoud]
+    paths: [.github/workflows/stop-alpha31.yml]
+permissions:
+  contents: read
+  actions: write
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel only the explicitly withdrawn Alpha 3.1 execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          state=$(gh run view 42696050466 --json status --jq .status)
+          if [ "$state" = completed ]; then
+            echo 'Run already completed; cannot cancel retroactively.'
+          else
+            gh run cancel 42696050466
+          fi
