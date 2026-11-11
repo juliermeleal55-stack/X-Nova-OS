@@ -115,6 +115,31 @@ class SmaliAdaptationsTests(unittest.TestCase):
             self.assertNotIn('wait $(jobs -p)',camera)
             self.assertIn('overlay_resources.py',(root/'unica/patches/rro/customize.sh').read_text())
 
+    def test_runtime_installer_accepts_exact_pinned_onerom_camera_recipe(self):
+        with tempfile.TemporaryDirectory() as t:
+            root=Path(t);shutil.copytree(ROOT/'reference/build',root,dirs_exist_ok=True)
+            camera_path=root/'platform/exynos9820/patches/camera/customize.sh'
+            shutil.copyfile(
+                ROOT/'reference/onerom-port-candidates/source-snapshot/platform/exynos9820/patches/camera/customize.sh',
+                camera_path)
+            install(root)
+            for p in root.rglob('*.sh'):subprocess.run(['bash','-n',str(p)],check=True)
+            camera=camera_path.read_text()
+            self.assertIn('82fbffb042301f91c000805213f30594e0031a2a47feff17',camera)
+            self.assertIn('Video SVC check pattern not found',camera)
+            self.assertIn('HDR10+ check pattern not found',camera)
+            self.assertIn('Adding S21 FE (r9sxxx) SWISP models',camera)
+            self.assertNotIn('wait $(jobs -p)',camera)
+            self.assertIn('overlay_resources.py',(root/'unica/patches/rro/customize.sh').read_text())
+
+    def test_runtime_installer_rejects_unpinned_camera_recipe(self):
+        with tempfile.TemporaryDirectory() as t:
+            root=Path(t);shutil.copytree(ROOT/'reference/build',root,dirs_exist_ok=True)
+            camera=root/'platform/exynos9820/patches/camera/customize.sh'
+            camera.write_text(camera.read_text()+'# local mutation\n')
+            with self.assertRaisesRegex(ValueError,'Unexpected pinned camera recipe'):
+                install(root)
+
     def test_replay_requires_exact_retained_hash_and_never_calls_firmware_tools(self):
         from scripts.replay_patch_diagnostics import replay
         import hashlib

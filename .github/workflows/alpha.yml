@@ -140,7 +140,7 @@ jobs:
         run: python3 scripts/collect_alpha.py "$WORKSPACE" "$RUNNER_TEMP/alpha-output"
       - name: Upload alpha only after successful build and structural checks
         if: ${{ !inputs.diagnostic_only }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Beyoud-${{ inputs.target }}-alpha1-UNTESTED
           path: ${{ runner.temp }}/alpha-output/
@@ -155,7 +155,7 @@ jobs:
         run: python3 scripts/annotate_build_failure.py "$WORKSPACE"
       - name: Preserve diagnostics even when build fails
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ inputs.target }}-alpha-build-diagnostics
           path: |

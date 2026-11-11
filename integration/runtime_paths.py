@@ -28,10 +28,22 @@ def install(workspace):
     if text.count(anchor)!=1:raise ValueError('Unexpected SMALI_PATCH class lookup')
     text=text.replace(anchor,'    SMALI="$(python3 "$SRC_DIR/integration/smali_paths.py" "$FILE_PATH" "$SMALI")" || return 1\n\n'+anchor)
     path.write_text(text)
-    for relative in ('unica/patches/rro/customize.sh','platform/exynos9820/patches/camera/customize.sh'):
-        path=workspace/relative
-        if path.read_bytes()!=(ROOT/'reference/build'/relative).read_bytes():raise ValueError('Unexpected pinned resource/camera recipe')
-    rro=workspace/'unica/patches/rro/customize.sh';text=rro.read_text()
+    rro=workspace/'unica/patches/rro/customize.sh'
+    if rro.read_bytes()!=(ROOT/'reference/build/unica/patches/rro/customize.sh').read_bytes():
+        raise ValueError('Unexpected pinned resource recipe: unica/patches/rro/customize.sh')
+
+    # OneROM's pinned camera recipe is intentionally imported into the active
+    # tree. Accept either pristine Artisan or that exact OneROM snapshot, then
+    # apply the same S10-specific DEX/native safeguards to whichever is active.
+    camera=workspace/'platform/exynos9820/patches/camera/customize.sh'
+    expected_camera_sources=(
+        ROOT/'reference/build/platform/exynos9820/patches/camera/customize.sh',
+        ROOT/'reference/onerom-port-candidates/source-snapshot/platform/exynos9820/patches/camera/customize.sh',
+    )
+    camera_bytes=camera.read_bytes()
+    if not any(camera_bytes==source.read_bytes() for source in expected_camera_sources):
+        raise ValueError('Unexpected pinned camera recipe: platform/exynos9820/patches/camera/customize.sh')
+    text=rro.read_text()
     begin=text.index('sed -i -e "/config_enableRoundedCorner/d"')
     text=text[:begin]+'python3 "$SRC_DIR/integration/overlay_resources.py" "$APKTOOL_DIR/product/overlay/SystemUI__${SYSTEM_NAME}__auto_generated_rro_product.apk" || exit 1\n'
     rro.write_text(text)

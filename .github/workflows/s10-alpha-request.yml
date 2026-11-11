@@ -60,3 +60,6 @@ jobs:
 
 # Retry Alpha 3.1: recovery-1.log confirms unknown /system alias aborts Edify unmount.
 # Remove unconditional volume unmount calls; retain block-device mount and capacity guards.
+
+# Retry: runtime-path adaptation now accepts only the pinned Artisan or OneROM S10 camera recipe.
+# Use upload-artifact v7.0.2 for the Node 24 runner; keep output as Actions artifacts, never a release.
