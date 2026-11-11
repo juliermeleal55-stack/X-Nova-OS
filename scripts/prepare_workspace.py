@@ -201,6 +201,14 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     if expected not in text or f'TARGET_CODENAME="{codename}"' not in text:
         raise ValueError('Unexpected base device configuration')
     text = text.replace(expected, f'TARGET_ASSERT_MODEL=("{model}")')
+    if codename == 'beyond1lte':
+        # OneROM names its own donor config r12s_native, but this build keeps
+        # Artisan's active S24 FE adapter as unica/configs/essi_64.sh. Select
+        # that existing Artisan path rather than a file that is not installed.
+        onerom_image = 'TARGET_SINGLE_SYSTEM_IMAGE="r12s_native"'
+        if text.count(onerom_image) != 1:
+            raise ValueError('Unexpected pinned OneROM S10 single-system-image selection')
+        text = text.replace(onerom_image, 'TARGET_SINGLE_SYSTEM_IMAGE="essi"', 1)
     text = text.replace('TARGET_EXTRA_FIRMWARES=("")', 'TARGET_EXTRA_FIRMWARES=()')
     target.write_text(text)
     version = workspace / 'unica/configs/version.sh'

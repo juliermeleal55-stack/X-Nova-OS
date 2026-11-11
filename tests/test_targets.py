@@ -37,12 +37,12 @@ class TargetTests(unittest.TestCase):
     def test_legacy_s10plus_marker_still_supported(self):
         self.assertEqual(from_marker(dict(target='SM-G975F'))[0], 'beyond2lte')
 
-    def test_s10_overlay_preserves_own_stock_and_hardware(self):
+    def test_s10_overlay_maps_pinned_target_to_active_artisan_system_image(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             config = root / 'target/beyond1lte/config.sh'
             config.parent.mkdir(parents=True)
-            shutil.copyfile(ROOT / 'reference/artisan-s10/target/beyond1lte/config.sh', config)
+            shutil.copyfile(ROOT / 'reference/onerom-port-candidates/source-snapshot/target/beyond1lte/config.sh', config)
             (root / 'unica/configs').mkdir(parents=True)
             misc = root / 'platform/exynos9820/patches/miscs/customize.sh'
             misc.parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +64,9 @@ class TargetTests(unittest.TestCase):
             self.assertIn('TARGET_ASSERT_MODEL=("SM-G973F")', text)
             self.assertIn('TARGET_FIRMWARE="SM-G973F/AUT/', text)
             self.assertIn('TARGET_PLATFORM="exynos9820"', text)
+            self.assertIn('TARGET_SINGLE_SYSTEM_IMAGE="essi"', text)
+            self.assertNotIn('r12s_native', text)
+            self.assertTrue((root / 'unica/configs/essi_64.sh').is_file())
             self.assertNotIn('SM-G975', text)
             marker = json.loads((root / 'BEYOUD-WORKSPACE.json').read_text())
             self.assertEqual(from_marker(marker)[0], 'beyond1lte')

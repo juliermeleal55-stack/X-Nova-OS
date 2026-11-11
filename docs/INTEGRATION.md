@@ -37,12 +37,15 @@ versão e propriedades não são certificados pelo perfil. O preparador lê o SD
 real do `build.prop` do doador para limitar o caminho histórico de Bluetooth.
 Isso não transforma a configuração de um aparelho em prova de compatibilidade.
 
-O preparador conserva o target Artisan, adapta sua assertion para **somente
-SM-G973F**, configura o pipeline de firmware e integra os módulos próprios de
-compatibilidade. O kernel compilado continua sendo tratado pelo fluxo fixado do
-projeto; os arquivos OneROM de kernel continuam presentes no workspace com a
-proveniência registrada. Não há modificação do recovery nem autorização de
-instalação.
+A base de build continua sendo Artisan; o perfil ativo do S10 vem da árvore
+OneROM importada e é restringido a assertion de **somente SM-G973F**. O
+preparador remapeia `TARGET_SINGLE_SYSTEM_IMAGE="r12s_native"` para o alias
+Artisan `essi`, que seleciona o adaptador doador ativo
+`unica/configs/essi_64.sh`; o config `r12s_native` não é instalado como imagem
+ativa. Assim o workspace usa o fluxo Artisan sem perder a proveniência da árvore
+OneROM. O kernel compilado continua sendo tratado pelo fluxo fixado do projeto;
+os arquivos OneROM de kernel continuam presentes no workspace com a proveniência
+registrada. Não há modificação do recovery nem autorização de instalação.
 
 ## Reproduzir a preparação
 
