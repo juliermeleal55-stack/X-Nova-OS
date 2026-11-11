@@ -10,12 +10,14 @@ import subprocess
 import tarfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from integration.targets import TARGETS, select
+from integration.targets import DEFAULT_TARGET, TARGETS, select
 from integration.build_policy import apply as apply_build_policy
 from integration.framework_policy import install as install_framework
 from integration.preflight_policy import install as install_preflight
 from integration.runtime_paths import install as install_runtime_paths
 from integration.onerom.install import install as install_onerom
+from integration.onerom_port import import_onerom_sources
+from integration.s10_compat import install as install_s10_compat
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_COMMIT = '5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954'
@@ -158,13 +160,16 @@ done
         path.write_text(text)
 
 
-def apply_overlay(workspace, codename="beyond2lte"):
+def apply_overlay(workspace, codename=DEFAULT_TARGET):
     device = select(codename)
     donor=json.loads((ROOT/'integration/donors/s24fe.json').read_text())
     raw=(ROOT/'integration/donors/s24fe.sh').read_bytes()
     if hashlib.sha256(raw).hexdigest()!=donor['sha256']:
         raise ValueError('S24 FE donor config differs from pinned provenance')
     model = device["model"]
+    # The complete OneROM tree is scoped to the normal S10. Preserve the
+    # established S10+ compatibility path rather than inferring a port there.
+    onerom_port = import_onerom_sources(workspace, codename)
     shutil.copytree(ROOT / 'integration', workspace / 'integration')
     shutil.copyfile(ROOT / 'integration/artisan/essi_64.sh',
                     workspace / 'unica/configs/essi_64.sh')
@@ -179,7 +184,17 @@ def apply_overlay(workspace, codename="beyond2lte"):
     install_preflight(workspace)
     install_runtime_paths(workspace)
     apply_build_policy(workspace)
-    onerom = install_onerom(workspace, codename)
+    if codename == 'beyond1lte':
+        s10_compatibility = install_s10_compat(workspace, codename)
+        onerom = {
+            'repository': 'DaDevMikey/OneROM',
+            'commit': onerom_port['commit'],
+            'active': s10_compatibility['active'],
+            'disabled_candidates': onerom_port['upstream_disabled_modules'],
+        }
+    else:
+        s10_compatibility = None
+        onerom = install_onerom(workspace, codename)
     target = workspace / 'target' / codename / 'config.sh'
     text = target.read_text()
     expected = f'TARGET_ASSERT_MODEL=("{model}" "{device["legacy_model"]}")'
@@ -196,6 +211,8 @@ def apply_overlay(workspace, codename="beyond2lte"):
         'base_commit': BASE_COMMIT, 'status': 'unvalidated-candidate',
         'target': model, 'codename': codename, 'flashable_release': False,
         'onerom_compatibility': onerom,
+        'onerom_port': onerom_port,
+        's10_compatibility': s10_compatibility,
         'donor_commit': donor['commit'],
         'donor_profile': donor,
         'tooling_source_commit': '609fa7cc738e42dedcc31ffecbe4aefc0b34d6e2',
@@ -206,7 +223,7 @@ def apply_overlay(workspace, codename="beyond2lte"):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('destination', type=Path)
-    parser.add_argument('--target', choices=sorted(TARGETS), default='beyond2lte')
+    parser.add_argument('--target', choices=sorted(TARGETS), default=DEFAULT_TARGET)
     parser.add_argument('--archive', type=Path, help='Previously downloaded pinned archive')
     parser.add_argument('--discard-archive', action='store_true', help='Delete only the automatically managed archive after successful assembly')
     args = parser.parse_args()

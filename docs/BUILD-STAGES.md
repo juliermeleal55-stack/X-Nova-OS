@@ -2,10 +2,15 @@
 
 ## Contrato
 
-Apenas a organização do workflow é inspirada no `samsunggithub/oneui85-lab`.
-**Nenhum firmware, target, patch, blob, kernel ou configuração dessa base foi
-importado.** Mantemos Artisan S10, doador UN1CA configurado e nossos alvos Exynos:
-`beyond1lte`/SM-G973F e `beyond2lte`/SM-G975F. Não houve troca para S23/S24 FE.
+Apenas a organização do workflow é inspirada no `samsunggithub/oneui85-lab`;
+nenhum firmware, target, patch, blob, kernel ou configuração dessa base foi
+importado. A Artisan S10 continua sendo a base. Workspaces `beyond1lte`
+importam integralmente, da revisão OneROM fixada, `target/beyond1lte/` e
+`platform/exynos9820/`. Isso não troca o aparelho alvo pelo doador S24 FE nem
+estende a portagem OneROM ao S10+.
+
+Alvos existentes: `beyond1lte`/SM-G973F e `beyond2lte`/SM-G975F. O perfil de
+doador S24 FE é separado e ainda precisa ser confirmado no firmware extraído.
 
 O resultado pretendido é **um único ZIP completo por aparelho**, nunca `.part.*`.
 Checksum, WARNING e proveniência são arquivos auxiliares, não partes da ROM.

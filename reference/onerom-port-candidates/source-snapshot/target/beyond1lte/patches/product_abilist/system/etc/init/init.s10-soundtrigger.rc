@@ -1,0 +1,8 @@
+service vendor.s10-soundtrigger /vendor/bin/hw/s10-soundtrigger32
+    class hal
+    user audioserver
+    group audio camera drmrpc inet media mediadrm wakelock
+    capabilities BLOCK_SUSPEND
+    setenv LD_LIBRARY_PATH /vendor/lib/s10-runtime32:/vendor/lib:/vendor/lib/hw
+    interface android.hardware.soundtrigger@2.0::ISoundTriggerHw default
+    updatable

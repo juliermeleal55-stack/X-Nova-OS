@@ -1,0 +1,17 @@
+diff --git a/smali_classes6/com/samsung/android/rune/InputRune.smali b/smali_classes6/com/samsung/android/rune/InputRune.smali
+--- a/smali_classes6/com/samsung/android/rune/InputRune.smali
++++ b/smali_classes6/com/samsung/android/rune/InputRune.smali
+@@ -781,9 +781,9 @@
+ 
+     sput-boolean v2, Lcom/samsung/android/rune/InputRune;->PWM_XCOVER_KEY:Z
+ 
+-    sput-boolean v2, Lcom/samsung/android/rune/InputRune;->PWM_ACTIVE_OR_XCOVER_KEY:Z
++    sput-boolean v6, Lcom/samsung/android/rune/InputRune;->PWM_ACTIVE_OR_XCOVER_KEY:Z
+ 
+-    sput-boolean v2, Lcom/samsung/android/rune/InputRune;->PWM_XCOVER_AND_TOP_KEY:Z
++    sput-boolean v6, Lcom/samsung/android/rune/InputRune;->PWM_XCOVER_AND_TOP_KEY:Z
+ 
+     sput-boolean v2, Lcom/samsung/android/rune/InputRune;->PWM_XCOVER_TOP_KEY_B2B_DELTA:Z
+ 
+-- 
+2.43.0

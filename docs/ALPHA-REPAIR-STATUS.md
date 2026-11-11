@@ -1,5 +1,15 @@
 # S10 normal: revisão dos erros conhecidos
 
+> **Atualização da portagem de fontes:** workspaces novas `beyond1lte` agora
+> importam os 474 blobs completos de `target/beyond1lte/` e
+> `platform/exynos9820/` da revisão OneROM fixada. Os marcadores `disable` são
+> preservados; isso não revive os quatro rebases históricos nem ativa o
+> adaptador de search-indexing. O alvo permanece SM-G973F, Artisan continua
+> sendo a base/instalador e recovery não é modificado. Consulte
+> [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). O status de build desta portagem é
+> registrado separadamente; as notas históricas abaixo descrevem execuções
+> anteriores e não certificam este novo conjunto de fontes.
+
 Alvo: SM-G973F / beyond1lte. Objetivo: um único ZIP completo de alpha para
 validação no aparelho, preservando a base e o empacotamento Artisan.
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen android:title="@string/unica_ui_settings_title" settings:hierarchicalParentFragment="io.mesalabs.unica.settings.UnicaSettingsFragment" settings:topLevelPreferenceKey="unica_ui_settings"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
+    <com.android.settings.widget.ValidatedEditTextPreference android:title="@string/onerom_custom_product_name_title" android:key="device_name" android:summary="@string/summary_placeholder" android:dialogTitle="@string/onerom_custom_product_name_title" android:singleLine="true" settings:controller="com.android.settings.deviceinfo.DeviceNamePreferenceController" />
+    <com.android.settings.widget.ValidatedEditTextPreference android:title="@string/onerom_custom_banner_title" android:key="custom_oneui_banner" android:summary="@string/summary_placeholder" android:dialogTitle="@string/onerom_custom_banner_title" android:singleLine="true" settings:controller="io.mesalabs.unica.settings.CustomBannerPreferenceController" />
+    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
+    <SecSwitchPreference android:title="@string/unica_native_blur_title" android:key="unica_native_blur" settings:controller="io.mesalabs.unica.settings.ui.LiveBlurPreferenceController" />
+    <SecDropDownPreference android:title="@string/unica_launcher_anim_type_title" android:key="unica_launcher_anim_type" android:summary="%s" settings:controller="io.mesalabs.unica.settings.ui.LauncherAnimationTypePreferenceController" />
+    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
+    <SecSwitchPreference android:title="@string/unica_vulkan_title" android:key="unica_vulkan" android:summary="@string/unica_vulkan_summary" settings:controller="io.mesalabs.unica.settings.ui.VulkanPreferenceController" />
+    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
+    <SecSwitchPreference android:title="@string/unica_max_refresh_rate_title" android:key="unica_max_refresh_rate" settings:controller="io.mesalabs.unica.settings.ui.ForceMaxRefreshRatePreferenceController" />
+    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
+    <SecSwitchPreference android:title="@string/unica_boot_sound_title" android:key="unica_boot_sound" settings:controller="io.mesalabs.unica.settings.ui.BootSoundPreferenceController" />
+    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
+    <SecSwitchPreference android:title="Fullscreen AOD" android:summary="Show lock screen wallpaper on Always On Display" android:key="aod_show_lockscreen_wallpaper" settings:controller="io.mesalabs.unica.settings.extra.AodFullscreenPreferenceController" />
+</PreferenceScreen>

@@ -1,0 +1,25 @@
+Subject: [PATCH] Avoid dialog settings lookup before system ready
+
+--- a/smali_classes2/com/android/server/wm/ActivityTaskManagerService.smali
++++ b/smali_classes2/com/android/server/wm/ActivityTaskManagerService.smali
+@@ -24393,6 +24393,20 @@
+ .method public final shouldShowDialogs(Landroid/content/res/Configuration;Z)Z
+     .locals 4
+ 
++    iget-object v3, p0, Lcom/android/server/wm/ActivityTaskManagerService;->mAmInternal:Landroid/app/ActivityManagerInternal;
++
++    invoke-virtual {v3}, Landroid/app/ActivityManagerInternal;->isSystemReady()Z
++
++    move-result v3
++
++    if-nez v3, :s10_dialog_settings_ready
++
++    const/4 v3, 0x0
++
++    return v3
++
++    :s10_dialog_settings_ready
++
+     iget v0, p1, Landroid/content/res/Configuration;->keyboard:I
+ 
+     const/4 v1, 0x0

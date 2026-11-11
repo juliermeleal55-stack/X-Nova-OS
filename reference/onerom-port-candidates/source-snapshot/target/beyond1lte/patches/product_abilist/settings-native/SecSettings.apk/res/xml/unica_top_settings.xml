@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen android:title="@string/unica_settings_title" settings:hierarchicalParentFragment="com.samsung.android.settings.deviceinfo.softwareinfo.SoftwareInfoSettings" settings:keywords="@string/keywords_unica_settings" settings:topLevelPreferenceKey="top_level_about_phone"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
+    <com.android.settingslib.widget.LayoutPreference android:layout="@layout/unica_settings_logo_layout" android:selectable="false" android:key="unica_logo" />
+    <PreferenceCategory android:title="About">
+        <Preference android:title="@string/unica_rom_version_title" android:key="unica_rom_version" android:summary="@string/summary_placeholder" android:fragment="io.mesalabs.unica.settings.ChangelogFragment" settings:controller="io.mesalabs.unica.settings.ROMVersionPreferenceController" />
+        <Preference android:enabled="false" android:title="@string/onerom_device_codename_title" android:key="onerom_device_codename" android:summary="@string/summary_placeholder" android:shouldDisableView="false" settings:controller="io.mesalabs.unica.settings.SoftwareInfoPreferenceController" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="System">
+        <SecSwitchPreferenceScreen android:title="@string/development_settings_title" android:key="onerom_developer_options" android:fragment="com.android.settings.development.DevelopmentSettingsDashboardFragment" settings:controller="io.mesalabs.unica.settings.DeveloperOptionsPreferenceController" />
+        <Preference android:title="Multi-User" android:key="onerom_multi_user">
+            <intent android:action="android.settings.USER_SETTINGS" />
+        </Preference>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Extra options">
+        <io.mesalabs.unica.settings.preference.IconPreference android:icon="@drawable/ic_unica_settings_ui" android:title="@string/unica_ui_settings_title" android:key="unica_ui_settings" android:fragment="io.mesalabs.unica.settings.ui.UISettingsFragment" settings:controller="io.mesalabs.unica.settings.ui.UISettingsPreferenceController" />
+        <io.mesalabs.unica.settings.preference.IconPreference android:icon="@drawable/ic_unica_settings_spoof" android:title="@string/unica_spoof_settings_title" android:key="unica_spoof_settings" android:fragment="io.mesalabs.unica.settings.spoof.SpoofSettingsFragment" settings:controller="io.mesalabs.unica.settings.spoof.SpoofSettingsPreferenceController" />
+        <io.mesalabs.unica.settings.preference.IconPreference android:icon="@drawable/ic_unica_settings_extra" android:title="@string/unica_extra_settings_title" android:key="unica_extra_settings" android:fragment="io.mesalabs.unica.settings.extra.ExtraSettingsFragment" settings:controller="io.mesalabs.unica.settings.extra.ExtraSettingsPreferenceController" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -8,6 +8,9 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from integration.targets import DEFAULT_TARGET
+
 CHECKS = (
     "hardware_confirmed", "donor_firmware_verified", "kernel_validated",
     "partition_layout_verified", "vendor_compatibility_validated", "boot_validated",
@@ -61,7 +64,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     check = commands.add_parser("doctor", help="Report readiness; nonzero means NOT flashable")
-    check.add_argument("--target", choices=["beyond1lte", "beyond2lte"], default="beyond2lte")
+    check.add_argument("--target", choices=["beyond1lte", "beyond2lte"], default=DEFAULT_TARGET)
     audit = commands.add_parser("inspect", help="Fetch pinned reference text using gh")
     audit.add_argument("destination", type=Path)
     args = parser.parse_args()

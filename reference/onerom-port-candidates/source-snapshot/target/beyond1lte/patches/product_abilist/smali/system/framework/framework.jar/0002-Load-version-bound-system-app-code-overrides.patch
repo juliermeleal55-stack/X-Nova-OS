@@ -1,0 +1,18 @@
+Subject: [PATCH] Load version-bound system app code overrides
+
+diff --git a/smali/android/app/ApplicationLoaders.smali b/smali/android/app/ApplicationLoaders.smali
+--- a/smali/android/app/ApplicationLoaders.smali
++++ b/smali/android/app/ApplicationLoaders.smali
+@@ -302,6 +302,10 @@
+     move-object/from16 v8, p10
+ 
+     move-object/from16 v9, p11
+ 
++    invoke-static {v0}, Lcom/android/internal/os/S10AppCodeOverrides;->get(Ljava/lang/String;)Ljava/lang/String;
++
++    move-result-object v0
++
+     invoke-static/range {v0 .. v9}, Lcom/android/internal/os/ClassLoaderFactory;->createClassLoader(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;IZLjava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Ljava/lang/ClassLoader;
+ 
+-- 
+2.49.1

@@ -13,13 +13,18 @@ debloat e fluxo de build; NÃO é certificação de cada arquivo/binário.
 | OneROM | 644f0aacc49a | 4.468 | 233 | 0 | Adaptações controladas, ver ONEROM-AUDIT |
 | ExtremeROM fifteen | 2056320784b7 | 3.889 | 10 | 10 | Referência histórica, repositório arquivado |
 
-Targets e plataforma próprios do S10 continuam separados. ExtremeROM é útil
-como linhagem, mas seus targets ainda declaram API/VNDK 31 e esquema antigo;
-seu filesystem erofs não deve substituir automaticamente nossa configuração
-ext4. A Artisan atual não fornece configuração beyond*. A OneROM declara S24
-FE e suporte S10 normal, não prova compatibilidade com nosso SM-S926B doador ou
-S10+. Quatro módulos específicos e Extra Dim/kernel estão desativados upstream.
-Não copiamos erros ignorados de HEX_PATCH para fazer a compilação prosseguir.
+A portagem OneROM nesta branch importa integralmente os 474 blobs de
+`target/beyond1lte/` (233) e `platform/exynos9820/` (241): 283 arquivos de
+texto ficam no inventário versionado e 191 ativos não textuais são obtidos para
+a workspace gerada. A restante árvore OneROM (`unica/`, scripts genéricos e
+prebuilts fora desses escopos) não é transplantada. O target físico permanece
+SM-G973F; a referência de firmware doador S24 FE é separada e não prova
+compatibilidade de hardware.
+
+Marcadores upstream `disable` são mantidos. A integração completa de fontes
+não certifica aplicação de patches nem boot. ExtremeROM continua apenas como
+referência histórica: seus targets declaram API/VNDK 31 e esquema antigo, e
+seu filesystem erofs não substitui automaticamente a configuração Artisan ext4.
 
 ## Debloat e patches
 
@@ -30,9 +35,10 @@ remoção de componentes críticos explicitamente protegidos. O teste da lista
 histórica com eSIM fonte/sem eSIM alvo passa. Isso não resolve automaticamente
 todas as dependências de apps do doador; deve-se verificar firmware/APKs reais.
 
-Patches de HALs, SELinux, VINTF, runtime32, gralloc/Mali, áudio/câmera, SDHMS e
-BPF/connectividade ainda exigem validação cruzada com o SDK e binários reais.
-Não foram ativados patches de outra ROM só porque o nome do aparelho coincide.
+Módulos e patches importados mantêm o estado upstream: `disable` continua
+presente quando fornecido; os demais não recebem uma aprovação funcional por
+serem do mesmo codename. HALs, SELinux, VINTF, runtime32, gralloc/Mali,
+áudio/câmera, SDHMS e BPF/connectividade não são homologados por este inventário.
 
 ## Construção
 
@@ -42,9 +48,10 @@ retirement verificado, captura de propriedades que o ZIP precisava, prova de
 outputs e logs de recursos. A toolchain transitiva do kernel ainda depende de
 servidor externo; pin do código principal não fixa todos os downloads.
 
-O link oneui85-lab foi usado APENAS como referência da organização em etapas.
-Nenhum de seus componentes está incorporado à base. Não mudamos o doador para
-S23 FE nem S24 FE. Não há split do ZIP em três partes nem release automática.
+O link oneui85-lab foi usado APENAS como referência da organização em etapas;
+nenhum de seus componentes está incorporado à base. O doador configurado é
+S24 FE, mas o target continua SM-G973F; isso não prova compatibilidade real do
+firmware. Não há split do ZIP em três partes nem release automática.
 
 ## Critérios ainda NÃO atendidos
 

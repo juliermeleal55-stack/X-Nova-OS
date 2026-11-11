@@ -7,6 +7,11 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
+try:
+    from .verify_onerom_port import verify as verify_onerom_port
+except ImportError:
+    from verify_onerom_port import verify as verify_onerom_port
+
 
 def blob(path, entry):
     data = path.read_bytes()
@@ -104,8 +109,9 @@ def verify():
         raw=path.read_bytes()
         if hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=signature[hashkey]:raise ValueError('Signature bridge provenance changed')
         count+=1
+    count += verify_onerom_port()
     return count
 
 
 if __name__ == '__main__':
-    print(f'{verify()} cross-audit/build evidence files verified')
+    print(f'{verify()} retained audit/build files verified; complete OneROM S10/Exynos workspace import is pinned')

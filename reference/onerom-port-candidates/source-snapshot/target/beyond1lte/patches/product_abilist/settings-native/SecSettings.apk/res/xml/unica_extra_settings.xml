@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen android:title="@string/unica_extra_settings_title" settings:hierarchicalParentFragment="io.mesalabs.unica.settings.UnicaSettingsFragment" settings:topLevelPreferenceKey="unica_extra_settings"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="Security and privacy">
+        <SecSwitchPreference android:title="Hide apps" android:key="unica_hma" android:summary="Hide specific apps from the system using Hide MyApps" settings:controller="io.mesalabs.unica.settings.GenericTogglePreferenceController" />
+        <SecSwitchPreference android:title="@string/unica_secure_ss_title" android:key="unica_secure_ss" settings:controller="io.mesalabs.unica.settings.wm.SecureScreenshotPreferenceController" />
+        <SecSwitchPreference android:title="@string/unica_ss_detection_title" android:key="unica_ss_detection" settings:controller="io.mesalabs.unica.settings.wm.CaptureDetectionPreferenceController" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="App modifications">
+        <SecSwitchPreference android:title="@string/unica_allow_downgrade_title" android:key="unica_allow_downgrade" settings:controller="io.mesalabs.unica.settings.pm.AppDowngradePreferenceController" />
+        <SecSwitchPreference android:title="@string/unica_allow_sdkbypass_title" android:key="unica_allow_sdkbypass" settings:controller="io.mesalabs.unica.settings.pm.AppTargetSDKBypassPreferenceController" />
+        <SecSwitchPreference android:title="@string/unica_asks_title" android:key="unica_asks" settings:controller="io.mesalabs.unica.settings.pm.ASKSPreferenceController" />
+        <SecSwitchPreference android:title="@string/unica_gphotos_title" android:key="unica_gphotos" settings:controller="io.mesalabs.unica.settings.extra.GooglePhotosPreferenceController" />
+        <SecSwitchPreference android:title="@string/unica_games_spoof_title" android:key="unica_games_spoof" settings:controller="io.mesalabs.unica.settings.extra.GamesPropsPreferenceController" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/onerom_bixby_category_title">
+      <SecDropDownPreference android:title="@string/onerom_bixby_single_action_title" android:key="onerom_bixby_single_action" android:summary="%s" settings:controller="io.mesalabs.unica.settings.extra.BixbyKeyActionPreferenceController" />
+      <SecDropDownPreference android:title="@string/onerom_bixby_double_action_title" android:key="onerom_bixby_double_action" android:summary="%s" settings:controller="io.mesalabs.unica.settings.extra.BixbyKeyActionPreferenceController" />
+      <SecDropDownPreference android:title="@string/onerom_bixby_hold_action_title" android:key="onerom_bixby_hold_action" android:summary="%s" settings:controller="io.mesalabs.unica.settings.extra.BixbyKeyActionPreferenceController" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/onerom_experimental_category_title">
+      <Preference android:title="@string/onerom_backup_settings_title" android:key="onerom_backup_settings" android:summary="@string/onerom_backup_settings_summary" settings:controller="io.mesalabs.unica.settings.BackupRestorePreferenceController" />
+      <Preference android:title="@string/onerom_restore_settings_title" android:key="onerom_restore_settings" android:summary="@string/onerom_restore_settings_summary" settings:controller="io.mesalabs.unica.settings.BackupRestorePreferenceController" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Advanced reboot">
+        <Preference android:title="Normal reboot" android:key="onerom_reboot_normal" settings:controller="io.mesalabs.unica.settings.RebootPreferenceController" />
+        <Preference android:title="Soft reboot" android:key="onerom_reboot_soft" settings:controller="io.mesalabs.unica.settings.RebootPreferenceController" />
+        <Preference android:title="Recovery" android:key="onerom_reboot_recovery" settings:controller="io.mesalabs.unica.settings.RebootPreferenceController" />
+        <Preference android:title="Download mode" android:key="onerom_reboot_download" settings:controller="io.mesalabs.unica.settings.RebootPreferenceController" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,22 @@
+Subject: [PATCH] Fix boot scaling jump and dpi shrink
+
+--- a/smali_classes2/com/android/server/wm/WindowManagerService.smali
++++ b/smali_classes2/com/android/server/wm/WindowManagerService.smali
+@@ -10157,7 +10157,7 @@
+     :cond_3
+     sget-boolean v4, Lcom/samsung/android/rune/CoreRune;->FW_MULTI_RESOLUTION_POLICY:Z
+ 
+-    if-eqz v4, :cond_4
++    goto :cond_4
+ 
+     iget-object v4, v0, Lcom/android/server/wm/WindowManagerService;->mDisplayManagerInternal:Landroid/hardware/display/DisplayManagerInternal;
+ 
+@@ -10427,6 +10427,8 @@
+ 
+     if-eqz v4, :cond_1c
+ 
++    goto/16 :goto_e
++
+     iget-object v0, v0, Lcom/android/server/wm/WindowManagerService;->mExt:Lcom/android/server/wm/WindowManagerServiceExt;
+ 
+     iget-object v9, v0, Lcom/android/server/wm/WindowManagerServiceExt;->mService:Lcom/android/server/wm/WindowManagerService;

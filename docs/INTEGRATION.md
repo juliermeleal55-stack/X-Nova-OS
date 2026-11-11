@@ -1,87 +1,84 @@
-> **Fluxo atual:** consulte [BUILD-STAGES.md](BUILD-STAGES.md) e
-> [CROSS-AUDIT.md](CROSS-AUDIT.md). As tentativas e comandos anteriores abaixo
-> são históricos; não comprovam sucesso do fluxo atual.
+# Integração atual: Artisan S10, doador S24 FE e árvores OneROM
 
-# Integração candidata: Artisan S10 + doador UN1CA seventeen
+## Escopo do workspace
 
-## O que realmente mudou
+A **ArtisanROM histórica**, fixada em
+`5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954`, continua sendo a base do build. O
+alvo padrão é o Galaxy S10 normal **SM-G973F / `beyond1lte` / Exynos 9820**.
+S10+, S10e e Snapdragon não são inferidos como suportados.
 
-A **ArtisanROM histórica é o build system principal**. Não substituímos o
-layout do S10 pelo do S20. O preparador baixa a árvore completa fixada,
-verifica SHA-256 do arquivo e cria uma workspace externa ao Git com todos os
-arquivos incluídos no arquivo upstream (inclusive blobs). Submódulos são
-inicializados separadamente nas revisões históricas registradas no manifesto.
+Em workspaces novos `beyond1lte`, o preparador importa as árvores completas do
+OneROM fixado em `644f0aacc49ad2410e566de8deb05e6c8211d83d`:
+`target/beyond1lte/` e `platform/exynos9820/`. São 474 blobs e 326.008.869 bytes
+brutos. O repositório conserva os 283 arquivos textuais e os metadados de todos
+os blobs; os 191 itens não textuais são obtidos pelo checkout Git filtrado no
+momento da preparação, não adicionados ao Git.
 
-O overlay `integration/artisan/essi_64.sh` substitui a configuração do doador:
-carrega o `essi.sh` da UN1CA seventeen, preservado em `integration/unica`, e
-traduz as variáveis para o esquema antigo. O SM-S926B é o doador que **a própria
-branch fornecida seleciona**; não é uma imagem stock do S20. A UN1CA faz o port
-para S20, mas o sistema-fonte configurado por ela é desse outro aparelho.
+O importador compara todos os caminhos, tamanhos e Git blob SHA-1 com o
+manifesto antes de alterar o workspace. Arquivos Artisan substituídos são
+preservados em `reference/artisan-before-onerom/`; originais OneROM de arquivos
+adaptados pelo projeto e o `postinstall.edify` upstream ficam em
+`reference/onerom-upstream/`, junto a créditos, licença e recibo. Os marcadores
+upstream `disable` são mantidos exatamente.
 
-O target continua beyond2lte, Exynos 9820, vendor API 31/VNDK 31, ext4,
-sem super e sem system_ext separado. A assertion foi limitada ao SM-G975F.
-O kernel agora é buscado em commit fixado, não atualizado por `git pull`.
+**Limites de instalação:** o `target/beyond1lte/postinstall.edify` da OneROM
+não substitui o recipe de instalação Artisan ativo. Nenhuma imagem/código de
+recovery é modificada. A importação não publica uma ROM, não faz flash e não
+afirma compatibilidade funcional. O módulo adaptador próprio de
+`search_indexing` continua fora do build; o módulo upstream é importado com seu
+marcador `disable` preservado.
 
-**Não foram transplantados os patches Exynos 990 do S20 para o S10.** Os
-patches de framework antigos foram mantidos para investigar incompatibilidades;
-ainda precisam ser adaptados ao framework doador. Não alegamos que já aplicam
-ou que o resultado inicia. Configurar um doador não substitui validar patches.
+## Doador e adaptações do projeto
 
-## Reprodução
+O perfil declarativo selecionado para workspaces novos é **S24 FE
+SM-S721B/EUX**, proveniente de código de referência OneROM/UN1CA. Essa
+configuração continua pendente de confirmação no firmware extraído; seu SDK,
+versão e propriedades não são certificados pelo perfil. O preparador lê o SDK
+real do `build.prop` do doador para limitar o caminho histórico de Bluetooth.
+Isso não transforma a configuração de um aparelho em prova de compatibilidade.
 
-Requer Linux, Python >= 3.9, curl, bash, Git e as dependências originais da
-ArtisanROM. O arquivo da base tem aproximadamente 1.4 GiB comprimido; os
-firmwares e artefatos de build exigirão espaço adicional significativo.
+O preparador conserva o target Artisan, adapta sua assertion para **somente
+SM-G973F**, configura o pipeline de firmware e integra os módulos próprios de
+compatibilidade. O kernel compilado continua sendo tratado pelo fluxo fixado do
+projeto; os arquivos OneROM de kernel continuam presentes no workspace com a
+proveniência registrada. Não há modificação do recovery nem autorização de
+instalação.
+
+## Reproduzir a preparação
+
+Requer Linux, Python >= 3.9, curl, Git, Bash e as dependências originais da
+ArtisanROM. O arquivo Artisan tem aproximadamente 1,4 GiB comprimido; o
+workspace recebe também os arquivos da portagem OneROM e precisará de espaço
+adicional significativo. O destino deve ser novo e ficar fora deste repositório.
 
 ```bash
-# Destino NOVO, fora deste repositório. O preparador não apaga trabalho existente.
 python3 scripts/prepare_workspace.py /caminho/externo/beyoud-workspace
-# Opcional: --archive /caminho/artisan.tar.gz reutiliza o download verificado.
-
 python3 scripts/init_workspace_dependencies.py /caminho/externo/beyoud-workspace
-bash scripts/build_candidate.sh /caminho/externo/beyoud-workspace dependencies
-bash scripts/build_candidate.sh /caminho/externo/beyoud-workspace rom
+
+# As etapas de build permanecem separadas e opcionais:
+BEYOUD_JOBS=1 bash scripts/build_candidate.sh /caminho/externo/beyoud-workspace dependencies
+bash scripts/build_candidate.sh /caminho/externo/beyoud-workspace source
+bash scripts/build_candidate.sh /caminho/externo/beyoud-workspace target
 ```
 
-A fase `rom` chama o `make_rom.sh --no-rom-zip` **original** da ArtisanROM,
-com log e propagação do código de saída. Não gera instalador flashável nesta
-fase experimental. Logs ficam em `out/beyoud-logs` da workspace. Falha em
-uma etapa não equivale a ROM compilada.
+A preparação não executa o build. Consulte [`BUILD-STAGES.md`](BUILD-STAGES.md)
+para as etapas opcionais. Nenhuma mudança de código aqui aprova uma publicação,
+um recovery ou um flash.
 
-Submódulos transitivos podem depender de hosts indisponíveis aqui. O build
-original também baixa firmware Samsung e o build do kernel baixa a toolchain
-Clang de android.googlesource.com. O preparador não contorna esses bloqueios.
+## Verificação registrada
 
-## Validação executada nesta sessão
+A portagem de fontes foi exercitada em uma workspace temporária contra a revisão
+OneROM fixada: **474 caminhos e 326.008.869 bytes**, todos conferidos por
+caminho/tamanho/Git blob SHA-1; módulos e cópias protegidas de instalador foram
+verificados estruturalmente. Isso não foi build da ROM nem teste no aparelho.
 
-- Download completo da revisão histórica e verificação de SHA-256.
-- Extração completa e aplicação do overlay de seleção do doador.
-- Execução real de `source buildenv.sh beyond2lte`: passou e gerou config.sh.
-- Execução real de `make_rom.sh --no-rom-zip`: **falhou antes da compilação**,
-  com código 1, na verificação de dependências do host.
-- Faltaram: `bc brotli clang cmake zstd file getfattr go java lz4 pcre2test
-  protoc xxd 7z rsync`. Evidências em `docs/validation/`.
-- O overlay de pinagem de kernel foi adicionado depois dessa tentativa e
-  recebeu validação de sintaxe; não houve compilação do kernel.
+Verificações host deste merge: **305 testes** passaram; `verify_reference.py`
+confirmou 69 blobs Artisan e 37 referências OneROM históricas; `verify_audit.py`
+confirmou 494 arquivos, incluindo os 283 blobs de texto do novo snapshot. Também
+passaram `compileall` e `bash -n` nos scripts shell versionados. São verificações
+de fontes/proveniência, não validação funcional no telefone.
 
-## Valores candidatos, não comprovados
-
-`SOURCE_VNDK_VERSION=34`, existência de system_ext, codename e2s, posição do
-recorte e suporte WPA3 são hipóteses do adapter para o doador S926B. Precisam
-ser conferidos contra imagens extraídas. A associação ESE/NFC segue a tradução
-de esquema e também exige revisão: esses conceitos podem não ser equivalentes.
-SDK 37 vem da configuração upstream, não de build.prop verificado. A versão
-do firmware doador continua sem pinagem; a seleção de firmware pelo build
-antigo não ganha pinagem automaticamente por copiar uma variável do novo.
-
-A versão e marca herdadas na config gerada (Quant 3.1.1) não são uma release
-Beyoud nem certificação da ArtisanROM. Corrigir identidade/distribuição antes
-de qualquer publicação de ROM.
-
-## Próximas falhas que ainda podem aparecer
-
-Extração de firmware moderno, padrões smali que mudaram, resolução de símbolos
-entre framework/vendor, SELinux, requisitos de kernel, fstab e capacidade das
-partições. Esses pontos só podem ser marcados como resolvidos com evidências.
-Esta integração é uma **workspace candidata executável pelo pipeline antigo**,
-não uma ROM já portada ou homologada.
+As atribuições e limites de redistribuição das fontes OneROM estão em
+[`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). GPL para código-fonte não concede, por si
+só, direitos de redistribuição de cada APK, biblioteca, imagem ou outro ativo
+proprietário importado para a workspace.

@@ -1,0 +1,4 @@
+id=product_abilist
+name=S10 One UI 9 runtime compatibility
+author=Robertgarciaa
+description=Declares the ARM64-only donor runtime and restores the S10 prepare_param init helper.

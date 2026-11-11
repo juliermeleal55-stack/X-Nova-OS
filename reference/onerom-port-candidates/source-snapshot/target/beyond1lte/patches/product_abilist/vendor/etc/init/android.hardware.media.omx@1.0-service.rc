@@ -1,0 +1,8 @@
+service vendor.media.omx /vendor/bin/hw/android.hardware.media.omx@1.0-service
+    interface android.hardware.media.omx@1.0::IOmx default
+    interface android.hardware.media.omx@1.0::IOmxStore default
+    class hal
+    user mediacodec
+    group camera drmrpc mediadrm
+    ioprio rt 4
+    task_profiles SystemServicePerformance SystemServiceCapacityHigh

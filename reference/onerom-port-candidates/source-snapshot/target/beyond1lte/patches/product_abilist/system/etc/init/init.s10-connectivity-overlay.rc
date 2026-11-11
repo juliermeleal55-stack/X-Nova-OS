@@ -1,0 +1,2 @@
+on post-fs-data
+    mount none /system/framework/s10-connectivity-javalib /apex/com.android.tethering/javalib bind ro

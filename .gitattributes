@@ -1,0 +1,2 @@
+# Preserve exact upstream source bytes; do not normalize their whitespace.
+reference/onerom-port-candidates/** whitespace=-blank-at-eol,-blank-at-eof

@@ -1,0 +1,7 @@
+service vendor.s10-bluetooth-audio /vendor/bin/hw/s10-bluetooth-audio64
+    class hal
+    user audioserver
+    group audio bluetooth media system
+    interface vendor.samsung.hardware.bluetooth.audio@2.1::ISehBluetoothAudioProvidersFactory default
+    interface vendor.samsung.hardware.bluetooth.audio@2.0::ISehBluetoothAudioProvidersFactory default
+    updatable

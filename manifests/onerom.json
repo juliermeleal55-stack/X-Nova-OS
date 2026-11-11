@@ -1,7 +1,7 @@
 {
   "repository": "DaDevMikey/OneROM",
   "commit": "644f0aacc49ad2410e566de8deb05e6c8211d83d",
-  "license": "GPL-3.0-or-later (retain upstream LICENSE)",
+  "license": "GPL-3.0-or-later for GPL-covered source; upstream LICENSE and per-file notices are retained. Proprietary/vendor binary assets remain subject to their own terms and are fetched only into generated workspaces.",
   "inventory_truncated": false,
   "scope_statistics": {
     "platform/exynos9820/": {
@@ -233,5 +233,6 @@
       "sha": "c711c746290db4cb7e451f607ea0df0269b19ee9",
       "size": 1801
     }
-  ]
+  ],
+  "local_reference_status": "283 exact text/source files plus a complete 474-blob inventory are retained in this repository; workspace preparation fetches and SHA-verifies the full target/beyond1lte and platform/exynos9820 trees, including 191 non-text assets, into the SM-G973F workspace. The adapted search-indexing candidate remains outside the build; its upstream module disable marker is preserved. OneROM postinstall.edify remains reference-only and the Artisan installer stays active."
 }

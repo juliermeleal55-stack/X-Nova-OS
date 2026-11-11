@@ -1,0 +1,59 @@
+Subject: [PATCH] Reserve S10 right-corner cutout space in SystemUI
+
+diff --git a/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithmNoCutout.smali b/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithmNoCutout.smali
+--- a/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithmNoCutout.smali
++++ b/smali_classes3/com/android/systemui/statusbar/phone/IndicatorGardenAlgorithmNoCutout.smali
+@@ -95,9 +95,48 @@
+ .method public final calculateRightPadding()I
+-    .locals 0
++    .locals 4
+ 
+     invoke-virtual {p0}, Lcom/android/systemui/statusbar/phone/IndicatorGardenAlgorithm;->getDefaultSidePadding()I
+ 
+-    move-result p0
++    move-result v0
+ 
+-    return p0
++    iget-object v1, p0, Lcom/android/systemui/statusbar/phone/IndicatorGardenAlgorithm;->inputProperties:Lcom/android/systemui/statusbar/phone/IndicatorGardenInputProperties;
++
++    iget v3, v1, Lcom/android/systemui/statusbar/phone/IndicatorGardenInputProperties;->rotation:I
++
++    if-nez v3, :s10_right_padding_done
++
++    iget-object v2, v1, Lcom/android/systemui/statusbar/phone/IndicatorGardenInputProperties;->displayCutout:Landroid/view/DisplayCutout;
++
++    if-eqz v2, :s10_right_padding_done
++
++    invoke-virtual {v2}, Landroid/view/DisplayCutout;->getBoundingRectTop()Landroid/graphics/Rect;
++
++    move-result-object v2
++
++    invoke-virtual {v2}, Landroid/graphics/Rect;->isEmpty()Z
++
++    move-result v3
++
++    if-nez v3, :s10_right_padding_done
++
++    iget v3, v2, Landroid/graphics/Rect;->right:I
++
++    iget p0, v1, Lcom/android/systemui/statusbar/phone/IndicatorGardenInputProperties;->statusBarWidth:I
++
++    if-ne v3, p0, :s10_right_padding_done
++
++    iget v2, v2, Landroid/graphics/Rect;->left:I
++
++    sub-int/2addr p0, v2
++
++    iget v1, v1, Lcom/android/systemui/statusbar/phone/IndicatorGardenInputProperties;->cutoutSidePaddingD:I
++
++    add-int/2addr p0, v1
++
++    invoke-static {v0, p0}, Ljava/lang/Math;->max(II)I
++
++    move-result v0
++
++    :s10_right_padding_done
++    return v0
+ .end method
+-- 
+2.49.1

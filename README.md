@@ -28,6 +28,8 @@
 
 X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema **ExtremeROM**, sistema doador **S24 FE SM-S721B/EUX em migração** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
 
+Workspaces novas do **S10 normal SM-G973F / beyond1lte** agora recebem a portagem completa das árvores OneROM `target/beyond1lte/` e `platform/exynos9820/`, com revisão fixada, créditos/licenças e preservação dos arquivos Artisan substituídos. Isso não altera retroativamente o ZIP Alpha publicado, não substitui o instalador Artisan e não autoriza flash/publicação. Consulte [a auditoria OneROM](docs/ONEROM-AUDIT.md) e [a integração](docs/INTEGRATION.md).
+
 O objetivo é reunir essas adaptações em **um único ZIP completo**, com kernel integrado, patches específicos e um pipeline reproduzível. A aparência e os recursos do sistema ainda dependem de validação no aparelho; não há capturas de tela ou funcionalidades confirmadas nesta alpha.
 
 ## Migração do doador

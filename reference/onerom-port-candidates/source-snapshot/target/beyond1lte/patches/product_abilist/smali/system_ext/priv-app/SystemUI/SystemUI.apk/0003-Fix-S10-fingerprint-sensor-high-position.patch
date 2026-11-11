@@ -1,0 +1,61 @@
+Subject: [PATCH] Fix S10 fingerprint sensor high position
+
+diff --git a/smali_classes4/com/android/systemui/util/DeviceState.smali b/smali_classes4/com/android/systemui/util/DeviceState.smali
+--- a/smali_classes4/com/android/systemui/util/DeviceState.smali
++++ b/smali_classes4/com/android/systemui/util/DeviceState.smali
+@@ -1608,52 +1608,11 @@
+ .end method
+ 
+ .method public static isInDisplayFpSensorPositionHigh()Z
+-    .locals 2
+-
+-    const-class v0, Lcom/android/systemui/keyguard/DisplayLifecycle;
+-
+-    sget-object v1, Lcom/android/systemui/Dependency;->sDependency:Lcom/android/systemui/Dependency;
+-
+-    invoke-virtual {v1, v0}, Lcom/android/systemui/Dependency;->getDependencyInner(Ljava/lang/Object;)Ljava/lang/Object;
+-
+-    move-result-object v0
+-
+-    check-cast v0, Lcom/android/systemui/keyguard/DisplayLifecycle;
+-
+-    invoke-virtual {v0}, Lcom/android/systemui/keyguard/DisplayLifecycle;->getRealSize()Landroid/graphics/Point;
+-
+-    move-result-object v0
+-
+-    iget v1, v0, Landroid/graphics/Point;->y:I
+-
+-    iget v0, v0, Landroid/graphics/Point;->x:I
+-
+-    invoke-static {v1, v0}, Ljava/lang/Math;->max(II)I
+-
+-    move-result v0
+-
+-    int-to-float v0, v0
+-
+-    sget v1, Lcom/android/systemui/util/DeviceState;->sInDisplayFingerprintHeight:I
+-
+-    int-to-float v1, v1
+-
+-    div-float/2addr v1, v0
+-
+-    const v0, 0x3e6147ae    # 0.22f
+-
+-    cmpl-float v0, v1, v0
+-
+-    if-lez v0, :cond_0
++    .locals 1
+ 
+     const/4 v0, 0x1
+ 
+     return v0
+-
+-    :cond_0
+-    const/4 v0, 0x0
+-
+-    return v0
+ .end method
+ 
+ .method public static isLargeScreenTablet(Landroid/content/Context;)Z
+-- 
+2.49.1

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen android:title="@string/onerom_guide_title" settings:topLevelPreferenceKey="top_level_remote_support"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="@string/onerom_guide_navigation_title">
+        <Preference android:selectable="false" android:title="@string/onerom_guide_navigation_title" android:summary="@string/onerom_guide_navigation_summary" />
+        <Preference android:selectable="false" android:title="@string/onerom_guide_settings_title" android:summary="@string/onerom_guide_settings_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/onerom_guide_platform_title">
+        <Preference android:selectable="false" android:title="@string/onerom_guide_root_title" android:summary="@string/onerom_guide_root_summary" />
+        <Preference android:selectable="false" android:title="@string/onerom_guide_privacy_title" android:summary="@string/onerom_guide_privacy_summary" />
+        <Preference android:selectable="false" android:title="@string/onerom_guide_aod_title" android:summary="@string/onerom_guide_aod_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/onerom_credits_title">
+        <Preference android:title="UN1CA Project" android:summary="@string/onerom_credits_unica_summary" />
+        <Preference android:title="ArtisanROM" android:summary="@string/onerom_credits_artisan_summary" />
+        <Preference android:title="ExtremeROM / ExtremeXT" android:summary="@string/onerom_credits_extremerom_summary" />
+        <Preference android:title="OneROM Development" android:summary="@string/onerom_credits_onerom_summary" />
+        <Preference android:title="BlackMesa123" android:summary="@string/onerom_credits_blackmesa_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/onerom_related_title">
+        <Preference android:title="@string/onerom_software_info_link" android:fragment="com.samsung.android.settings.deviceinfo.softwareinfo.SoftwareInfoSettings" />
+        <Preference android:title="@string/onerom_rom_settings_title" android:summary="@string/onerom_rom_settings_summary" android:fragment="io.mesalabs.unica.settings.UnicaSettingsFragment" />
+        <Preference android:title="@string/onerom_changelog_title" android:summary="@string/onerom_changelog_summary" android:fragment="io.mesalabs.unica.settings.ChangelogFragment" />
+    </PreferenceCategory>
+</PreferenceScreen>

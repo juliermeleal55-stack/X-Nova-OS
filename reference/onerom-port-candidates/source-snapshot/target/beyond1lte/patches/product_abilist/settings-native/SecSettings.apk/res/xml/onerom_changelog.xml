@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen android:title="@string/onerom_changelog_title" settings:hierarchicalParentFragment="io.mesalabs.unica.settings.UnicaSettingsFragment" settings:topLevelPreferenceKey="top_level_about_phone"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="OneROM Delta 9.0" android:key="onerom_changelog_v90">
+        <Preference android:selectable="false" android:key="onerom_changelog_v90_0" android:title="Initial Release" android:summary="Initial One UI 9 Android 17 port for Galaxy S10 (beyond1lte)." android:singleLineTitle="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

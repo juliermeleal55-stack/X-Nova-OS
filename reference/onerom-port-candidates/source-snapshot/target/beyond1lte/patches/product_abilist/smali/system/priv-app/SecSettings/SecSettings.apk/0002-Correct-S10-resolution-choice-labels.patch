@@ -1,0 +1,16 @@
+Subject: [PATCH] Derive S10 resolution labels from its QHD panel
+
+diff --git a/smali_classes3/com/samsung/android/settings/display/ScreenResolutionFragment.smali b/smali_classes3/com/samsung/android/settings/display/ScreenResolutionFragment.smali
+--- a/smali_classes3/com/samsung/android/settings/display/ScreenResolutionFragment.smali
++++ b/smali_classes3/com/samsung/android/settings/display/ScreenResolutionFragment.smali
+@@ -564,7 +564,7 @@
+     :goto_2
+-    iget p1, p0, Lcom/samsung/android/settings/display/ScreenResolutionFragment;->mScreenResolution:I
++    const/4 p1, 0x2
+ 
+     const/4 v3, 0x2
+ 
+     if-eq p1, v1, :cond_5
+ 
+-- 
+2.49.1

@@ -1,0 +1,23 @@
+Subject: [PATCH] Require local-network event ring buffer before starting listener
+
+--- a/android/net/connectivity/com/android/server/ConnectivityService.smali
++++ b/android/net/connectivity/com/android/server/ConnectivityService.smali
+@@ -2721,6 +2721,18 @@
+     move-result v0
+ 
+     if-eqz v0, :cond_2b6
+ 
++    new-instance v0, Ljava/io/File;
++
++    const-string v1, "/sys/fs/bpf/netd_shared/map_netd_local_net_note_op_ringbuf"
++
++    invoke-direct {v0, v1}, Ljava/io/File;-><init>(Ljava/lang/String;)V
++
++    invoke-virtual {v0}, Ljava/io/File;->exists()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_2b6
++
+     invoke-virtual {v10}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+ 

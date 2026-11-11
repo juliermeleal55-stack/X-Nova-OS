@@ -1,0 +1,77 @@
+{
+  "repository": "DaDevMikey/OneROM",
+  "audited_commit": "644f0aacc49ad2410e566de8deb05e6c8211d83d",
+  "license": "GPL-3.0-or-later",
+  "session_date": "2026-10-30",
+  "upstream_timing": {
+    "repository_created_at": "2026-11-03T08:40:54Z",
+    "initial_beyond1lte_port_commit": "243cec5f7c421bea2d352667595025a72bdfa086",
+    "initial_beyond1lte_port_author_date": "2026-11-02T14:13:34Z",
+    "audited_commit_author_date": "2026-11-05T12:48:01Z",
+    "note": "Future-dated relative to session_date; user explicitly approved proceeding with this snapshot."
+  },
+  "status": "complete-upstream-tree-workspace-port; adapted-search-indexing-candidate-review-only",
+  "candidate_policy": {
+    "workspace_preparation_copies_candidate": false,
+    "build_enabled": false,
+    "device_tested": false,
+    "boot_validated": false,
+    "release_authorized": false,
+    "complete_upstream_tree_workspace_import": true,
+    "upstream_search_indexing_module_copied": true,
+    "upstream_search_indexing_disable_marker_preserved": true,
+    "adapted_candidate_copied_or_wired": false,
+    "one_rom_postinstall_active": false,
+    "artisan_installer_replaced": false,
+    "recovery_modified": false
+  },
+  "candidates": [
+    {
+      "id": "beyond1lte-search-indexing",
+      "upstream_path": "target/beyond1lte/patches/search_indexing/smali/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk/0001-Skip-absent-policy-resource-IDs.patch",
+      "source_blob_sha1": "7add52275f17c126d019029809fcd82d13a073a1",
+      "source_sha256": "bfa847f8333636019773d46d203b35b65c94fd3a8acdfa916c9e292af3534081",
+      "source_size_bytes": 718,
+      "local_path": "reference/onerom-port-candidates/search_indexing/0001-Skip-absent-policy-resource-IDs.patch",
+      "local_sha256": "bfa847f8333636019773d46d203b35b65c94fd3a8acdfa916c9e292af3534081",
+      "target": "beyond1lte / SM-G973F only, pending donor validation",
+      "upstream_module_credit": "UN1CA contributors",
+      "upstream_commit_author_integrator": "DaManMikey",
+      "status": "review-only-unvalidated-donor",
+      "build_integration": false,
+      "adaptation_status": "Project-authored fail-closed adapter added for review; original patch bytes retained for provenance. Adapter is not wired into the build.",
+      "adapter_path": "reference/onerom-port-candidates/search_indexing/adapt_candidate.py",
+      "adapter_sha256": "682dceed7e14f141ce49eb8c4fcea57fc0fbff2d47b57cfd1b9f7bd0d1f6d611",
+      "required_preconditions": [
+        "Verify against the actual donor APK and exact method/DEX path.",
+        "Prove v0 is the absent-resource sentinel (-1) at the insertion point.",
+        "Check register liveness and preserve valid resource-ID behavior.",
+        "Strict patch preflight, complete DEX diff review, rebuild and APK integrity checks.",
+        "Runtime search-indexing tests on SM-G973F before considering activation."
+      ],
+      "host_validation": "Synthetic patch-context application only; no donor APK or device validation."
+    }
+  ],
+  "deferred_components": [
+    {
+      "id": "usb_initialization",
+      "reason": "Mutates services.jar USB/charging initialization; requires donor DEX review and physical USB/charging/ADB/OTG/DeX validation."
+    },
+    {
+      "id": "user_defaults",
+      "reason": "Changes persistent Bluetooth policy and global animation settings; user-preference impact is not justified."
+    },
+    {
+      "id": "product_abilist",
+      "reason": "Broad ABI/runtime, native binary, init and SELinux changes without verified donor-native dependencies."
+    },
+    {
+      "id": "postinstall_edify_resize",
+      "reason": "Resizes six partitions without locally verified device layout; not copied."
+    },
+    {
+      "id": "legacy_edify_installer_and_recovery",
+      "reason": "Deprecated installer architecture differs from the separate experimental candidate and is not adopted."
+    }
+  ]
+}

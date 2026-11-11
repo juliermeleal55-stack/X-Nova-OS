@@ -2,9 +2,14 @@
 > [CROSS-AUDIT.md](CROSS-AUDIT.md). As tentativas e comandos anteriores abaixo
 > são históricos; não comprovam sucesso do fluxo atual.
 
-# Estado de construção — SM-G975F
+# Estado de construção — histórico SM-G975F e portagem atual SM-G973F
 
-## Implementado
+> O bloco SM-G975F abaixo é um registro antigo, não o estado global do projeto.
+> A branch contém artefatos Alpha anteriores para o SM-G973F; consulte o README
+> e `docs/ALPHA-REPAIR-STATUS.md`. A portagem completa OneROM descrita ao fim é
+> posterior a esses builds e ainda precisa de sua própria execução.
+
+## Implementado no registro histórico SM-G975F
 
 - Modelo SM-G975F confirmado pelo usuário e selecionado no perfil.
 - Importados 68 textos originais da plataforma Exynos 9820 e do target
@@ -30,11 +35,12 @@
 5. Ambiente observado: ~20 GiB livres, 3.8 GiB RAM e sem swap. Não foi medido
    o espaço total necessário ao conjunto completo de firmwares e workdirs.
 
-Por isso não foi iniciada compilação de firmware nem produzido ZIP. O teste
-`doctor` termina em código 2 intencionalmente. Não há release ou artefato
-flashável. A CI valida SOMENTE os fontes desta etapa, não boot nem hardware.
+Na execução histórica descrita acima não foi iniciada compilação de firmware.
+Isso não descreve os builds Alpha posteriores do SM-G973F; a CI e os ZIPs
+anteriores continuam documentados separadamente. Nenhum build anterior valida a
+portagem completa OneROM adicionada agora.
 
-## Próxima implementação
+## Próxima implementação do registro histórico
 
 Comparar os consumidores de config e helpers do build antigo e novo; migrar
 primeiro extração e layout estático ext4 e depois módulos Exynos 9820. Fixar
@@ -42,11 +48,18 @@ firmwares reais, transitive dependencies e toolchain. Só executar make_rom
 quando existir uma árvore integrada e revisada; uma mistura mecânica não
 constitui port funcional.
 
-## Atualização: workspace candidata implementada
+## Estado atual deste branch — SM-G973F / beyond1lte
 
-O texto acima descreve o estado inicial. Agora `scripts/prepare_workspace.py`
-monta a base completa da ArtisanROM com adapter de doador UN1CA, sem trocar o
-pipeline S10. `buildenv.sh beyond2lte` foi executado com sucesso. Uma tentativa
-real de `make_rom.sh --no-rom-zip` retornou 1 por dependências de host ausentes,
-antes da compilação. Não houve build de imagens, flash ou teste de boot.
-Veja `docs/INTEGRATION.md` e `docs/validation/` para detalhes e limitações.
+Os itens sobre SM-G975F/beyond2lte acima são registros históricos, não o alvo
+atual. Workspaces novos usam **SM-G973F / beyond1lte** e mantêm Artisan como
+base. O preparador importa todas as 474 entradas fixadas de
+`target/beyond1lte/` e `platform/exynos9820/` da OneROM, incluindo os 191 itens
+não textuais; cada caminho, tamanho e Git blob SHA-1 é verificado. Marcadores
+`disable` são preservados; o `postinstall.edify` OneROM fica apenas em
+`reference/onerom-upstream`, mantendo o instalador Artisan ativo. Recovery não é
+alterado.
+
+Uma importação integral para workspace temporária foi conferida estruturalmente;
+**não houve build da ROM, flash ou teste de boot/aparelho**. As verificações
+host do repositório não são validação funcional. Veja `docs/INTEGRATION.md` e
+`docs/ONEROM-AUDIT.md` para escopo, créditos e limites de redistribuição.

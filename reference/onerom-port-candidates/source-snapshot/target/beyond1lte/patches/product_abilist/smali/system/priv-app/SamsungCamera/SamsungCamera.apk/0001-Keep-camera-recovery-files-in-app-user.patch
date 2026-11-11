@@ -1,0 +1,16 @@
+Subject: [PATCH] Keep legacy Camera recovery files in its own user
+
+diff --git a/smali_classes2/com/samsung/android/camera/core2/util/SemWrapper.smali b/smali_classes2/com/samsung/android/camera/core2/util/SemWrapper.smali
+--- a/smali_classes2/com/samsung/android/camera/core2/util/SemWrapper.smali
++++ b/smali_classes2/com/samsung/android/camera/core2/util/SemWrapper.smali
+@@ -15,7 +15,7 @@
+ .method public static b()I
+     .locals 1
+ 
+-    invoke-static {}, Landroid/app/ActivityManager;->semGetCurrentUser()I
++    invoke-static {}, Landroid/os/UserHandle;->myUserId()I
+ 
+     move-result v0
+ 
+-- 
+2.49.1

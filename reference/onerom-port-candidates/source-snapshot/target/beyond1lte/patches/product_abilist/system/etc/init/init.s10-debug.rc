@@ -1,0 +1,46 @@
+on post-fs-data
+    mkdir /data/misc/adb 02750 system shell
+    restorecon_recursive /data/misc/adb
+    setprop sys.usb.controller 10c00000.dwc3
+    setprop sys.usb.configfs 2
+    write /config/usb_gadget/g1/strings/0x409/serialnumber ${ro.serialno}
+    write /config/usb_gadget/g1/strings/0x409/manufacturer SAMSUNG
+    write /config/usb_gadget/g1/strings/0x409/product SAMSUNG_Android
+    setprop persist.sys.usb.config adb
+    setprop sys.usb.config adb
+    start adbd
+
+on property:sys.usb.ffs.ready=1 && property:sys.usb.config=adb
+    write /config/usb_gadget/g1/UDC none
+    rm /config/usb_gadget/g1/configs/b.1/ffs.mtp
+    rm /config/usb_gadget/g1/configs/b.1/ffs.ptp
+    rm /config/usb_gadget/g1/configs/b.1/acm.0
+    rm /config/usb_gadget/g1/configs/b.1/rndis.0
+    rm /config/usb_gadget/g1/configs/b.1/dm.0
+    rm /config/usb_gadget/g1/configs/b.1/dm1.0
+    rm /config/usb_gadget/g1/configs/b.1/conn_gadget.0
+    rm /config/usb_gadget/g1/configs/b.1/midi.0
+    rm /config/usb_gadget/g1/configs/b.1/accessory.0
+    rm /config/usb_gadget/g1/configs/b.1/audio_source.0
+    rm /config/usb_gadget/g1/configs/b.1/ncm.0
+    rm /config/usb_gadget/g1/configs/b.1/ss_mon.0
+    symlink /config/usb_gadget/g1/functions/ffs.adb /config/usb_gadget/g1/configs/b.1/ffs.adb
+
+on property:persist.sys.usb.config=mtp
+    setprop persist.sys.usb.config adb
+
+on property:sys.usb.config=mtp
+    setprop sys.usb.config adb
+
+on property:sys.usb.config=mtp,adb
+    setprop sys.usb.config adb
+
+on boot
+    setprop persist.sys.usb.config adb
+    setprop sys.usb.config none
+    setprop sys.usb.config adb
+    start adbd
+
+on property:sys.boot_completed=1
+    exec_background -- /system/bin/settings put global adb_enabled 1
+    exec_background -- /system/bin/settings put global development_settings_enabled 1

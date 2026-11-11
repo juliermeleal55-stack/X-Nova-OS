@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
+  android:background="@drawable/onerom_banner_background" android:clipToOutline="true"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <androidx.appcompat.widget.AppCompatImageView android:id="@id/logo_background_view" android:layout_width="match_parent" android:layout_height="150.0dp" android:scaleType="centerCrop" android:src="@drawable/onerom_s10_wallpaper" android:alpha="0.9" />
+    <View android:layout_width="match_parent" android:layout_height="150.0dp" android:background="#66000000" />
+    <TextView
+        android:id="@+id/unica_banner_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="8dp"
+        android:text="OneROM Delta 9.0"
+        android:textColor="#ffffffff"
+        android:textSize="36sp"
+        android:fontFamily="sec"
+        android:textFontWeight="600"
+        android:shadowColor="#80000000"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        android:shadowRadius="4" />
+</FrameLayout>

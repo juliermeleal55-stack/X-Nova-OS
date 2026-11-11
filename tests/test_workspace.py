@@ -37,7 +37,7 @@ class WorkspaceTests(unittest.TestCase):
             misc.parent.mkdir(parents=True, exist_ok=True)
             misc.write_text((ROOT / 'reference/artisan-s10/platform/exynos9820/patches/miscs/customize.sh').read_text())
             with patch.object(prepare, 'install_runtime_paths'), patch.object(prepare, 'install_preflight'), patch.object(prepare, 'install_framework'), patch.object(prepare, 'apply_build_policy'), patch.object(prepare, 'patch_firmware_lookup'), patch.object(prepare, 'patch_parallel_builds'), patch.object(prepare, 'patch_sequential_firmwares'):
-                prepare.apply_overlay(workspace)
+                prepare.apply_overlay(workspace, 'beyond2lte')
             import json
             marker=json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text())
             self.assertEqual(marker['donor_profile']['model'],'SM-S721B')

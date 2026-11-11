@@ -296,7 +296,7 @@
       "repository": "ArtisanROM/ArtisanROM",
       "branch": "sixteen-qpr2",
       "commit": "abeb2cac4ff80fdf6f0748b7422d6b4d4b307323",
-      "role": "Refer\u00eancia de organiza\u00e7\u00e3o atual; n\u00e3o suporta beyond2lte nesta revis\u00e3o",
+      "role": "Referência de organização atual; não suporta beyond2lte nesta revisão",
       "tree_sha": "abeb2cac4ff80fdf6f0748b7422d6b4d4b307323",
       "inventory_truncated": false,
       "files": 2320,
@@ -577,7 +577,7 @@
       "repository": "ArtisanROM-archive/ArtisanROM_old",
       "branch": "sixteen-old",
       "commit": "5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954",
-      "role": "Refer\u00eancia hist\u00f3rica de target beyond2lte e plataforma exynos9820",
+      "role": "Referência histórica de target beyond2lte e plataforma exynos9820",
       "tree_sha": "5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954",
       "inventory_truncated": false,
       "files": 4987,
@@ -1006,7 +1006,8 @@
           ]
         }
       },
-      "evidence": []
+      "evidence": [],
+      "local_reference_status": "Complete pinned inventory in manifests/onerom-source-snapshot.json; repository retains 283 byte-exact text/source files, and beyond1lte workspace preparation imports and verifies all 474 target/platform blobs, including binary assets. OneROM postinstall.edify remains reference-only; Artisan installer and recovery are not replaced or modified."
     },
     "extremerom": {
       "repository": "ExtremeXT/ExtremeROM",

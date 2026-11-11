@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
-from integration.targets import from_marker, select
+from integration.targets import DEFAULT_TARGET, from_marker, select
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,6 +20,10 @@ alpha = load('target_alpha', 'scripts/collect_alpha.py')
 
 
 class TargetTests(unittest.TestCase):
+    def test_default_target_is_normal_s10(self):
+        self.assertEqual(DEFAULT_TARGET, 'beyond1lte')
+        self.assertEqual(prepare.DEFAULT_TARGET, 'beyond1lte')
+
     def test_mismatch_rejected(self):
         with self.assertRaises(ValueError):
             from_marker(dict(codename='beyond1lte', target='SM-G975F'))
@@ -43,7 +47,18 @@ class TargetTests(unittest.TestCase):
             misc = root / 'platform/exynos9820/patches/miscs/customize.sh'
             misc.parent.mkdir(parents=True, exist_ok=True)
             misc.write_text((ROOT / 'reference/artisan-s10/platform/exynos9820/patches/miscs/customize.sh').read_text())
-            with patch.object(prepare, 'install_runtime_paths'), patch.object(prepare, 'install_preflight'), patch.object(prepare, 'install_framework'), patch.object(prepare, 'apply_build_policy'), patch.object(prepare, 'patch_downloader'), patch.object(prepare, 'patch_firmware_lookup'), patch.object(prepare, 'patch_parallel_builds'), patch.object(prepare, 'patch_sequential_firmwares'):
+            with patch.object(prepare, 'import_onerom_sources', return_value={
+                    'commit': '644f0aacc49ad2410e566de8deb05e6c8211d83d',
+                    'upstream_disabled_modules': ['target/beyond1lte/patches/search_indexing']}), \
+                 patch.object(prepare, 'install_s10_compat', return_value={'active': ['donor-sdk guard']}), \
+                 patch.object(prepare, 'install_runtime_paths'), \
+                 patch.object(prepare, 'install_preflight'), \
+                 patch.object(prepare, 'install_framework'), \
+                 patch.object(prepare, 'apply_build_policy'), \
+                 patch.object(prepare, 'patch_downloader'), \
+                 patch.object(prepare, 'patch_firmware_lookup'), \
+                 patch.object(prepare, 'patch_parallel_builds'), \
+                 patch.object(prepare, 'patch_sequential_firmwares'):
                 prepare.apply_overlay(root, 'beyond1lte')
             text = config.read_text()
             self.assertIn('TARGET_ASSERT_MODEL=("SM-G973F")', text)
@@ -52,6 +67,8 @@ class TargetTests(unittest.TestCase):
             self.assertNotIn('SM-G975', text)
             marker = json.loads((root / 'BEYOUD-WORKSPACE.json').read_text())
             self.assertEqual(from_marker(marker)[0], 'beyond1lte')
+            self.assertEqual(marker['onerom_port']['commit'], '644f0aacc49ad2410e566de8deb05e6c8211d83d')
+            self.assertEqual(marker['s10_compatibility']['active'], ['donor-sdk guard'])
 
     def test_s10_package_cannot_be_used_as_s10plus(self):
         from test_alpha import package
