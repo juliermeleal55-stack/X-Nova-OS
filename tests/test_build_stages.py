@@ -57,6 +57,17 @@ class StageTests(unittest.TestCase):
         self.assertIn('collect_alpha.py', text)
         self.assertIn('compression-level: 0', text)
 
+    def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):
+        caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()
+        reusable = (ROOT / '.github/workflows/alpha.yml').read_text()
+        self.assertIn('X-NovaOS Alpha 3.1 - Build #${{ github.run_number }}', caller)
+        self.assertIn('Attempt #${{ github.run_attempt }}', caller)
+        self.assertIn("alpha_version: '3.1'", caller)
+        self.assertIn('--build-number "$GITHUB_RUN_NUMBER"', reusable)
+        self.assertIn('--run-attempt "$GITHUB_RUN_ATTEMPT"', reusable)
+        self.assertIn('X-NovaOS-${{ inputs.target }}-Alpha-${{ inputs.alpha_version }}', reusable)
+        self.assertIn('BUILD-INFO.json', (ROOT / 'scripts/collect_alpha.py').read_text())
+
     def test_actual_pinned_scripts_transform_and_parse(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

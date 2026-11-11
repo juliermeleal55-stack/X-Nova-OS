@@ -7,7 +7,7 @@
 
 **One UI 9 experimental · SM-G973F / beyond1lte · Alpha 1**
 
-[Download e instalação](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/releases/tag/v0.1.0-alpha1-sm-g973f-test) · [Build concluído](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/actions/runs/42374299228) · [Documentação](docs/BUILD-STAGES.md)
+[Download e instalação](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/releases/tag/v0.1.0-alpha1-sm-g973f-test) · [Build concluído](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/actions/runs/42374299228) · [Documentação](docs/BUILD-STAGES.md) · [Numeração dos builds](docs/BUILD-NAMING.md) · [Riscos do build](docs/S10-BUILD-RISK-REVIEW.md)
 
 </div>
 

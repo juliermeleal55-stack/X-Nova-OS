@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -66,6 +67,52 @@ class AlphaTests(unittest.TestCase):
                 alpha.collect(workspace, dest)
             self.assertTrue((dest / 'SHA256SUMS').exists())
             self.assertIn('DO NOT prove boot', (dest / 'WARNING.txt').read_text())
+
+    def test_public_build_identity_is_numbered_and_zip_bytes_are_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / 'work'
+            (workspace / 'out').mkdir(parents=True)
+            (workspace / 'BEYOUD-WORKSPACE.json').write_text(json.dumps({
+                'target': 'SM-G973F', 'codename': 'beyond1lte', 'flashable_release': False,
+            }))
+            source = workspace / 'out/ArtisanROM_0.1.0-alpha1_beyond1lte.zip'
+            package(source, model='SM-G973F')
+            original_zip = source.read_bytes()
+            destination = Path(tmp) / 'numbered-alpha'
+            package_inputs = {
+                'stock_image_size_caps': {'system': 1000},
+                'partition_layout': {'id': 'stock'},
+            }
+            with patch.object(alpha, 'load_package_inputs', return_value=package_inputs):
+                alpha.collect(workspace, destination, alpha_version='3.1', build_number=23, run_attempt=2)
+
+            filename = 'X-NovaOS-SM-G973F-Alpha-3.1-Build-23-Attempt-2-UNTESTED.zip'
+            output = destination / filename
+            self.assertTrue(output.is_file())
+            self.assertEqual(output.read_bytes(), original_zip)
+            self.assertIn('X-NovaOS Alpha 3.1 — build #23, attempt 2', (destination / 'WARNING.txt').read_text())
+            info = json.loads((destination / 'BUILD-INFO.json').read_text())
+            self.assertEqual(info['project'], 'X-NovaOS')
+            self.assertEqual(info['version'], 'Alpha 3.1')
+            self.assertEqual(info['build_number'], 23)
+            self.assertEqual(info['run_attempt'], 2)
+            self.assertEqual(info['target_model'], 'SM-G973F')
+            self.assertFalse(info['release_published'])
+            self.assertFalse(info['hardware_validated'])
+            self.assertFalse(info['zip_bytes_modified'])
+            self.assertEqual(info['sha256'], hashlib.sha256(original_zip).hexdigest())
+            self.assertIn(filename, (destination / 'SHA256SUMS').read_text())
+
+    def test_invalid_public_build_identity_is_rejected_before_output_creation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp) / 'should-not-exist'
+            with self.assertRaises(ValueError):
+                alpha.collect(Path(tmp) / 'not-read', destination, alpha_version='../3', build_number=1)
+            with self.assertRaises(ValueError):
+                alpha.collect(Path(tmp) / 'not-read', destination, alpha_version='3.1')
+            with self.assertRaises(ValueError):
+                alpha.collect(Path(tmp) / 'not-read', destination, alpha_version='3.1', build_number=1, run_attempt=0)
+            self.assertFalse(destination.exists())
 
     def test_unsupported_partition_payload_or_write_is_rejected(self):
         for mode in ('payload','script','boot'):

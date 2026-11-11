@@ -1,7 +1,12 @@
-name: Galaxy S10 Exynos experimental alpha build
+name: X-NovaOS Galaxy S10 Exynos experimental Alpha build
+run-name: "X-NovaOS Alpha ${{ inputs.alpha_version }} - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - ${{ inputs.target }} - UNTESTED"
 on:
   workflow_call:
     inputs:
+      alpha_version:
+        description: Public X-NovaOS Alpha version, numeric components such as 3.1
+        type: string
+        default: '3.1'
       diagnostic_only:
         description: Stop after patch preflight; no kernel, APK assembly or ROM ZIP
         type: boolean
@@ -20,6 +25,11 @@ on:
         required: true
   workflow_dispatch:
     inputs:
+      alpha_version:
+        description: Public X-NovaOS Alpha version, numeric components such as 3.1
+        type: string
+        required: true
+        default: '3.1'
       diagnostic_only:
         description: Stop after patch preflight; no kernel, APK assembly or ROM ZIP
         type: boolean
@@ -69,6 +79,22 @@ jobs:
           echo "WORKSPACE=$RUNNER_TEMP/beyoud-workspace" >> "$GITHUB_ENV"
           git config --global user.name "Beyoud Alpha Builder"
           git config --global user.email "beyoud-build@users.noreply.github.com"
+      - name: Record X-NovaOS build identity
+        env:
+          ALPHA_VERSION: ${{ inputs.alpha_version }}
+        run: |
+          if [[ ! "$ALPHA_VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "Invalid public Alpha version: $ALPHA_VERSION" >&2
+            exit 1
+          fi
+          {
+            echo "## X-NovaOS Alpha $ALPHA_VERSION"
+            echo
+            echo "- Build number: #$GITHUB_RUN_NUMBER"
+            echo "- Attempt: $GITHUB_RUN_ATTEMPT"
+            echo "- Target: $BEYOUD_TARGET"
+            echo "- Status: experimental / untested; no release is published by this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Validate integration
         env:
           BEYOUD_PARTITION_LAYOUT: stock
@@ -137,12 +163,18 @@ jobs:
         run: bash scripts/build_candidate.sh "$WORKSPACE" package
       - name: Validate and collect alpha package
         if: ${{ !inputs.diagnostic_only }}
-        run: python3 scripts/collect_alpha.py "$WORKSPACE" "$RUNNER_TEMP/alpha-output"
+        env:
+          ALPHA_VERSION: ${{ inputs.alpha_version }}
+        run: >-
+          python3 scripts/collect_alpha.py "$WORKSPACE" "$RUNNER_TEMP/alpha-output"
+          --alpha-version "$ALPHA_VERSION"
+          --build-number "$GITHUB_RUN_NUMBER"
+          --run-attempt "$GITHUB_RUN_ATTEMPT"
       - name: Upload alpha only after successful build and structural checks
         if: ${{ !inputs.diagnostic_only }}
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: Beyoud-${{ inputs.target }}-alpha1-UNTESTED
+          name: X-NovaOS-${{ inputs.target }}-Alpha-${{ inputs.alpha_version }}-Build-${{ github.run_number }}-Attempt-${{ github.run_attempt }}-UNTESTED
           path: ${{ runner.temp }}/alpha-output/
           if-no-files-found: error
           retention-days: 7

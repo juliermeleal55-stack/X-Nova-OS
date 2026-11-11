@@ -1,7 +1,8 @@
 # Explicit build request for SM-G973F, authorized by the repository owner.
 # Only editing this request file on the session branch starts another attempt.
 # The build artifact stays in GitHub Actions; this workflow does not publish a release.
-name: Requested S10 SM-G973F Alpha 3.1 build (no release)
+name: Requested X-NovaOS S10 SM-G973F Alpha build
+run-name: "X-NovaOS Alpha 3.1 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G973F - TESTE / UNTESTED"
 on:
   push:
     branches: [arena/0d47b1d6-artisanrom-beyoud]
@@ -12,6 +13,7 @@ jobs:
   build:
     uses: ./.github/workflows/alpha.yml
     with:
+      alpha_version: '3.1'
       target: beyond1lte
       diagnostic_only: false
       experimental_patch_failures: true
