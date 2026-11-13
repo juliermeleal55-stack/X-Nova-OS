@@ -23,11 +23,11 @@ def donor_fixture(root):
     config.write_text(config.read_text().replace('SM-S926B','SM-S721B').replace('SOURCE_HAS_SYSTEM_EXT="true"','SOURCE_HAS_SYSTEM_EXT="false"'))
     lock=root/'out/firmware-lock.json';data=json.loads(lock.read_text())
     for r in data['firmwares']:
-        if r['model']=='SM-S926B':r['model']='SM-S721B';r['version']=f'{AP}/CSC/CP/{AP}'
+        if r['model']=='SM-S926B':r['model']='SM-S721B';r['version']=PROFILE['reference_version']
     lock.write_text(json.dumps(data))
     base=root/'out/fw/SM-S721B_EUX'
     (root/'out/fw/SM-S926B_EUX').rename(base)
-    (base/'.extracted').write_text(f'{AP}/CSC/CP/{AP}')
+    (base/'.extracted').write_text(PROFILE['reference_version'])
     (base/'system_ext').rmdir()
     (base/'system/system/build.prop').write_text('ro.build.product=r12s\nro.build.version.sdk=37\n')
 
@@ -57,12 +57,36 @@ class S24FEDonorTests(unittest.TestCase):
             (root/'out/fw/SM-S721B_EUX/system_ext').mkdir()
             with self.assertRaisesRegex(ValueError,'Unexpected source system_ext'):inspect(root)
 
+    def test_extracted_firmware_must_match_exact_reference_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);donor_fixture(root)
+            lock=root/'out/firmware-lock.json';data=json.loads(lock.read_text())
+            parts=data['firmwares'][0]['version'].split('/')
+            parts[1]='S721BOXMFEZJ0'
+            wrong='/'.join(parts)
+            data['firmwares'][0]['version']=wrong
+            lock.write_text(json.dumps(data))
+            (root/'out/fw/SM-S721B_EUX/.extracted').write_text(wrong)
+            with self.assertRaisesRegex(ValueError,'full version differs from the exact'):
+                inspect(root)
+
     def test_previous_donor_cannot_be_used_with_new_profile(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);s10(root)
             marker=json.loads((root/'BEYOUD-WORKSPACE.json').read_text());marker['donor_profile']=PROFILE
             (root/'BEYOUD-WORKSPACE.json').write_text(json.dumps(marker))
             with self.assertRaisesRegex(ValueError,'selected donor model'):inspect(root)
+
+    def test_profile_without_exact_full_version_refuses_latest_lookup(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);donor_fixture(root)
+            marker=root/'BEYOUD-WORKSPACE.json';data=json.loads(marker.read_text())
+            data['donor_profile'].pop('reference_version')
+            marker.write_text(json.dumps(data))
+            with patch.object(metadata.subprocess,'run',side_effect=AssertionError('latest lookup must not run')):
+                with self.assertRaisesRegex(ValueError,'must pin an exact four-part reference_version'):
+                    metadata.resolve(root)
+            self.assertFalse((root/'out/firmware-lock.json').exists())
 
     def test_probe_rejects_different_ap_without_leaving_lock(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -72,14 +96,28 @@ class S24FEDonorTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'differs from reference'):metadata.resolve(root)
             self.assertFalse((root/'out/firmware-lock.json').exists())
 
-    def test_probe_locks_s24fe_and_target_without_changing_target(self):
+    def test_probe_uses_exact_reference_version_and_leaves_target_latest(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);donor_fixture(root)
             calls=[]
             def probe(argv,**kwargs):
-                calls.append(argv[1:]);version=f'{AP}/CSC/CP/{AP}' if argv[1]=='SM-S721B' else 'AP/CSC/CP/AP'
+                calls.append(argv[1:])
+                version=PROFILE['reference_version'] if argv[1]=='SM-S721B' else 'AP/CSC/CP/AP'
                 return subprocess.CompletedProcess([],0,f'BEYOUD_FIRMWARE\t{argv[1]}\t{argv[2]}\t{version}\t100\n','')
             with patch.object(metadata.subprocess,'run',side_effect=probe),patch.object(metadata.shutil,'disk_usage') as disk,contextlib.redirect_stdout(io.StringIO()):
                 disk.return_value.free=100*1024**3;metadata.resolve(root)
-            self.assertEqual(calls,[['SM-S721B','EUX'],['SM-G973F','AUT']])
-            self.assertEqual(metadata.get(root/'out/firmware-lock.json','SM-S721B','EUX')['version'].split('/')[0],AP)
+            self.assertEqual(calls,[['SM-S721B','EUX',PROFILE['reference_version']],['SM-G973F','AUT']])
+            self.assertEqual(metadata.get(root/'out/firmware-lock.json','SM-S721B','EUX')['version'],PROFILE['reference_version'])
+
+    def test_probe_rejects_same_ap_with_different_full_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);donor_fixture(root)
+            wrong=PROFILE['reference_version'].split('/')
+            wrong[1]='S721BOXMFEZJ0'
+            version='/'.join(wrong)
+            def probe(argv,**kwargs):
+                return subprocess.CompletedProcess([],0,f'BEYOUD_FIRMWARE\t{argv[1]}\t{argv[2]}\t{version}\t100\n','')
+            with patch.object(metadata.subprocess,'run',side_effect=probe),contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError,'differs from pinned reference version'):
+                    metadata.resolve(root)
+            self.assertFalse((root/'out/firmware-lock.json').exists())

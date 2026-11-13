@@ -140,6 +140,17 @@ extração leem exatamente esse arquivo, sem repetir a consulta FOTA antiga.
 O lock é incluído nos diagnósticos e no pacote coletado. Veja
 [BUILD-AUDIT.md](BUILD-AUDIT.md) para as demais correções e pendências reais.
 
+### Doador S24 FE com versão completa fixada
+
+O perfil `integration/donors/s24fe.json` agora fixa também a versão completa
+`S721BXXSFEZJ1/S721BOXMFEZJ1/S721BXXSFEZJ1/S721BXXSFEZJ1`, previamente
+registrada por SmartDownload. O probe passa essa versão diretamente ao endpoint
+de metadados; se a resposta não for exatamente igual, o lock é recusado. Não há
+fallback do doador para `latest`; somente o firmware stock do alvo continua
+sendo resolvido como mais recente. A tentativa Alpha 3.2 que encontrou
+`S721BXXUFEZJ6` parou antes de baixar firmware ou gerar ROM. Até a nova consulta
+e o download do pacote fixado passarem, sua disponibilidade continua pendente.
+
 ## Novo preparo sequencial
 
 O make_rom gerado agora chama o orquestrador de firmware sequencial e usa

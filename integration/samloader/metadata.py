@@ -64,9 +64,19 @@ def resolve(workspace):
     descriptors=configured_firmwares(workspace/'out/config.sh')
     if donor and descriptors[0].split('/')[:2]!=[donor['model'],donor['csc']]:
         raise ValueError('Configured source does not match selected donor profile')
+    reference_version = None
+    if donor:
+        reference_version = donor.get('reference_version')
+        if not isinstance(reference_version, str) or not re.fullmatch(r'[A-Z0-9]+(?:/[A-Z0-9]+){3}', reference_version):
+            raise ValueError('Selected donor profile must pin an exact four-part reference_version; refusing a latest-version lookup')
+        if reference_version.split('/')[0] != donor.get('reference_ap'):
+            raise ValueError('Pinned donor reference_version AP does not match reference_ap')
     binary = workspace / 'out/tools/bin/beyoud-firmware-probe'
     for model, csc in configured_pairs(workspace / 'out/config.sh'):
-        result = subprocess.run([str(binary), model, csc], text=True, capture_output=True, timeout=180)
+        command = [str(binary), model, csc]
+        if donor and (model, csc) == (donor['model'], donor['csc']):
+            command.append(reference_version)
+        result = subprocess.run(command, text=True, capture_output=True, timeout=180)
         print(result.stdout, end='', flush=True)
         print(result.stderr, end='', file=sys.stderr, flush=True)
         result.check_returncode()
@@ -77,8 +87,11 @@ def resolve(workspace):
         record = validate(dict(model=resolved_model, csc=resolved_csc, version=version, size=int(size)))
         if (resolved_model, resolved_csc) != (model, csc):
             raise ValueError('Probe identity differs from configured firmware')
-        if donor and (model,csc)==(donor['model'],donor['csc']) and version.split('/')[0]!=donor['reference_ap']:
-            raise ValueError(f"Resolved donor AP {version.split('/')[0]} differs from reference {donor['reference_ap']}; review actual firmware, do not silently switch donor versions")
+        if donor and (model, csc) == (donor['model'], donor['csc']):
+            if version.split('/')[0] != donor['reference_ap']:
+                raise ValueError(f"Resolved donor AP {version.split('/')[0]} differs from reference {donor['reference_ap']}; do not switch to another donor version")
+            if version != reference_version:
+                raise ValueError(f'Resolved donor full version {version} differs from pinned reference version {reference_version}; refusing to use a different package')
         records.append(record)
     temp = lock.with_suffix('.tmp')
     temp.write_text(json.dumps({'schema_version': 1, 'storage_mode': 'sequential-linux-reclaim', 'firmwares': records}, indent=2) + '\n')

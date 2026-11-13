@@ -5,6 +5,7 @@
   "csc": "EUX",
   "codename": "r12s",
   "reference_ap": "S721BXXSFEZJ1",
+  "reference_version": "S721BXXSFEZJ1/S721BOXMFEZJ1/S721BXXSFEZJ1/S721BXXSFEZJ1",
   "declared_sdk": 37,
   "declared_shipping_api": 34,
   "declared_system_ext": false,
@@ -16,6 +17,6 @@
   "blob_sha": "904d1420eefb2099da05e3757d0253c6a7563d21",
   "sha256": "833ce3c0fc6bc07e23e99f63ce4da65c097453ca2d02c65a55ba891ee5a715a9",
   "license": "GPL-3.0-or-later; upstream notices retained",
-  "resolution": "SmartDownload latest for SM-S721B/EUX must match reference_ap; full version recorded in firmware lock",
+  "resolution": "Query the exact four-part reference_version directly via SmartDownload; reject any returned version mismatch and never fall back to latest",
   "system_ext_policy": "No separate partition; embedded system/system/system_ext is supported by the original Artisan copier"
 }

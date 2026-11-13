@@ -41,6 +41,7 @@ class WorkspaceTests(unittest.TestCase):
             import json
             marker=json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text())
             self.assertEqual(marker['donor_profile']['model'],'SM-S721B')
+            self.assertEqual(marker['donor_profile']['reference_version'], 'S721BXXSFEZJ1/S721BOXMFEZJ1/S721BXXSFEZJ1/S721BXXSFEZJ1')
             self.assertEqual(marker['donor_commit'],'541074191937f2d7c033be7a10cf5d99146cc98f')
             self.assertTrue((workspace / 'manifests/onerom.json').is_file())
             self.assertTrue((workspace / 'integration/twrp_zip_builder.py').is_file())

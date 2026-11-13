@@ -61,8 +61,13 @@ def inspect(workspace):
             expected=config[f'{role.upper()}_API_LEVEL']
             if sdk!=expected:
                 raise ValueError(f'{role} actual SDK={sdk}, declared SDK={expected}; select/adapt the donor schema, do not bypass this check')
-            if role=='source' and donor and (int(sdk)!=donor['declared_sdk'] or record['version'].split('/')[0]!=donor['reference_ap']):
-                raise ValueError('Actual source SDK/AP differs from selected S24 FE donor profile; adapt after inspection')
+            if role=='source' and donor:
+                if int(sdk)!=donor['declared_sdk']:
+                    raise ValueError('Actual source SDK differs from selected S24 FE donor profile; adapt after inspection')
+                if record['version'].split('/')[0]!=donor['reference_ap']:
+                    raise ValueError('Actual source AP differs from selected S24 FE donor profile; do not change the pinned donor')
+                if record['version']!=donor.get('reference_version'):
+                    raise ValueError('Actual source full version differs from the exact S24 FE reference version')
             present=observation['separate_system_ext'] or observation['embedded_system_ext']
             if role=='source' and config.get('SOURCE_HAS_SYSTEM_EXT')=='true' and not present:
                 raise ValueError('Declared donor system_ext is absent; adapter layout needs review')

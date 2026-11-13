@@ -92,3 +92,22 @@ adicionais e 85 evidências auditadas.** Não se promete ausência de outras
 incompatibilidades: o próximo passo necessário ainda é executar os patches
 contra os arquivos S24 FE reais. O runner anterior já terminou e as árvores
 extraídas não foram publicadas/cacheadas; a nova execução precisa baixar de novo.
+
+## Resolver diretamente o firmware S24 FE fixado — execução Alpha 3.2 #24
+
+A execução `43439258857` resolveu `S721BXXUFEZJ6` como latest, mas o perfil
+aprovado exige `S721BXXSFEZJ1`. O guard interrompeu a tentativa antes de baixar
+firmware, compilar ferramentas da ROM ou produzir ZIP. O usuário confirmou que
+não deve haver troca silenciosa para a versão latest.
+
+Uma consulta anterior registrou o pacote exato como
+`S721BXXSFEZJ1/S721BOXMFEZJ1/S721BXXSFEZJ1/S721BXXSFEZJ1` (22.911.343.072
+bytes). O perfil agora fixa a string completa e o probe solicita diretamente
+essa versão ao SmartDownload, verificando igualdade integral antes de criar o
+lock. A checagem após extração também exige a string completa. Não há fallback
+para `S721BXXUFEZJ6` nem para outro AP.
+
+Isso muda o método de consulta, não atesta disponibilidade atual. A nova
+consulta SmartDownload e o download efetivo do pacote exato ainda precisam
+passar; caso contrário, o fluxo permanece bloqueado e deve-se pedir orientação.
+Nenhuma ROM Alpha 3.2 foi gerada por aquela execução.
