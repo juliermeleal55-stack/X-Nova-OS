@@ -15,16 +15,22 @@ ENGINE = ROOT / 'integration/new_installer/engine.sh'
 
 
 class RawInstallerTests(unittest.TestCase):
+    def test_bare_fdt_is_not_a_kernel_dt_table_image(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dtb = root / 'dtb.img'
+            dtb.write_bytes(bytes.fromhex('d00dfeed') + bytes(128))
+            with self.assertRaisesRegex(ValueError, 'Invalid Android DTB table image'):
+                builder._validate_image('dtb', dtb, root)
+
     def fixtures(self, root):
         images = root / 'images'
         images.mkdir()
         for name in builder.REQUIRED:
             if name in {'boot', 'init_boot', 'vendor_boot'}:
                 header = b'ANDROID!'
-            elif name == 'dtbo':
-                header = bytes.fromhex('d7b7ab1e')
-            elif name == 'dtb':
-                header = bytes.fromhex('d00dfeed')
+            elif name in {'dtb', 'dtbo'}:
+                header = builder.DT_TABLE_MAGIC
             else:
                 header = b'fixture-not-real-filesystem'
             (images / (name + '.img')).write_bytes(header + bytes(64))

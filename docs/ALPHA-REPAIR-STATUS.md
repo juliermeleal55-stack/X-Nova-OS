@@ -1,15 +1,15 @@
 # S10 normal: revisão dos erros conhecidos
 
-> **Atualização da portagem de fontes:** workspaces novas `beyond1lte` agora
-> importam os 474 blobs completos de `target/beyond1lte/` e
-> `platform/exynos9820/` da revisão OneROM fixada. Os marcadores `disable` são
-> preservados; isso não revive os quatro rebases históricos nem ativa o
-> adaptador de search-indexing. O alvo permanece SM-G973F e Artisan continua
-> sendo a base; o ZIP Alpha 3.2 planeja um instalador TWRP separado, sem alterar
-> recovery. Consulte
-> [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). O status de build desta portagem é
-> registrado separadamente; as notas históricas abaixo descrevem execuções
-> anteriores e não certificam este novo conjunto de fontes.
+> **Estado Alpha 3.2:** workspaces novas `beyond1lte` importam os 474 blobs
+> completos de `target/beyond1lte/` e `platform/exynos9820/` da revisão OneROM
+> fixada. O importador preserva os marcadores upstream; para SM-G973F, somente
+> `extremekrnl/disable` é movido à proveniência para executar o hook de kernel
+> pinado. Alpha #25 falhou sem DTB; Alpha #26 gerou um `dtb.img`, mas o
+> empacotador rejeitou o magic incorreto esperado (`d00dfeed` em vez de Android
+> DT table `d7b7ab1e`). O validador foi ajustado; falta confirmar um novo build.
+> O alvo permanece SM-G973F, Artisan é a base e o instalador TWRP separado não
+> altera recovery. Consulte [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). As notas
+> históricas abaixo descrevem execuções anteriores e não certificam o candidato.
 
 ## Formato Alpha 3.2 configurado
 
@@ -20,10 +20,11 @@ recovery. Para `beyond1lte`, exige `system`, `vendor`, `product`, `boot`, `dtb` 
 `system_ext` fica embutido em `system`. O pacote não usa OTA
 `new.dat.br`/`transfer.list`.
 
-Este contrato novo não altera o histórico abaixo nem a Alpha 3.1. O fluxo foi
-exercitado somente com testes host sintéticos; ainda não houve build de imagens
-ou ZIP, instalação pelo TWRP, flash ou boot validado. A proveniência de `dtb.img`
-e do script `build_fs_image.sh` segue pendente. Consulte
+Este contrato novo não altera o histórico abaixo nem a Alpha 3.1. A #25 parou
+por ausência de `dtb.img`; a #26 parou porque os validadores confundiam o Android
+DT table do kernel com um FDT isolado. Os testes host confirmam os cabeçalhos e
+mantêm as validações estritas; o novo build ainda precisa produzir e empacotar
+as imagens. Nenhuma instalação pelo TWRP, flash ou boot foi validado. Consulte
 [BUILD-STAGES.md](BUILD-STAGES.md) para escopo e bloqueios.
 
 > Histórico: as seções seguintes registram a revisão dos erros conhecidos e

@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from integration.installer_integrity import SPARSE_MAGIC, verify_image
 from integration.raw_images import (
+    DT_TABLE_MAGIC,
     FILESYSTEM_ORDER,
     IMAGE_ORDER,
     KERNEL_ORDER,
@@ -175,14 +176,11 @@ def _validate_image(name, source, temporary):
         subprocess.run(['simg2img', str(source), str(raw)], check=True)
         if raw.is_symlink() or not raw.is_file():
             raise ValueError(f'simg2img produced an unsafe/missing image: {name}.img')
-    if name == 'dtb':
+    if name in {'dtb', 'dtbo'}:
         with raw.open('rb') as stream:
-            if stream.read(4) != bytes.fromhex('d00dfeed'):
-                raise ValueError('Invalid device-tree blob image')
-    elif name == 'dtbo':
-        with raw.open('rb') as stream:
-            if stream.read(4) != bytes.fromhex('d7b7ab1e'):
-                raise ValueError('Invalid DTBO image')
+            if stream.read(4) != DT_TABLE_MAGIC:
+                label = 'DTB' if name == 'dtb' else 'DTBO'
+                raise ValueError(f'Invalid Android {label} table image')
     elif name in {'boot', 'init_boot', 'vendor_boot'}:
         with raw.open('rb') as stream:
             if stream.read(8) != b'ANDROID!':

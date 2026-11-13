@@ -43,17 +43,19 @@ e o perfil do firmware confirmarem esses papéis. A validação rejeita imagens
 inesperadas, sparse não expandidas e payload OTA.
 
 A lista provém das fontes/configuração do builder, não de uma auditoria atual da
-tabela física de um telefone. A execução Alpha 3.2 #25 mostrou que o firmware
-stock alvo fornece `boot.img` e `dtbo.img`, mas não `dtb.img`. A causa foi o
-marcador upstream `disable` ainda ativo no módulo `extremekrnl`: o executor
-retornava antes de chamar `customize.sh`, embora o preparador já o tivesse
-substituído pelo hook pinado que compila o kernel. O workspace gerado agora
-preserva o marcador exato em `reference/onerom-upstream/` e reativa somente o
-hook de kernel para SM-G973F. O hook exige `boot`, `dtb` e `dtbo`; os validadores
-RAW/ZIP continuam exigindo presença, cabeçalhos válidos e hashes. A nova
-execução ainda precisa confirmar compilação e empacotamento. Nada disso audita a
-tabela física ou comprova instalação/boot; o instalador consulta as capacidades
-expostas pelo TWRP e falha se não confirmar os destinos.
+tabela física de um telefone. Alpha 3.2 #25 confirmou que o firmware stock alvo
+fornece `boot.img` e `dtbo.img`, mas não `dtb.img`: o marcador `disable` do
+módulo `extremekrnl` fazia o executor pular o hook de kernel. A preparação foi
+corrigida para preservar esse marcador em `reference/onerom-upstream/` e ativar
+o hook pinado somente no workspace SM-G973F. Alpha #26 avançou até o
+empacotamento e rejeitou o `dtb.img` por cabeçalho. A causa está no validador:
+o kernel fixado usa `mkdtimg cfg_create`, que envolve FDTs em uma imagem Android
+DT table com magic `d7b7ab1e`; o código esperava `d00dfeed`, a magic de um FDT
+isolado. Os validadores RAW e ZIP foram corrigidos para exigir o magic da DT
+table emitida pelo builder e rejeitar um FDT isolado. A próxima execução precisa
+confirmar o pacote inteiro. Nada disso audita a tabela física ou comprova
+instalação/boot; o instalador consulta as capacidades expostas pelo TWRP e falha
+se não confirmar os destinos.
 
 ## Etapas e reprodução local
 
@@ -99,7 +101,7 @@ use workspace nova em vez de sobrescrever evidência.
 
 Os testes do empacotador e do instalador usam arquivos sintéticos e mocks; não
 chamam TWRP, não abrem dispositivos de bloco e não fazem flash. Após a correção,
-**329/329 testes** passaram; `verify_reference.py`, `verify_audit.py`,
+**330/330 testes** passaram; `verify_reference.py`, `verify_audit.py`,
 `verify_onerom_port.py`, `compileall`, validação JSON, `bash -n` e
 `git diff --check` também passaram. A suíte inclui imagens DTB sintéticas com
 cabeçalho válido e rejeita DTB ausente/inválido. Ela não compila o kernel real.

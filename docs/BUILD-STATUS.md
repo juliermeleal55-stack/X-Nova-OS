@@ -54,11 +54,14 @@ Os itens sobre SM-G975F/beyond2lte acima são registros históricos, não o alvo
 atual. Workspaces novos usam **SM-G973F / beyond1lte** e mantêm Artisan como
 base. O preparador importa todas as 474 entradas fixadas de
 `target/beyond1lte/` e `platform/exynos9820/` da OneROM, incluindo os 191 itens
-não textuais; cada caminho, tamanho e Git blob SHA-1 é verificado. Marcadores
-`disable` são preservados; o `postinstall.edify` OneROM fica apenas em
-`reference/onerom-upstream`; isso não ativa o recipe OneROM nem altera o
-instalador Artisan original. A Alpha 3.2 empacota separadamente um `update-binary`
-para TWRP; nenhum recovery é distribuído ou modificado.
+não textuais; cada caminho, tamanho e Git blob SHA-1 é verificado. Os
+marcadores upstream são preservados; no workspace SM-G973F, somente o marcador
+de `extremekrnl` é arquivado em `reference/onerom-upstream` e desativado no
+módulo ativo para executar o hook de kernel pinado. O `postinstall.edify`
+OneROM fica apenas em `reference/onerom-upstream`; isso não ativa o recipe
+OneROM nem altera o instalador Artisan original. A Alpha 3.2 empacota
+separadamente um `update-binary` para TWRP; nenhum recovery é distribuído ou
+modificado.
 
 Uma importação integral para workspace temporária foi conferida estruturalmente;
 **não houve build da ROM, flash ou teste de boot/aparelho**. As verificações
@@ -74,8 +77,11 @@ imagens requeridas para beyond1lte são `system`, `vendor`, `product`, `boot`,
 `dtb` e `dtbo`; outras partições só entram quando o alvo e o perfil as sustentam.
 `system_ext` fica em `system` conforme a configuração.
 
-Esta é uma alteração de código/configuração, não um build. O instalador foi
-exercitado apenas com testes host sintéticos; nenhum build de firmware, ZIP
-Alpha 3.2, instalação TWRP, flash ou boot em hardware foi executado/validado. A
-origem de `dtb.img` e do script `build_fs_image.sh` ainda precisa ser confirmada.
-A Alpha 3.1 histórica permanece intacta. Consulte [BUILD-STAGES.md](BUILD-STAGES.md).
+A execução Alpha 3.2 #25 falhou porque o módulo de kernel estava desabilitado e
+o firmware stock não continha `dtb.img`. A Alpha #26 ativou o hook e chegou à
+etapa de pacote, mas o validador esperava um FDT isolado (`d00dfeed`), enquanto
+o `mkdtimg cfg_create` pinado gera um Android DT table (`d7b7ab1e`). Os
+validadores RAW/ZIP foram corrigidos para o formato efetivamente produzido; a
+próxima execução deve confirmar a compilação e o ZIP. Ainda não há ZIP Alpha
+3.2 validado, instalação TWRP, flash ou boot em hardware. A Alpha 3.1 histórica
+permanece intacta. Consulte [BUILD-STAGES.md](BUILD-STAGES.md).

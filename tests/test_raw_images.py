@@ -55,8 +55,8 @@ class RawImageTests(unittest.TestCase):
             (configs / f'file_context-{name}').write_text(f'/{name} u:object_r:system_file:s0\n')
             (configs / f'fs_config-{name}').write_text(f'{name} 0 0 755\n')
         (kernel / 'boot.img').write_bytes(b'ANDROID!' + bytes(256))
-        (kernel / 'dtb.img').write_bytes(bytes.fromhex('d00dfeed') + bytes(128))
-        (kernel / 'dtbo.img').write_bytes(bytes.fromhex('d7b7ab1e') + bytes(128))
+        (kernel / 'dtb.img').write_bytes(raw_images.DT_TABLE_MAGIC + bytes(128))
+        (kernel / 'dtbo.img').write_bytes(raw_images.DT_TABLE_MAGIC + bytes(128))
         (work / 'up_param.bin').write_bytes(b'not-an-img')
         caps = {name: 64 * 1024 for name in raw_images.FILESYSTEM_ORDER}
         inputs = {
@@ -189,15 +189,16 @@ class RawImageTests(unittest.TestCase):
                     raw_images.build(root)
             self.assertFalse((root / 'out/raw-images' / self.CODENAME).exists())
 
-    def test_dtb_header_must_be_a_device_tree_blob(self):
+    def test_dtb_must_be_an_android_dt_table_not_a_bare_fdt_blob(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             work, inputs, environment = self.workspace(root, optional=False)
-            (work / 'kernel/dtb.img').write_bytes(b'not-a-dtb' + bytes(128))
+            # The kernel's mkdtimg output wraps the FDT in an Android DT table.
+            (work / 'kernel/dtb.img').write_bytes(bytes.fromhex('d00dfeed') + bytes(128))
             with contextlib.ExitStack() as stack:
                 for item in self.build_patches(inputs, environment):
                     stack.enter_context(item)
-                with self.assertRaisesRegex(ValueError, 'Invalid device-tree blob image'):
+                with self.assertRaisesRegex(ValueError, 'Invalid Android DTB table image'):
                     raw_images.build(root)
             self.assertFalse((root / 'out/raw-images' / self.CODENAME).exists())
 

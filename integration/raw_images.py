@@ -30,6 +30,9 @@ FILESYSTEM_ORDER = (
     'system', 'vendor', 'product', 'odm', 'prism', 'optics', 'system_ext',
     'vendor_dlkm', 'odm_dlkm', 'system_dlkm',
 )
+# The pinned S10 build uses `mkdtimg cfg_create` for both dtb.img and
+# dtbo.img, so both are Android DT table images (not bare FDT blobs).
+DT_TABLE_MAGIC = bytes.fromhex('d7b7ab1e')
 # The pinned S10 kernel builder explicitly produces all three of boot, dtb and
 # dtbo; init_boot/vendor_boot remain optional for targets that provide them.
 KERNEL_ORDER = ('dtb', 'dtbo', 'init_boot', 'vendor_boot', 'boot')
@@ -140,10 +143,9 @@ def _verify_kernel_image(name, path):
         raise ValueError(f'Kernel image must be a raw .img, not sparse: {name}.img')
     if name in {'boot', 'init_boot', 'vendor_boot'} and not header.startswith(b'ANDROID!'):
         raise ValueError(f'Invalid Android boot image: {name}.img')
-    if name == 'dtbo' and header[:4] != bytes.fromhex('d7b7ab1e'):
-        raise ValueError('Invalid DTBO image')
-    if name == 'dtb' and header[:4] != bytes.fromhex('d00dfeed'):
-        raise ValueError('Invalid device-tree blob image')
+    if name in {'dtb', 'dtbo'} and header[:4] != DT_TABLE_MAGIC:
+        label = 'DTB' if name == 'dtb' else 'DTBO'
+        raise ValueError(f'Invalid Android {label} table image')
     return {'status': 'raw-header-verified', 'format': name, 'bytes': path.stat().st_size}
 
 

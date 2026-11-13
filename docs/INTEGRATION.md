@@ -25,8 +25,11 @@ módulo `extremekrnl` em `reference/onerom-upstream/` e remove somente o marcado
 ativo depois de instalar o hook de kernel pinado do projeto: o executor pula
 `customize.sh` quando o marcador está presente, mas o firmware alvo extraído não
 fornece `dtb.img`. Os outros módulos desabilitados mantêm seus marcadores ativos.
-O hook exige os três artefatos e o empacotador continua validando os cabeçalhos;
-veja [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md) para a proveniência e limites.
+O hook usa `mkdtimg cfg_create`; por isso `dtb.img` e `dtbo.img` são Android DT
+table images com magic `d7b7ab1e`, não FDTs isolados com `d00dfeed`. Os
+validadores exigem esse formato, além de tamanho e hash, sem relaxar a
+integridade. Veja [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md) para a proveniência e
+limites.
 
 **Limites de instalação:** o `target/beyond1lte/postinstall.edify` da OneROM
 não substitui o recipe de instalação Artisan ativo. Nenhuma imagem/código de
@@ -82,7 +85,7 @@ OneROM fixada: **474 caminhos e 326.008.869 bytes**, todos conferidos por
 caminho/tamanho/Git blob SHA-1; módulos e cópias protegidas de instalador foram
 verificados estruturalmente. Isso não foi build da ROM nem teste no aparelho.
 
-Verificações host após a correção do hook de kernel: **329 testes** passaram;
+Verificações host após a correção do hook de kernel: **330 testes** passaram;
 `verify_reference.py` confirmou 69 blobs Artisan e 37 referências OneROM;
 `verify_audit.py` confirmou 494 arquivos, e `verify_onerom_port.py` verificou
 286 arquivos de fonte/proveniência OneROM. A suíte inclui a regressão que prova

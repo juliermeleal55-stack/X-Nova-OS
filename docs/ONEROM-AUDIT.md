@@ -53,16 +53,19 @@ and records the disabled module inventory.
 For the **SM-G973F / `beyond1lte` build only**, workspace preparation then
 activates the project-pinned `integration/artisan/extremekrnl.sh` replacement.
 The module runner returns before sourcing `customize.sh` whenever its `disable`
-marker exists; leaving that marker active skipped the kernel compiler. The
-Alpha 3.2 #25 logs show stock target extraction supplied `boot.img` and
-`dtbo.img`, but not `dtb.img`, so the later RAW packaging gate correctly stopped.
-Preparation now preserves the exact OneROM marker at
+marker exists; leaving that marker active skipped the kernel compiler. Alpha
+3.2 #25 logs show stock target extraction supplied `boot.img` and `dtbo.img`,
+but not `dtb.img`. Preparation now preserves the exact OneROM marker at
 `reference/onerom-upstream/platform/exynos9820/patches/extremekrnl/disable`,
-removes only the active workspace marker, and installs the pinned hook. Its
-pinned kernel revision must produce non-empty `boot.img`, `dtb.img`, and
-`dtbo.img`; the existing RAW/ZIP validators still reject missing or malformed
-images. The original OneROM binaries are not used as substitutes for these
-pinned build outputs. This is not boot/runtime validation.
+removes only the active workspace marker, and installs the pinned hook. Alpha
+#26 then reached package validation with a `dtb.img` but rejected its header:
+the pinned `build.sh` invokes `mkdtimg cfg_create` for both `dtb.img` and
+`dtbo.img`, so these are Android DT table images with magic `d7b7ab1e`; the
+validator incorrectly expected the magic of a bare FDT (`d00dfeed`). The pinned
+`mkdtimg` was run against a minimal valid FDT to confirm its output magic. The
+RAW and ZIP validators now require the DT table container magic and reject a
+bare FDT. The original OneROM binaries are not substituted for the pinned build
+outputs. This is not boot/runtime validation.
 
 Other upstream markers remain active, including those on `extradim`,
 `search_indexing`, `usb_initialization`, `user_defaults` and

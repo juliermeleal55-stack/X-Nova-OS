@@ -32,7 +32,7 @@ jobs:
 
 # Retry: remove unsupported API36 services override; assemble using each DEX header and smoke-test real Smali before firmware download.
 
-# Retry Alpha 3.2: reactivate the pinned S10 kernel hook so DTB is built; keep the exact S721BXXSFEZJ1 donor pin and fail if unavailable.
+# Retry Alpha 3.2: validate the pinned mkdtimg DT-table header for DTB/DTBO; retain strict image checks and the exact S721BXXSFEZJ1 donor pin.
 
 # Retry: decode complete DEX magic so 040/041 map to API34/35, not compact DEX/ASCII digits.
 
