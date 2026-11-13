@@ -95,6 +95,17 @@ class PartitionProfileTests(unittest.TestCase):
         self.assertIn('run_program("/sbin/sh", "/tmp/partition-layout-check.sh", "/dev/block/by-name") == 0',result.stdout)
         self.assertLess(transformed.index('Cannot extract partition layout check.'),transformed.index('block_image_update('))
 
+    def test_content_sized_profile_adds_only_target_firmware_proven_dlkm_partitions(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.dict(os.environ,BEYOUD_PARTITION_LAYOUT='content-sized'):
+            root=Path(tmp);s10(root)
+            metadata=root/'out/fw/SM-G973F_AUT/os_partitions_metadata.txt'
+            metadata.write_text(metadata.read_text()+'vendor_dlkm_size=131072\nsystem_dlkm_size=262144\n')
+            caps=capture(root)['image_size_caps']
+            self.assertIsNone(caps['vendor_dlkm'])
+            self.assertIsNone(caps['system_dlkm'])
+            self.assertNotIn('odm_dlkm',caps)
+            self.assertNotIn('system_ext',caps)
+
     def test_content_sized_has_no_fixed_ceiling_and_records_real_image_requirements(self):
         with tempfile.TemporaryDirectory() as tmp,patch.dict(os.environ,BEYOUD_PARTITION_LAYOUT='content-sized'):
             root=Path(tmp);s10(root)

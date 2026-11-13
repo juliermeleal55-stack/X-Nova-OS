@@ -4,14 +4,33 @@
 > importam os 474 blobs completos de `target/beyond1lte/` e
 > `platform/exynos9820/` da revisão OneROM fixada. Os marcadores `disable` são
 > preservados; isso não revive os quatro rebases históricos nem ativa o
-> adaptador de search-indexing. O alvo permanece SM-G973F, Artisan continua
-> sendo a base/instalador e recovery não é modificado. Consulte
+> adaptador de search-indexing. O alvo permanece SM-G973F e Artisan continua
+> sendo a base; o ZIP Alpha 3.2 planeja um instalador TWRP separado, sem alterar
+> recovery. Consulte
 > [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). O status de build desta portagem é
 > registrado separadamente; as notas históricas abaixo descrevem execuções
 > anteriores e não certificam este novo conjunto de fontes.
 
-Alvo: SM-G973F / beyond1lte. Objetivo: um único ZIP completo de alpha para
-validação no aparelho, preservando a base e o empacotamento Artisan.
+## Formato Alpha 3.2 configurado
+
+O fluxo futuro entrega **um ZIP de ROM para instalação pelo TWRP**, contendo
+imagens RAW `.img` e um `update-binary` próprio. Não inclui nem modifica o
+recovery. Para `beyond1lte`, exige `system`, `vendor`, `product`, `boot`, `dtb` e
+`dtbo`, com partições extras apenas quando comprovadas pelo alvo/perfil;
+`system_ext` fica embutido em `system`. O pacote não usa OTA
+`new.dat.br`/`transfer.list`.
+
+Este contrato novo não altera o histórico abaixo nem a Alpha 3.1. O fluxo foi
+exercitado somente com testes host sintéticos; ainda não houve build de imagens
+ou ZIP, instalação pelo TWRP, flash ou boot validado. A proveniência de `dtb.img`
+e do script `build_fs_image.sh` segue pendente. Consulte
+[BUILD-STAGES.md](BUILD-STAGES.md) para escopo e bloqueios.
+
+> Histórico: as seções seguintes registram a revisão dos erros conhecidos e
+> das tentativas anteriores ao formato atual.
+
+Alvo: SM-G973F / beyond1lte. O objetivo histórico era um ZIP completo de alpha
+para validação no aparelho, preservando a base e o empacotamento Artisan.
 
 ## Evidência disponível
 

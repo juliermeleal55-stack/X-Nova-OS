@@ -38,6 +38,17 @@ These credits are intentionally clear rather than replaced with an invented
 credit count or authorship claim. **Julier is credited as creator of X-Nova OS;
 no OneROM-derived code is attributed to Julier.**
 
+## Kernel lineage and source attribution
+
+The pinned OneROM project README credits **Creeeeger** for the Exynos 9820
+Extreme Kernel CPU/GPU overclock and kernel tree, identifies the base as
+ExtremeKRNL 2.6.5 (`openela-rc1`, Linux 4.14.356), and references
+[the Exynos 9820 kernel source](https://github.com/Creeeeger/9820_kernel).
+It also credits **ArtisanROM** for the kernel lineage/vendor bring-up reference
+and the **KernelSU Next Team** for root integration. Preserve those upstream
+attributions and the applicable kernel/KernelSU licenses; this is not a claim
+that the X-NovaOS ROM or kernel has been validated on hardware.
+
 ## Complete workspace import and non-source assets
 
 The Git repository keeps a compact byte-exact snapshot of **283 text/source

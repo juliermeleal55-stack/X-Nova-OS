@@ -3,11 +3,11 @@
 # X-Nova OS
 ### Galaxy S10 · Exynos 9820
 
-**Base ArtisanROM · Referências ExtremeROM · Integrações e correções próprias**
+**Base ArtisanROM · Referências OneROM/ExtremeROM · Integrações próprias**
 
-**One UI 9 experimental · SM-G973F / beyond1lte · Alpha 1**
+**Alpha 3.2 · SM-G973F / `beyond1lte` · ZIP para TWRP · NÃO TESTADA**
 
-[Download e instalação](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/releases/tag/v0.1.0-alpha1-sm-g973f-test) · [Build concluído](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/actions/runs/42374299228) · [Documentação](docs/BUILD-STAGES.md) · [Numeração dos builds](docs/BUILD-NAMING.md) · [Riscos do build](docs/S10-BUILD-RISK-REVIEW.md)
+[Build e limites](docs/BUILD-STAGES.md) · [Integração e proveniência](docs/INTEGRATION.md) · [Auditoria OneROM](docs/ONEROM-AUDIT.md) · [Alpha histórica](https://github.com/juliermeleal55-stack/X-Nova-OS/releases/tag/v0.1.0-alpha3.1-sm-g973f-s24fe-test-43117943493)
 
 </div>
 
@@ -22,63 +22,43 @@
 
 **X-Nova OS — uma nova energia para o Galaxy S10.**
 
-> **Identidade em transição:** X-Nova OS é o novo nome público do projeto. O nome e a identidade visual **dentro da ROM serão incorporados somente em uma futura versão estável**. A Alpha 1 já compilada permanece sem alterações: ZIP, checksum, artefatos e identificadores técnicos ainda podem apresentar o nome legado **Beyoud**. Isso não indica outro pacote nem uma versão estável.
+## Estado da entrega
+
+O artefato da Alpha 3.2 é **um ZIP de ROM instalável pelo protocolo de atualização do TWRP**, contendo imagens de partição RAW `.img` e um `update-binary` do instalador. O pacote **não inclui nem modifica o recovery**. A Alpha 3.1 histórica não foi substituída nem modificada. O ZIP desta Alpha ainda não foi gerado nem validado em aparelho.
+
+| Item | Situação do fluxo novo |
+| :--- | :--- |
+| Alvo principal | **Galaxy S10 Exynos SM-G973F — `beyond1lte`** |
+| Entrega | Um ZIP instalável pelo TWRP; imagens `.img` RAW dentro do pacote |
+| Recovery | TWRP é o método; nenhum recovery é incluído ou alterado |
+| Instalador | Usa a interface `META-INF/com/google/android/update-binary`; pacote experimental e não assinado |
+| Flash, instalação e boot no aparelho | **Não executados nem validados** |
+| Publicação | Sem release automática |
+
+O ZIP de ROM dentro do Actions pode vir dentro de outro ZIP de transporte ao baixar o artefato. O arquivo de ROM instalável estará dentro desse contêiner. O instalador verifica modelo, espaço/capacidade, partições desmontadas e hashes antes de gravar; ainda assim, as gravações não são atômicas e uma interrupção pode deixar o aparelho sem boot.
+
+## Imagens incluídas
+
+Para o alvo principal, são exigidos `system.img`, `vendor.img`, `product.img`, `boot.img`, `dtb.img` e `dtbo.img`. A configuração S10 declara layout estático, ext4 e `TARGET_HAS_SYSTEM_EXT=false`, então `system_ext` é tratado dentro de `system`, não como partição separada.
+
+Outras imagens filesystem (`odm`, `prism`, `optics`, `vendor_dlkm`, `odm_dlkm`, `system_dlkm`) e componentes de boot opcionais (`init_boot`, `vendor_boot`) só entram se a árvore do build e os metadados do alvo sustentarem esses papéis. O pacote não contém `recovery.img`, `userdata`, EFS, modem, `new.dat.br` ou `transfer.list`; ele não redimensiona nem reparte o dispositivo.
+
+A lista acima decorre das fontes/configuração e não substitui a confirmação da tabela/capacidades físicas do aparelho. **Não instale o ZIP** até que o procedimento seja testado no modelo exato, com backup e método de restauração.
 
 ## Sobre o projeto
 
-X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema **ExtremeROM**, sistema doador **S24 FE SM-S721B/EUX em migração** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
+X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820**, com referências e adaptações do ecossistema OneROM/ExtremeROM, sistema doador **S24 FE SM-S721B/EUX em migração** e implementações próprias de integração, automação e correções para o Galaxy S10. Não é uma distribuição oficial dos projetos utilizados como base.
 
-Workspaces novas do **S10 normal SM-G973F / beyond1lte** agora recebem a portagem completa das árvores OneROM `target/beyond1lte/` e `platform/exynos9820/`, com revisão fixada, créditos/licenças e preservação dos arquivos Artisan substituídos. Isso não altera retroativamente o ZIP Alpha publicado, não substitui o instalador Artisan e não autoriza flash/publicação. Consulte [a auditoria OneROM](docs/ONEROM-AUDIT.md) e [a integração](docs/INTEGRATION.md).
+Workspaces novas do S10 normal recebem as árvores OneROM fixadas de `target/beyond1lte/` e `platform/exynos9820/`, com créditos, licenças, proveniência e preservação dos arquivos Artisan substituídos. Isso não valida a portagem nem modifica ou distribui recovery. Consulte [a auditoria OneROM](docs/ONEROM-AUDIT.md) e [a integração](docs/INTEGRATION.md).
 
-O objetivo é reunir essas adaptações em **um único ZIP completo**, com kernel integrado, patches específicos e um pipeline reproduzível. A aparência e os recursos do sistema ainda dependem de validação no aparelho; não há capturas de tela ou funcionalidades confirmadas nesta alpha.
-
-## Migração do doador
-
-O código do próximo build está configurado para **Galaxy S24 FE (SM-S721B/EUX)**. O firmware já foi baixado, extraído e submetido ao diagnóstico de patches, com falhas registradas; isso não valida reconstrução, instalação ou boot. A referência declara API 37, não uma garantia de versão/compatibilidade do pacote Samsung. **O download Alpha 1 continua sendo o build anterior com doador S926B**, não uma ROM S24 FE recompilada. Kernel/vendor do S10, alvo SM-G973F e base de build Artisan permanecem. [Detalhes da migração](docs/S24-FE-MIGRATION.md). [Resultados do diagnóstico](docs/S24-FE-LOGICAL-DEX-RESULTS.md) · [Correções com replay real](docs/S24-FE-SCOPED-FIXES.md) · [Patches e risco de boot](docs/PATCH-BOOT-CROSS-AUDIT.md).
-
-## Estado da alpha
-
-| Item | Situação |
-| :--- | :--- |
-| Aparelho desta versão | **Galaxy S10 SM-G973F — beyond1lte** |
-| Plataforma | Exynos 9820 |
-| Build e empacotamento | **Concluídos** — Alpha 1 |
-| Pacote | ZIP único · `CUSTOM-REPARTITION-REQUIRED` · `UNTESTED` |
-| Boot e recursos no aparelho | **Não validados** |
-| Uso recomendado | Testes avançados; não usar em celular principal |
-
-> **Atenção:** o build tolerou falhas de patches/módulos em modo experimental. Compilação concluída não comprova que todas as alterações foram aplicadas, que a ROM inicia ou que chamadas, câmera, biometria e criptografia funcionam. Esta versão não é destinada ao S10+, S10e, Snapdragon ou outros modelos.
-
-## Layout da ROM
-
-A alpha usa **partições estáticas**, com imagens dimensionadas pelo conteúdo — sem impor os tamanhos fixos stock ou Default da ExtremeROM durante o build.
-
-| Partição | Dimensionamento |
-| :--- | :--- |
-| `system` | Conforme a imagem final gerada |
-| `vendor` | Conforme a imagem final gerada |
-| `product` | Conforme a imagem final gerada |
-| `odm` | Conforme a imagem final gerada |
-| `prism` | Conforme a imagem final gerada |
-| `optics` | Conforme a imagem final gerada |
-
-**Os requisitos reais em bytes estão em `REQUIRED-IMAGE-SIZES.json`, distribuído com o pacote.** Não use o tamanho comprimido do ZIP para dimensionar partições. O testador precisa preparar um layout compatível **antes de instalar**. O instalador confere a capacidade física antes das gravações e **não reparticiona automaticamente**.
-
-## Download e instalação
-
-1. Abra a [pré-release de teste](https://github.com/juliermeleal55-stack/ArtisanRom_Beyoud/releases/tag/v0.1.0-alpha1-sm-g973f-test) e leia todos os avisos e pré-requisitos.
-2. Baixe o artefato do Actions e extraia o contêiner externo. O instalável é o **ZIP interno da ROM**.
-3. Confira `SHA256SUMS`, faça backup externo e prepare a repartição conforme `REQUIRED-IMAGE-SIZES.json`.
-4. Siga o roteiro experimental da pré-release usando recovery compatível com o **SM-G973F**. Não é um pacote Odin nem uma atualização validada sobre outra ROM.
-
-**Download temporário:** o artefato atual expira em **14/11/2026, às 14:34 UTC / 11:34 de Brasília**, salvo remoção antecipada. O lançamento aponta para o arquivo do Actions; não há binário hospedado permanentemente no Releases.
+O projeto não afirma que a ROM inicia ou que chamadas, câmera, biometria, criptografia e outros recursos funcionam. Esta configuração é para SM-G973F; não infira suporte ao S10+, S10e ou variantes Snapdragon.
 
 ## Organização do código
 
 ```text
 devices/       Configurações e estado dos aparelhos
 integration/   Adaptações, patches e políticas de build
-scripts/       Preparação, compilação e coleta do pacote
+scripts/       Preparação, compilação e validação do ZIP
 manifests/     Fontes, revisões fixadas e proveniência
 reference/     Referências upstream preservadas
 tests/         Regressões da integração

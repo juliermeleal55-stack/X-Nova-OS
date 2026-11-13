@@ -48,11 +48,11 @@ class PatchDiagnosticTests(unittest.TestCase):
 
     def test_workflow_gates_all_rom_producing_steps(self):
         text=(ROOT/'.github/workflows/alpha.yml').read_text()
-        for name in ('Preflight all modules, then apply patches and build pinned device kernel',
+        for name in ('Preflight modules and apply patches using pinned OneROM boot images',
                      'Capture package inputs and retire verified firmware trees',
-                     'Build static partitions serially and package alpha installer',
-                     'Validate and collect alpha package',
-                     'Upload alpha only after successful build and structural checks'):
+                     'Build and verify the TWRP-installable ROM ZIP from RAW partition images',
+                     'Validate TWRP ZIP; reject OTA payloads and recovery images',
+                     'Upload only the TWRP-installable ROM ZIP'):
             self.assertIn('- name: '+name+'\n        if: ${{ !inputs.diagnostic_only }}',text)
         request=(ROOT/'.github/workflows/s24fe-patch-diagnostic-request.yml').read_text()
         self.assertIn('diagnostic_only: true',request)

@@ -1,6 +1,8 @@
-# Novo instalador X-Nova RAW v1 — candidato separado, sem novo build de ROM
+# Registro histórico: candidato de instalador X-Nova RAW v1
 
-## Estado
+> **Este documento registra o estado histórico da Alpha 3.1; não descreve o contrato atual.** As afirmações abaixo de que o gerador estava separado e não ligado ao ZIP eram verdadeiras naquela etapa. No fluxo Alpha 3.2, as imagens RAW são intermediárias e `integration/twrp_package.py` as empacota num único ZIP de ROM instalável pelo TWRP, com `META-INF/com/google/android/update-binary`. O pacote não inclui nem modifica recovery. Nenhum ZIP Alpha 3.2 real foi gerado, instalado ou validado em hardware; consulte [README](../README.md), [etapas do build](BUILD-STAGES.md) e [integração](INTEGRATION.md) para o contrato atual.
+
+## Estado histórico da Alpha 3.1
 
 A pedido do proprietário, **Alpha 3.1 / execução 42696050466 foi cancelada**. O cancelamento direto retornou 403; o workflow restrito `stop-alpha31.yml`, com actions:write somente para esse run, terminou com sucesso e a API confirmou `completed / cancelled`.
 

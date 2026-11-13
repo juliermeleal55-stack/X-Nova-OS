@@ -7,7 +7,7 @@ validate_manifest()
     seen=' '
     image_count=0
     while read -r name bytes digest extra; do
-        case "$name" in system|vendor|product|odm|prism|optics|system_ext|dtbo|boot) ;; *) abort MANIFEST_NAME;; esac
+        case "$name" in system|vendor|product|odm|prism|optics|system_ext|vendor_dlkm|odm_dlkm|system_dlkm|dtb|dtbo|init_boot|vendor_boot|boot) ;; *) abort MANIFEST_NAME;; esac
         case "$seen" in *" $name "*) abort MANIFEST_DUPLICATE;; esac
         seen="$seen$name "
         case "$bytes" in ''|0*|*[!0-9]*) abort MANIFEST_SIZE;; esac
@@ -18,7 +18,7 @@ validate_manifest()
         [ "${#digest}" -eq 64 ] && [ -z "$extra" ] || abort MANIFEST_FIELDS
         image_count=$((image_count + 1))
     done < "$manifest"
-    for required in system vendor product dtbo boot; do
+    for required in system vendor product dtb dtbo boot; do
         case "$seen" in *" $required "*) ;; *) abort MANIFEST_REQUIRED;; esac
     done
     # Boot is written last. Reject a reordered manifest rather than infer intent.

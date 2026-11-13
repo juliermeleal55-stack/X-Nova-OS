@@ -1,5 +1,6 @@
 """Real ZIP/hash/file-IO tests; NO device node, recovery or actual image flashed."""
 import hashlib
+import io
 from pathlib import Path
 import shutil
 import subprocess
@@ -7,7 +8,7 @@ import tempfile
 import unittest
 import zipfile
 from unittest.mock import patch
-from scripts import build_raw_installer as builder
+from integration import twrp_zip_builder as builder
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / 'integration/new_installer/engine.sh'
@@ -18,7 +19,14 @@ class RawInstallerTests(unittest.TestCase):
         images = root / 'images'
         images.mkdir()
         for name in builder.REQUIRED:
-            header = b'ANDROID!' if name == 'boot' else bytes.fromhex('d7b7ab1e') if name == 'dtbo' else b'fixture-not-real-filesystem'
+            if name in {'boot', 'init_boot', 'vendor_boot'}:
+                header = b'ANDROID!'
+            elif name == 'dtbo':
+                header = bytes.fromhex('d7b7ab1e')
+            elif name == 'dtb':
+                header = bytes.fromhex('d00dfeed')
+            else:
+                header = b'fixture-not-real-filesystem'
             (images / (name + '.img')).write_bytes(header + bytes(64))
         package = root / 'candidate.zip'
         # Fixtures are not real filesystems; only filesystem checker is mocked.
@@ -41,6 +49,20 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
 ''' + commands
         return subprocess.run(['bash', '-c', script, 'test', str(ENGINE), str(stage), str(package), str(root)], text=True, capture_output=True)
 
+    def test_zip_manifest_requires_positive_canonical_decimal_sizes(self):
+        names = [name for name in builder.ORDER if name in builder.REQUIRED]
+        self.assertEqual(names[-1], 'boot')
+        for invalid_size in ('0', '00', '01', '+1', '-1', '1.0'):
+            with self.subTest(size=invalid_size):
+                content = ''.join(f'{name}{chr(9)}{invalid_size}{chr(9)}{"0" * 64}{chr(10)}' for name in names)
+                buffer = io.BytesIO()
+                with zipfile.ZipFile(buffer, 'w') as archive:
+                    archive.writestr('installer/manifest.tsv', content)
+                buffer.seek(0)
+                with zipfile.ZipFile(buffer) as archive:
+                    with self.assertRaises(ValueError):
+                        builder._read_manifest(archive)
+
     def test_package_and_all_payload_staging_use_real_zip_and_hashes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -53,8 +75,21 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
                 entry = archive.read('META-INF/com/google/android/update-binary')
                 self.assertNotIn(b'block_image_update', entry)
                 self.assertNotIn(b'run_program', entry)
+                self.assertIn('images/dtb.img', archive.namelist())
+                self.assertNotIn('images/recovery.img', archive.namelist())
+                update = archive.getinfo('META-INF/com/google/android/update-binary')
+                self.assertTrue((update.external_attr >> 16) & 0o111)
                 self.assertEqual(archive.read('installer/zip64-probe.txt'), b'XNOVA_RAW_V1\n')
+                self.assertIn(b'GNU GENERAL PUBLIC LICENSE', archive.read(builder.LICENSE_ENTRY))
+                notices = archive.read('NOTICES.txt').decode()
+                self.assertIn('ArtisanROM', notices)
+                self.assertIn('OneROM', notices)
+                self.assertIn('Creeeeger', archive.read(builder.CREDITS_ENTRY).decode())
                 self.assertIsNone(archive.testzip())
+            report = builder.verify_package(package, images=images)
+            self.assertEqual(report['status'], 'twrp-rom-zip-host-verified')
+            self.assertFalse(report['recovery_included'])
+            self.assertFalse(report['recovery_modified'])
 
     def test_hash_failure_stops_during_staging_before_writes(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -69,7 +104,7 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
             self.assertIn('STAGE_HASH_MISMATCH', (stage / 'log').read_text())
 
     def test_invalid_manifests(self):
-        for change in ('duplicate', 'wrong_name', 'missing_boot', 'wrong_hash', 'wrong_order', 'extra_field', 'zero_size'):
+        for change in ('duplicate', 'wrong_name', 'missing_boot', 'missing_dtb', 'wrong_hash', 'wrong_order', 'extra_field', 'zero_size'):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 _, package, _, stage = self.fixtures(root)
@@ -77,6 +112,7 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
                 if change == 'duplicate': rows.insert(0, rows[0])
                 if change == 'wrong_name': rows[0] = rows[0].replace('system', 'userdata', 1)
                 if change == 'missing_boot': rows.pop()
+                if change == 'missing_dtb': rows = [row for row in rows if not row.startswith('dtb\t')]
                 if change == 'wrong_hash': rows[0] = rows[0].rsplit('\t', 1)[0] + '\tBAD'
                 if change == 'wrong_order': rows.reverse()
                 if change == 'extra_field': rows[0] += '\tunexpected'

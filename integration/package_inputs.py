@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Preserve only ZIP fingerprint identifiers before retiring extracted firmware."""
+"""Preserve verified package inputs and partition profiles before firmware retirement."""
 import argparse
 import hashlib
 import json
@@ -35,6 +35,22 @@ def selected_layout(workspace):
     if set(caps)!={'system','vendor','product','odm','prism','optics'} or any(type(v) is not int or v<=0 or v%1048576 for v in caps.values()):
         raise ValueError('Invalid declared partition profile capacities')
     return dict(id=name,sha256=hashlib.sha256(raw).hexdigest(),requires=profile['requires'],image_size_caps=caps)
+
+
+def _content_sized_caps(stock_caps):
+    # The user-selected custom layout always covers the six donor/static
+    # partitions. Kernel modules/system_ext are not invented: they are enabled
+    # only when the locked target firmware explicitly contains that partition.
+    names = {'system', 'vendor', 'product', 'odm', 'prism', 'optics'}
+    names.update(name for name in ('system_ext', 'vendor_dlkm', 'odm_dlkm', 'system_dlkm')
+                 if name in stock_caps)
+    return {name: None for name in names}
+
+
+def _layout_image_caps(layout, stock_caps):
+    if layout.get('id') == 'content-sized':
+        return _content_sized_caps(stock_caps)
+    return layout.get('image_size_caps', stock_caps)
 
 
 def image_caps(data):
@@ -123,7 +139,7 @@ def capture(workspace):
         raise ValueError('Missing/ambiguous stock image size limits')
     layout=selected_layout(workspace)
     return dict(schema_version=1, codename=codename, model=device['model'],
-                partition_layout=layout, image_size_caps=layout.get('image_size_caps',limits),
+                partition_layout=layout, image_size_caps=_layout_image_caps(layout,limits),
                 firmware_lock_sha256=lock_digest(workspace), identifiers=ids,
                 stock_image_size_caps=limits)
 
@@ -138,7 +154,8 @@ def load(workspace):
     if data.get('partition_layout',{'id':'stock','sha256':None}) != selected_layout(workspace):
         raise ValueError('Cached package inputs do not match selected partition layout')
     layout=selected_layout(workspace)
-    if image_caps(data)!=layout.get('image_size_caps',data['stock_image_size_caps']):
+    expected_caps = _layout_image_caps(layout, data['stock_image_size_caps'])
+    if image_caps(data) != expected_caps:
         raise ValueError('Cached image capacities differ from selected layout')
     return data
 

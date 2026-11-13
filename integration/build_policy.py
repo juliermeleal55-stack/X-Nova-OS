@@ -146,16 +146,16 @@ def debloat_workers(text):
 
 def apply(workspace):
     make = workspace / 'scripts/make_rom.sh'
-    zip_file = workspace / 'scripts/internal/build_flashable_zip.sh'
+    legacy_zip_file = workspace / 'scripts/internal/build_flashable_zip.sh'
     fw_utils = workspace / 'scripts/utils/firmware_utils.sh'
     extract = workspace / 'scripts/extract_fw.sh'
     # Validate all transforms before writing any scripts.
     make_text = bound_workers(make.read_text())
     cleanup = 'if [ -n "$GITHUB_ACTIONS" ]; then\n    bash "$SRC_DIR/scripts/cleanup.sh" fw kernel\nfi\n\n'
     make_text = once(make_text, cleanup, '')
-    # Firmware identifiers are still needed by older direct ZIP users. Cleanup
-    # is controlled by the verified prune stage, never by ambient CI variables.
-    outputs = {make: make_text, zip_file: zip_policy(bound_workers(zip_file.read_text())),
+    # New builds use the dedicated TWRP ZIP stage. Keep the pinned legacy
+    # recovery/OTA ZIP builder byte-for-byte unchanged and do not invoke it.
+    outputs = {make: make_text,
                fw_utils: stream_lz4(fw_utils.read_text()), extract: partition_policy(extract.read_text())}
     config = workspace / 'scripts/internal/gen_config_file.sh'
     outputs[config] = once(config.read_text(), 'GET_BUILD_VAR "ROM_BUILD_TIMESTAMP" "$(date +%s)"',
@@ -163,7 +163,7 @@ def apply(workspace):
     # Bound the pinned host scripts' explicit nproc parallelism too. Third-party
     # nested build systems remain separately audited rather than silently edited.
     for path in list((workspace / 'scripts').rglob('*.sh')) + [workspace / 'external/make.sh']:
-        if path.is_file():
+        if path.is_file() and path != legacy_zip_file:
             content = outputs.get(path, path.read_text())
             outputs[path] = content.replace('$(nproc --all)', '${BEYOUD_JOBS:-1}').replace('$(nproc)', '${BEYOUD_JOBS:-1}')
     debloat = workspace / 'unica/patches/debloat/customize.sh'

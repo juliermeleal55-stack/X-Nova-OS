@@ -127,37 +127,25 @@ def patch_firmware_lookup(workspace):
 
 
 def patch_parallel_builds(workspace):
-    # wait PID1 PID2 returns only the last status: a failed earlier worker was hidden.
-    for relative, count in [('scripts/make_rom.sh', 1), ('scripts/internal/build_flashable_zip.sh', 2)]:
-        path = workspace / relative
-        text = path.read_text()
-        old = 'wait $(jobs -p) || exit 1'
-        if text.count(old) != count:
-            raise ValueError(f'Unexpected parallel build schema: {relative}')
-        wait = '''BEYOUD_FAILED=0
-for BEYOUD_PID in "${BEYOUD_PIDS[@]}"; do
-    wait "$BEYOUD_PID" || BEYOUD_FAILED=1
-done
-[ "$BEYOUD_FAILED" -eq 0 ] || exit 1'''
-        text = text.replace(old, wait)
-        if relative.endswith('make_rom.sh'):
-            old_hash = 'find "$SRC_DIR/unica" "$SRC_DIR/target/$TARGET_CODENAME" -type f -print0'
-            new_hash = 'find "$SRC_DIR/unica" "$SRC_DIR/target/$TARGET_CODENAME" "$SRC_DIR/platform/$TARGET_PLATFORM" "$SRC_DIR/integration" "$OUT_DIR/firmware-lock.json" -type f -print0'
-            text = text.replace(old_hash, new_hash)
-        if relative.endswith('make_rom.sh'):
-            start = '        while IFS= read -r f; do'
-            end = '        done < <(find "$APKTOOL_DIR"'
-            if text.count(start) != 1 or text.count(end) != 1:
-                raise ValueError('Unexpected APK worker loop')
-            text = text.replace(start, '        BEYOUD_PIDS=()\n' + start)
-            text = text.replace(end, '            BEYOUD_PIDS+=("$!")\n' + end)
-        else:
-            if text.count('while IFS= read -r f; do') < 2 or text.count('    ) &\ndone') != 2:
-                raise ValueError('Unexpected partition worker loops')
-            # Only the two top-level build/compression loops, not loops in helper functions.
-            text = text.replace('\nwhile IFS= read -r f; do', '\nBEYOUD_PIDS=()\nwhile IFS= read -r f; do')
-            text = text.replace('    ) &\ndone', '    ) &\n    BEYOUD_PIDS+=("$!")\ndone')
-        path.write_text(text)
+    """Track bounded workers in make_rom; the legacy recovery ZIP is not used."""
+    relative = 'scripts/make_rom.sh'
+    path = workspace / relative
+    text = path.read_text()
+    old = 'wait $(jobs -p) || exit 1'
+    if text.count(old) != 1:
+        raise ValueError(f'Unexpected parallel build schema: {relative}')
+    wait = "BEYOUD_FAILED=0\nfor BEYOUD_PID in \"${BEYOUD_PIDS[@]}\"; do\n    wait \"$BEYOUD_PID\" || BEYOUD_FAILED=1\ndone\n[ \"$BEYOUD_FAILED\" -eq 0 ] || exit 1"
+    text = text.replace(old, wait)
+    old_hash = 'find "$SRC_DIR/unica" "$SRC_DIR/target/$TARGET_CODENAME" -type f -print0'
+    new_hash = 'find "$SRC_DIR/unica" "$SRC_DIR/target/$TARGET_CODENAME" "$SRC_DIR/platform/$TARGET_PLATFORM" "$SRC_DIR/integration" "$OUT_DIR/firmware-lock.json" -type f -print0'
+    text = text.replace(old_hash, new_hash)
+    start = '        while IFS= read -r f; do'
+    end = '        done < <(find "$APKTOOL_DIR"'
+    if text.count(start) != 1 or text.count(end) != 1:
+        raise ValueError('Unexpected APK worker loop')
+    text = text.replace(start, '        BEYOUD_PIDS=()\n' + start)
+    text = text.replace(end, '            BEYOUD_PIDS+=("$!")\n' + end)
+    path.write_text(text)
 
 
 def apply_overlay(workspace, codename=DEFAULT_TARGET):
@@ -171,6 +159,12 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     # established S10+ compatibility path rather than inferring a port there.
     onerom_port = import_onerom_sources(workspace, codename)
     shutil.copytree(ROOT / 'integration', workspace / 'integration')
+    # The generated package embeds pinned source/license provenance in its ZIP;
+    # make the checked manifests available inside this standalone workspace.
+    manifest_destination = workspace / 'manifests'
+    if manifest_destination.exists() or manifest_destination.is_symlink():
+        raise ValueError('Refusing to overwrite existing workspace manifests')
+    shutil.copytree(ROOT / 'manifests', manifest_destination)
     shutil.copyfile(ROOT / 'integration/artisan/essi_64.sh',
                     workspace / 'unica/configs/essi_64.sh')
     kernel_module = workspace / 'platform/exynos9820/patches/extremekrnl/customize.sh'

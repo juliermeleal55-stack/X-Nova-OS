@@ -56,10 +56,26 @@ base. O preparador importa todas as 474 entradas fixadas de
 `target/beyond1lte/` e `platform/exynos9820/` da OneROM, incluindo os 191 itens
 não textuais; cada caminho, tamanho e Git blob SHA-1 é verificado. Marcadores
 `disable` são preservados; o `postinstall.edify` OneROM fica apenas em
-`reference/onerom-upstream`, mantendo o instalador Artisan ativo. Recovery não é
-alterado.
+`reference/onerom-upstream`; isso não ativa o recipe OneROM nem altera o
+instalador Artisan original. A Alpha 3.2 empacota separadamente um `update-binary`
+para TWRP; nenhum recovery é distribuído ou modificado.
 
 Uma importação integral para workspace temporária foi conferida estruturalmente;
 **não houve build da ROM, flash ou teste de boot/aparelho**. As verificações
 host do repositório não são validação funcional. Veja `docs/INTEGRATION.md` e
 `docs/ONEROM-AUDIT.md` para escopo, créditos e limites de redistribuição.
+
+## Novo contrato de entrega — Alpha 3.2
+
+O fluxo configurado gera um **ZIP de ROM instalável por TWRP** com imagens RAW
+`.img`, um `update-binary` próprio e guards de capacidade/montagem/hash. Não
+inclui nem modifica TWRP/recovery e não usa `new.dat.br`/`transfer.list`. As
+imagens requeridas para beyond1lte são `system`, `vendor`, `product`, `boot`,
+`dtb` e `dtbo`; outras partições só entram quando o alvo e o perfil as sustentam.
+`system_ext` fica em `system` conforme a configuração.
+
+Esta é uma alteração de código/configuração, não um build. O instalador foi
+exercitado apenas com testes host sintéticos; nenhum build de firmware, ZIP
+Alpha 3.2, instalação TWRP, flash ou boot em hardware foi executado/validado. A
+origem de `dtb.img` e do script `build_fs_image.sh` ainda precisa ser confirmada.
+A Alpha 3.1 histórica permanece intacta. Consulte [BUILD-STAGES.md](BUILD-STAGES.md).

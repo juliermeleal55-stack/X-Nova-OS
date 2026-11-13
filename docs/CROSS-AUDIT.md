@@ -5,6 +5,11 @@ Inventários recursivos retornados sem truncamento, em commits fixados. Arquivo
 blobs e evidências. A revisão semântica é focal nos contratos de configuração,
 debloat e fluxo de build; NÃO é certificação de cada arquivo/binário.
 
+> Atualização do empacotamento: Alpha 3.2 planeja um ZIP instalável por TWRP,
+> com imagens `.img` RAW e `update-binary` próprio. Não inclui nem modifica o
+> recovery; não usa o fluxo OTA antigo. Ainda não houve build/flash/boot em
+> hardware. Consulte [BUILD-STAGES.md](BUILD-STAGES.md).
+
 | Projeto | Commit (prefixo) | Arquivos | Target S10 | Target S10+ | Uso |
 |---|---|---:|---:|---:|---|
 | Artisan histórica | 5638a7f66cdf | 4.987 | 12 | 12 | Nossa estrutura/build S10 |

@@ -19,7 +19,11 @@ from integration.patch_inventory import inventory
 from integration.patch_preflight import start as start_preflight
 from integration.samloader.metadata import configured_firmwares
 from integration.firmware_check import inspect as inspect_firmware
-from integration.package_inputs import atomic_json, retire
+from integration.package_inputs import atomic_json, image_caps, load as load_package_inputs, retire
+from integration.raw_images import PROOF_ROOT as RAW_PROOF_ROOT
+from integration.twrp_package import PROOF_ROOT as TWRP_PROOF_ROOT
+from integration.twrp_package import OUTPUT_ROOT as TWRP_OUTPUT_ROOT
+from integration.twrp_package import verify_workspace as verify_twrp_package
 from integration.static_layout import normalize as normalize_static_layout
 
 STAGES = ('dependencies', 'source', 'target', 'patch', 'retire', 'package')
@@ -54,13 +58,19 @@ def digest_path(path):
 
 
 def identity(workspace):
-    scopes = ['BEYOUD-WORKSPACE.json', 'buildenv.sh', 'scripts', 'integration',
+    scopes = ['BEYOUD-WORKSPACE.json', 'buildenv.sh', 'scripts', 'integration', 'manifests',
               'reference', 'platform', 'target', 'unica', 'security', 'prebuilts',
               'out/firmware-lock.json', 'out/config.sh']
     # Missing optional scopes are represented, never silently confused with data.
     entries = {name: digest_path(workspace / name) if (workspace / name).exists() else None for name in scopes}
     entries['partition_layout'] = os.environ.get('BEYOUD_PARTITION_LAYOUT','stock')
     entries['experimental_patch_failures'] = os.environ.get('BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES') == '1'
+    entries['output_format'] = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
+    entries['alpha_version'] = os.environ.get('BEYOUD_ALPHA_VERSION')
+    entries['github_run_number'] = os.environ.get('GITHUB_RUN_NUMBER')
+    entries['github_run_attempt'] = os.environ.get('GITHUB_RUN_ATTEMPT')
+    if entries['output_format'] != 'twrp-zip':
+        raise ValueError('Only the TWRP-installable ROM ZIP output format is supported')
     return hashlib.sha256(json.dumps(entries, sort_keys=True).encode()).hexdigest()
 
 
@@ -72,12 +82,17 @@ def output_proof(workspace, stage, codename):
         'target': [out / 'fw' / '_'.join(item.split('/')[:2]) for item in configured_firmwares(out / 'config.sh', 'target')] + [out / 'beyoud-firmware-inspection.json'],
         'patch': [out / 'target' / codename / 'work_dir'],
         'retire': [out / 'beyoud-package-inputs.json', out / 'beyoud-fw-retired.json'],
-        'package': sorted(out.glob(f'*alpha1*{codename}*.zip')),
+        'package': [workspace / TWRP_OUTPUT_ROOT / codename,
+                    workspace / TWRP_PROOF_ROOT / f'{codename}.json',
+                    out / 'raw-images' / codename,
+                    workspace / RAW_PROOF_ROOT / f'{codename}.json'],
     }[stage]
     if stage == 'retire' and ((out / 'fw').exists() or json.loads(paths[1].read_text()).get('status') != 'retired'):
         raise ValueError('Firmware retirement is incomplete')
-    if stage == 'package' and len(paths) != 1:
-        raise ValueError('Expected exactly one alpha ZIP; preserve failed outputs and use a fresh workspace if ambiguous')
+    if stage == 'package' and len(paths) != 4:
+        raise ValueError('Expected one TWRP ROM ZIP, its proof, and the exact RAW image inputs; use a fresh workspace if ambiguous')
+    if stage == 'package':
+        verify_twrp_package(workspace)
     if stage == 'patch' and not (paths[0] / '.completed').is_file():
         raise ValueError('Patch stage did not produce .completed')
     if stage == 'dependencies' and (not paths[0].is_dir() or not any(paths[0].iterdir())):
@@ -104,8 +119,12 @@ def resources(workspace):
 
 
 def environment(workspace, codename, jobs):
+    output_format = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
+    if output_format != 'twrp-zip':
+        raise ValueError('Only the TWRP-installable ROM ZIP output format is supported')
     env = dict(os.environ, BEYOUD_JOBS=str(jobs), MAKEFLAGS=f'-j{jobs}',
-               CMAKE_BUILD_PARALLEL_LEVEL=str(jobs), CARGO_BUILD_JOBS=str(jobs))
+               CMAKE_BUILD_PARALLEL_LEVEL=str(jobs), CARGO_BUILD_JOBS=str(jobs),
+               BEYOUD_OUTPUT_FORMAT=output_format)
     env.setdefault('JAVA_TOOL_OPTIONS', '-Xmx1024m')
     env.pop('GITHUB_ACTIONS', None)  # Never let ambient CI perform early cleanup.
     stamp = workspace / 'out/beyoud-build-timestamp'
@@ -190,23 +209,66 @@ def validate_prior(workspace, stage, source_id, codename):
 
 
 def package_budget(workspace, codename):
+    """Estimate staged RAW images, their uncompressed TWRP ZIP, and intermediates."""
     root = workspace / 'out/target' / codename / 'work_dir'
-    sizes = []
-    for name in ('system', 'vendor', 'product', 'odm', 'system_ext', 'prism', 'optics',
+    inputs = load_package_inputs(workspace)
+    caps = image_caps(inputs)
+    image_estimates = {}
+    for name in ('system', 'vendor', 'product', 'odm', 'prism', 'optics', 'system_ext',
                  'vendor_dlkm', 'odm_dlkm', 'system_dlkm'):
         path = root / name
-        if path.is_dir() and not path.is_symlink():
-            sizes.append(sum(p.stat().st_size for p in path.rglob('*') if p.is_file() and not p.is_symlink()))
-    if not sizes:
-        raise ValueError('No partition trees for package sizing')
-    # Conservative planning estimate: payload + unsigned ZIP + signed ZIP, or
-    # accumulated payload plus one image/dat working set. Not a proven bound.
-    required = int(max(sum(sizes) * 3.6, sum(sizes) * 1.2 + max(sizes) * 2.4)) + RESERVE
+        if path.is_symlink():
+            raise ValueError(f'Unsafe partition tree for raw-image sizing: {name}')
+        if not path.exists():
+            continue
+        if not path.is_dir() or name not in caps:
+            raise ValueError(f'Missing partition tree/capacity profile for raw image: {name}')
+        payload = 0
+        files = 0
+        for entry in path.rglob('*'):
+            if entry.is_symlink():
+                continue
+            if entry.is_file():
+                payload += entry.stat().st_size
+                files += 1
+        cap = caps[name]
+        if type(cap) is int and cap > 0:
+            estimate = cap  # Conservative upper bound from the selected target firmware/profile.
+        elif cap is None:
+            estimate = int((payload + files * 4096 + 64 * 1024**2) * 1.25)
+        else:
+            raise ValueError(f'Invalid raw image capacity for {name}: {cap}')
+        image_estimates[name] = estimate
+    if not image_estimates:
+        raise ValueError('No partition trees for raw-image sizing')
+    kernel = root / 'kernel'
+    if kernel.is_symlink() or not kernel.is_dir():
+        raise ValueError('Missing/unsafe kernel image directory for raw-image sizing')
+    boot_bytes = 0
+    for name in ('dtb', 'dtbo', 'init_boot', 'vendor_boot', 'boot'):
+        image = kernel / f'{name}.img'
+        required = name in {'dtb', 'dtbo', 'boot'}
+        if image.is_symlink():
+            raise ValueError(f'Unsafe raw boot component for sizing: {image.name}')
+        if not image.exists() and not required:
+            continue
+        if not image.is_file() or image.stat().st_size <= 0:
+            raise ValueError(f'Missing/invalid raw boot component for sizing: {image.name}')
+        boot_bytes += image.stat().st_size
+    image_bound = sum(image_estimates.values()) + boot_bytes
+    temporary_bound = max(image_estimates.values())
+    # Keep the expanded image directory and an uncompressed ZIP containing a
+    # second copy of those images at the same time. Include one builder scratch
+    # image plus the existing reserve; compression cannot be assumed.
+    zip_bound = image_bound
+    required = image_bound + zip_bound + temporary_bound + RESERVE
     free = shutil.disk_usage(workspace).free
-    print(f'Package planning estimate: free={free}, required={required}', flush=True)
+    print(f'TWRP ZIP planning estimate: free={free}, required={required}', flush=True)
     if free < required:
-        raise ValueError('Package estimate exceeds available storage; do not bypass the guard')
-    return dict(free=free, estimated_required=required, partition_tree_bytes=sizes)
+        raise ValueError('RAW images plus TWRP ZIP exceed available storage; do not bypass the guard')
+    return dict(free=free, estimated_required=required, estimated_image_bytes=image_estimates,
+                estimated_raw_image_bytes=image_bound, estimated_twrp_zip_bytes=zip_bound,
+                concurrent_builder_intermediate_bytes=temporary_bound)
 
 
 def execute(workspace, stage, jobs=1):
@@ -258,7 +320,7 @@ def execute(workspace, stage, jobs=1):
                     'source': [sys.executable, './integration/samloader/stage.py', str(workspace), 'source'],
                     'target': [sys.executable, './integration/samloader/stage.py', str(workspace), 'target'],
                     'patch': ['./scripts/make_rom.sh', '--force', '--no-rom-zip'],
-                    'package': ['./scripts/internal/build_flashable_zip.sh'],
+                    'package': [sys.executable, './integration/twrp_package.py', str(workspace)],
                 }[stage]
                 with (logs / f'resources-{stage}-{time.time_ns()}.jsonl').open('w') as telemetry:
                     if stage == 'patch':

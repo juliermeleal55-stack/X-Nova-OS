@@ -1,14 +1,14 @@
 name: X-NovaOS Galaxy S10 Exynos experimental Alpha build
-run-name: "X-NovaOS Alpha ${{ inputs.alpha_version }} - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - ${{ inputs.target }} - UNTESTED"
+run-name: "X-NovaOS Alpha ${{ inputs.alpha_version }} - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - ${{ inputs.target }} - TWRP ROM ZIP - UNTESTED"
 on:
   workflow_call:
     inputs:
       alpha_version:
-        description: Public X-NovaOS Alpha version, numeric components such as 3.1
+        description: Public X-NovaOS Alpha version, numeric components such as 3.2
         type: string
-        default: '3.1'
+        default: '3.2'
       diagnostic_only:
-        description: Stop after patch preflight; no kernel, APK assembly or ROM ZIP
+        description: Stop after patch preflight; do not build a ROM or TWRP ZIP
         type: boolean
         default: false
       partition_layout:
@@ -26,12 +26,12 @@ on:
   workflow_dispatch:
     inputs:
       alpha_version:
-        description: Public X-NovaOS Alpha version, numeric components such as 3.1
+        description: Public X-NovaOS Alpha version, numeric components such as 3.2
         type: string
         required: true
-        default: '3.1'
+        default: '3.2'
       diagnostic_only:
-        description: Stop after patch preflight; no kernel, APK assembly or ROM ZIP
+        description: Stop after patch preflight; do not build a ROM or TWRP ZIP
         type: boolean
         default: false
       partition_layout:
@@ -43,12 +43,11 @@ on:
         type: boolean
         default: false
       target:
-        description: Exynos candidate (no boot validation)
+        description: Audited TWRP ROM ZIP target only (no boot validation)
         type: choice
         required: true
-        default: beyond2lte
+        default: beyond1lte
         options:
-          - beyond2lte
           - beyond1lte
 permissions:
   contents: read
@@ -62,6 +61,8 @@ jobs:
     env:
       BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES: ${{ inputs.experimental_patch_failures && '1' || '0' }}
       BEYOUD_PARTITION_LAYOUT: ${{ inputs.partition_layout }}
+      BEYOUD_OUTPUT_FORMAT: twrp-zip
+      BEYOUD_ALPHA_VERSION: ${{ inputs.alpha_version }}
       BEYOUD_JOBS: '1'
       CARGO_BUILD_JOBS: '1'
       BEYOUD_TARGET: ${{ inputs.target }}
@@ -93,6 +94,8 @@ jobs:
             echo "- Build number: #$GITHUB_RUN_NUMBER"
             echo "- Attempt: $GITHUB_RUN_ATTEMPT"
             echo "- Target: $BEYOUD_TARGET"
+            echo "- Output: one unsigned TWRP-installable ROM ZIP with expanded RAW .img payloads; no recovery image bundled or modified."
+            echo "- The installer uses TWRP's update-binary interface; the ZIP and hardware remain untested."
             echo "- Status: experimental / untested; no release is published by this workflow."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Validate integration
@@ -152,30 +155,27 @@ jobs:
       - name: Diagnose modules and patches only, without producing a ROM
         if: inputs.diagnostic_only
         run: bash scripts/build_candidate.sh "$WORKSPACE" diagnostic
-      - name: Preflight all modules, then apply patches and build pinned device kernel
+      - name: Preflight modules and apply patches using pinned OneROM boot images
         if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" patch
       - name: Capture package inputs and retire verified firmware trees
         if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" retire
-      - name: Build static partitions serially and package alpha installer
+      - name: Build and verify the TWRP-installable ROM ZIP from RAW partition images
         if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" package
-      - name: Validate and collect alpha package
+      - name: Validate TWRP ZIP; reject OTA payloads and recovery images
         if: ${{ !inputs.diagnostic_only }}
-        env:
-          ALPHA_VERSION: ${{ inputs.alpha_version }}
-        run: >-
-          python3 scripts/collect_alpha.py "$WORKSPACE" "$RUNNER_TEMP/alpha-output"
-          --alpha-version "$ALPHA_VERSION"
-          --build-number "$GITHUB_RUN_NUMBER"
-          --run-attempt "$GITHUB_RUN_ATTEMPT"
-      - name: Upload alpha only after successful build and structural checks
+        id: twrp_package
+        run: |
+          python3 scripts/validate_twrp_zip.py "$WORKSPACE"
+          echo "path=$WORKSPACE/out/twrp-zips/$BEYOUD_TARGET/*.zip" >> "$GITHUB_OUTPUT"
+      - name: Upload only the TWRP-installable ROM ZIP
         if: ${{ !inputs.diagnostic_only }}
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: X-NovaOS-${{ inputs.target }}-Alpha-${{ inputs.alpha_version }}-Build-${{ github.run_number }}-Attempt-${{ github.run_attempt }}-UNTESTED
-          path: ${{ runner.temp }}/alpha-output/
+          name: X-NovaOS-${{ inputs.target }}-Alpha-${{ inputs.alpha_version }}-Build-${{ github.run_number }}-Attempt-${{ github.run_attempt }}-TWRP-ROM-ZIP-UNTESTED
+          path: ${{ steps.twrp_package.outputs.path }}
           if-no-files-found: error
           retention-days: 7
           compression-level: 0

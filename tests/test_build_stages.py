@@ -46,7 +46,7 @@ def firmware(root):
 
 
 class StageTests(unittest.TestCase):
-    def test_workflow_keeps_one_complete_rom_and_separate_firmware_stages(self):
+    def test_workflow_keeps_staged_inputs_and_builds_twrp_zip_only(self):
         text = (ROOT / '.github/workflows/alpha.yml').read_text()
         self.assertNotIn('split -b', text)
         self.assertNotIn('.part.', text)
@@ -54,19 +54,25 @@ class StageTests(unittest.TestCase):
         stages = ['dependencies', 'source', 'target', 'patch', 'retire', 'package']
         positions = [text.index(f'build_candidate.sh "$WORKSPACE" {stage}') for stage in stages]
         self.assertEqual(positions, sorted(positions))
-        self.assertIn('collect_alpha.py', text)
+        self.assertIn('scripts/build_candidate.sh "$WORKSPACE" package', text)
+        self.assertIn('validate_twrp_zip.py', text)
+        self.assertIn("'./integration/twrp_package.py'", (ROOT / 'integration/build.py').read_text())
+        self.assertIn('twrp-zips/$BEYOUD_TARGET/*.zip', text)
+        self.assertNotIn('collect_alpha.py', text)
+        self.assertNotIn('build_flashable_zip.sh', text)
+        self.assertIn('TWRP-ROM-ZIP-UNTESTED', text)
         self.assertIn('compression-level: 0', text)
 
     def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):
         caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()
         reusable = (ROOT / '.github/workflows/alpha.yml').read_text()
-        self.assertIn('X-NovaOS Alpha 3.1 - Build #${{ github.run_number }}', caller)
+        self.assertIn('X-NovaOS Alpha 3.2 - Build #${{ github.run_number }}', caller)
         self.assertIn('Attempt #${{ github.run_attempt }}', caller)
-        self.assertIn("alpha_version: '3.1'", caller)
-        self.assertIn('--build-number "$GITHUB_RUN_NUMBER"', reusable)
-        self.assertIn('--run-attempt "$GITHUB_RUN_ATTEMPT"', reusable)
+        self.assertIn("alpha_version: '3.2'", caller)
+        self.assertIn('BEYOUD_ALPHA_VERSION: ${{ inputs.alpha_version }}', reusable)
         self.assertIn('X-NovaOS-${{ inputs.target }}-Alpha-${{ inputs.alpha_version }}', reusable)
-        self.assertIn('BUILD-INFO.json', (ROOT / 'scripts/collect_alpha.py').read_text())
+        self.assertIn('TWRP-ROM-ZIP-UNTESTED', reusable)
+        self.assertIn("'twrp-zip'", (ROOT / 'integration/twrp_package.py').read_text())
 
     def test_actual_pinned_scripts_transform_and_parse(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -82,7 +88,9 @@ class StageTests(unittest.TestCase):
             text = (root / 'scripts/extract_fw.sh').read_text()
             self.assertLess(text.index('BEYOUD_UNPACK_PARTITION "${p}.img"'), text.index('rm -f "$FW_DIR/${MODEL}_${CSC}/super.img"'))
             self.assertNotIn('cleanup.sh" fw kernel', (root / 'scripts/make_rom.sh').read_text())
-            self.assertIn('BEYOUD_COMPRESS_PARTITION "$TMP_DIR/$PARTITION.img"', (root / 'scripts/internal/build_flashable_zip.sh').read_text())
+            self.assertEqual((root / 'scripts/internal/build_flashable_zip.sh').read_bytes(),
+                             (ROOT / 'reference/build/scripts/internal/build_flashable_zip.sh').read_bytes())
+            self.assertNotIn('BEYOUD_COMPRESS_PARTITION', (root / 'scripts/internal/build_flashable_zip.sh').read_text())
             self.assertIn('set -o pipefail', (root / 'scripts/utils/firmware_utils.sh').read_text())
 
     def test_apktool_uses_one_decode_pass_and_per_dex_api_metadata(self):
@@ -233,10 +241,21 @@ EXTRACT_OS_PARTITIONS
                     work = root / 'out/target/beyond2lte/work_dir'
                     work.mkdir(parents=True)
                     (work / '.completed').write_text('complete')
-                elif 'build_flashable_zip' in str(cmd):
-                    (root / 'out/ArtisanROM_alpha1_beyond2lte.zip').write_bytes(b'package')
+                elif 'integration/twrp_package.py' in str(cmd):
+                    zip_dir = root / 'out/twrp-zips/beyond2lte'
+                    zip_dir.mkdir(parents=True)
+                    (zip_dir / 'synthetic.zip').write_bytes(b'zip')
+                    zip_proof = root / 'out/twrp-zip-proof/beyond2lte.json'
+                    zip_proof.parent.mkdir(parents=True, exist_ok=True)
+                    zip_proof.write_text(json.dumps({'synthetic': True}))
+                    images = root / 'out/raw-images/beyond2lte'
+                    images.mkdir(parents=True)
+                    (images / 'system.img').write_bytes(b'raw')
+                    image_proof = root / 'out/raw-image-proof/beyond2lte.json'
+                    image_proof.parent.mkdir(parents=True, exist_ok=True)
+                    image_proof.write_text(json.dumps({'synthetic': True}))
                 return 100
-            with patch.object(build, 'environment', return_value={}), patch.object(build, 'run_command', side_effect=command), patch.object(build, 'package_budget', return_value={}), patch.object(build, 'normalize_static_layout', return_value={}):
+            with patch.object(build, 'environment', return_value={}), patch.object(build, 'run_command', side_effect=command), patch.object(build, 'package_budget', return_value={}), patch.object(build, 'normalize_static_layout', return_value={}), patch.object(build, 'verify_twrp_package', return_value={}):
                 with self.assertRaises(ValueError):
                     build.execute(root, 'patch')
                 for stage in ('dependencies', 'source', 'target', 'patch', 'retire', 'package'):

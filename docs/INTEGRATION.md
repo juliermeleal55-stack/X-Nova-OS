@@ -85,3 +85,22 @@ As atribuições e limites de redistribuição das fontes OneROM estão em
 [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). GPL para código-fonte não concede, por si
 só, direitos de redistribuição de cada APK, biblioteca, imagem ou outro ativo
 proprietário importado para a workspace.
+
+## Saída experimental Alpha 3.2
+
+A entrega planejada é **um ZIP de ROM instalável pela TWRP**, com imagens RAW
+`.img` e `META-INF/com/google/android/update-binary`. O instalador usa a
+interface padrão de atualização do TWRP; não empacota nem modifica TWRP/recovery.
+O ZIP não usa OTA `new.dat.br`/`transfer.list` e não contém imagem de recovery.
+
+Para `beyond1lte`, são exigidos `system`, `vendor`, `product`, `boot`, `dtb` e
+`dtbo`; `system_ext` fica integrado a `system` segundo a configuração do alvo.
+Outras partições só são incluídas quando a árvore e os metadados provam que são
+necessárias. Os `.img` são intermediários validados; a entrega é o ZIP. Provas,
+proveniência e SHA-256 ficam fora do artefato em `out/twrp-zip-proof/` e
+`out/raw-image-proof/`.
+
+O pacote ainda não foi construído nem testado no TWRP/aparelho; não há flash nem
+boot validados. A origem de `dtb.img` e do chamado `build_fs_image.sh` continuam
+pendentes de confirmação, e a lista de partições declarada não é uma auditoria
+da tabela física do telefone. A Alpha 3.1 histórica não é reempacotada.

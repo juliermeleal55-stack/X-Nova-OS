@@ -36,12 +36,14 @@ class WorkspaceTests(unittest.TestCase):
             misc = workspace / 'platform/exynos9820/patches/miscs/customize.sh'
             misc.parent.mkdir(parents=True, exist_ok=True)
             misc.write_text((ROOT / 'reference/artisan-s10/platform/exynos9820/patches/miscs/customize.sh').read_text())
-            with patch.object(prepare, 'install_runtime_paths'), patch.object(prepare, 'install_preflight'), patch.object(prepare, 'install_framework'), patch.object(prepare, 'apply_build_policy'), patch.object(prepare, 'patch_firmware_lookup'), patch.object(prepare, 'patch_parallel_builds'), patch.object(prepare, 'patch_sequential_firmwares'):
+            with patch.object(prepare, 'install_runtime_paths'), patch.object(prepare, 'install_preflight'), patch.object(prepare, 'install_framework'), patch.object(prepare, 'apply_build_policy'), patch.object(prepare, 'patch_firmware_lookup'), patch.object(prepare, 'patch_parallel_builds'), patch.object(prepare, 'patch_sequential_firmwares'), patch.object(prepare, 'install_onerom', return_value={'repository': 'test', 'commit': 'test', 'upstream_disabled_modules': []}):
                 prepare.apply_overlay(workspace, 'beyond2lte')
             import json
             marker=json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text())
             self.assertEqual(marker['donor_profile']['model'],'SM-S721B')
             self.assertEqual(marker['donor_commit'],'541074191937f2d7c033be7a10cf5d99146cc98f')
+            self.assertTrue((workspace / 'manifests/onerom.json').is_file())
+            self.assertTrue((workspace / 'integration/twrp_zip_builder.py').is_file())
             self.assertIn('0.1.0-alpha1', (workspace / 'unica/configs/version.sh').read_text())
             self.assertIn('TARGET_ASSERT_MODEL=("SM-G975F")', target.read_text())
             self.assertIn('TARGET_SUPER_PARTITION_SIZE=0', target.read_text())
