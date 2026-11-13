@@ -189,6 +189,18 @@ class RawImageTests(unittest.TestCase):
                     raw_images.build(root)
             self.assertFalse((root / 'out/raw-images' / self.CODENAME).exists())
 
+    def test_dtb_header_must_be_a_device_tree_blob(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            work, inputs, environment = self.workspace(root, optional=False)
+            (work / 'kernel/dtb.img').write_bytes(b'not-a-dtb' + bytes(128))
+            with contextlib.ExitStack() as stack:
+                for item in self.build_patches(inputs, environment):
+                    stack.enter_context(item)
+                with self.assertRaisesRegex(ValueError, 'Invalid device-tree blob image'):
+                    raw_images.build(root)
+            self.assertFalse((root / 'out/raw-images' / self.CODENAME).exists())
+
     def test_separate_system_ext_is_rejected_when_target_config_embeds_it(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

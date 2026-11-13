@@ -14,6 +14,62 @@ spec.loader.exec_module(prepare)
 
 
 class WorkspaceTests(unittest.TestCase):
+    def test_s10_kernel_hook_activates_module_and_preserves_upstream_disable_marker(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary)
+            module = workspace / 'platform/exynos9820/patches/extremekrnl'
+            provenance = workspace / 'reference/onerom-upstream/platform/exynos9820/patches/extremekrnl'
+            module.mkdir(parents=True)
+            provenance.mkdir(parents=True)
+            source = ROOT / 'reference/onerom-port-candidates/source-snapshot/platform/exynos9820/patches/extremekrnl'
+            original_customization = (source / 'customize.sh').read_bytes()
+            original_disable = (source / 'disable').read_bytes()
+            (module / 'module.prop').write_text('id=extremekrnl\n')
+            (module / 'customize.sh').write_bytes(original_customization)
+            (module / 'disable').write_bytes(original_disable)
+            (provenance / 'customize.sh').write_bytes(original_customization)
+
+            record = prepare.install_s10_kernel_builder(workspace)
+
+            self.assertEqual(record['status'], 'pinned-kernel-hook-active')
+            self.assertFalse((module / 'disable').exists())
+            self.assertEqual((provenance / 'disable').read_bytes(), original_disable)
+            self.assertEqual((provenance / 'customize.sh').read_bytes(), original_customization)
+            self.assertEqual((module / 'customize.sh').read_bytes(),
+                             (ROOT / 'integration/artisan/extremekrnl.sh').read_bytes())
+            self.assertEqual(record['upstream_disable_marker_sha256'],
+                             'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
+            self.assertEqual(record['required_images'], ['boot.img', 'dtb.img', 'dtbo.img'])
+
+            # Match the module loader's disable guard and sourcing order, while
+            # the pinned hook's preflight path prevents a compiler invocation.
+            script = '''\nMODPATH="$1"\nif [ ! -f "$MODPATH/module.prop" ]; then exit 2; elif [ -f "$MODPATH/disable" ]; then echo disabled; exit 0; fi\nBEYOUD_PATCH_PREFLIGHT=1\nTARGET_CODENAME=beyond1lte\n. "$MODPATH/customize.sh"\necho hook-loaded\n'''
+            executed = subprocess.run(['bash', '-c', script, 'test', str(module)],
+                                      check=True, capture_output=True, text=True)
+            self.assertIn('Patch preflight: deferring pinned kernel compilation', executed.stdout)
+            self.assertIn('hook-loaded', executed.stdout)
+            self.assertNotIn('disabled', executed.stdout)
+
+    def test_s10_kernel_builder_rejects_changed_disable_marker_without_mutation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary)
+            module = workspace / 'platform/exynos9820/patches/extremekrnl'
+            provenance = workspace / 'reference/onerom-upstream/platform/exynos9820/patches/extremekrnl'
+            module.mkdir(parents=True)
+            provenance.mkdir(parents=True)
+            source = ROOT / 'reference/onerom-port-candidates/source-snapshot/platform/exynos9820/patches/extremekrnl'
+            original_customization = (source / 'customize.sh').read_bytes()
+            (module / 'module.prop').write_text('id=extremekrnl\n')
+            (module / 'customize.sh').write_bytes(original_customization)
+            (module / 'disable').write_bytes(b'unexpected\n')
+            (provenance / 'customize.sh').write_bytes(original_customization)
+
+            with self.assertRaisesRegex(ValueError, 'disable marker differs'):
+                prepare.install_s10_kernel_builder(workspace)
+            self.assertTrue((module / 'disable').is_file())
+            self.assertEqual((module / 'customize.sh').read_bytes(), original_customization)
+            self.assertFalse((provenance / 'disable').exists())
+
     def test_adapter_preserves_separate_target(self):
         result = subprocess.run(['bash', '-c',
             'SRC_DIR="$1"; source "$1/integration/artisan/essi_64.sh"; '

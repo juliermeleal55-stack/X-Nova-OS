@@ -193,8 +193,10 @@ def verify() -> int:
 
     prepare = (ROOT / "scripts/prepare_workspace.py").read_text(encoding="utf-8")
     if ("import_onerom_sources(workspace, codename)" not in prepare
-            or "install_s10_compat(workspace, codename)" not in prepare):
-        raise ValueError("Complete OneROM import is not wired into S10 workspace preparation")
+            or "install_s10_compat(workspace, codename)" not in prepare
+            or "kernel_build = install_s10_kernel_builder(workspace)" not in prepare
+            or "upstream_disable_marker_sha256" not in prepare):
+        raise ValueError("Complete OneROM import, pinned kernel hook, or disable-marker provenance is not wired into S10 workspace preparation")
     return count
 
 

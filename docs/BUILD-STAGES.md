@@ -43,13 +43,17 @@ e o perfil do firmware confirmarem esses papéis. A validação rejeita imagens
 inesperadas, sparse não expandidas e payload OTA.
 
 A lista provém das fontes/configuração do builder, não de uma auditoria atual da
-tabela física de um telefone. Há bloqueios de proveniência ainda não resolvidos:
-`extract_fw.sh` não lista `dtb.img`, e o script `build_fs_image.sh` chamado pelo
-empacotador não foi localizado no checkout inspecionado. Assim, não se pode
-afirmar que a cadeia completa de geração funciona nem que o conjunto cabe no
-layout real. O instalador consulta as capacidades expostas pelo TWRP e falha se
-não confirmar os destinos, mas essa proteção precisa de validação real no modelo
-exato antes de qualquer instalação.
+tabela física de um telefone. A execução Alpha 3.2 #25 mostrou que o firmware
+stock alvo fornece `boot.img` e `dtbo.img`, mas não `dtb.img`. A causa foi o
+marcador upstream `disable` ainda ativo no módulo `extremekrnl`: o executor
+retornava antes de chamar `customize.sh`, embora o preparador já o tivesse
+substituído pelo hook pinado que compila o kernel. O workspace gerado agora
+preserva o marcador exato em `reference/onerom-upstream/` e reativa somente o
+hook de kernel para SM-G973F. O hook exige `boot`, `dtb` e `dtbo`; os validadores
+RAW/ZIP continuam exigindo presença, cabeçalhos válidos e hashes. A nova
+execução ainda precisa confirmar compilação e empacotamento. Nada disso audita a
+tabela física ou comprova instalação/boot; o instalador consulta as capacidades
+expostas pelo TWRP e falha se não confirmar os destinos.
 
 ## Etapas e reprodução local
 
@@ -94,8 +98,11 @@ use workspace nova em vez de sobrescrever evidência.
 ## Verificações e estado
 
 Os testes do empacotador e do instalador usam arquivos sintéticos e mocks; não
-chamam TWRP, não abrem dispositivos de bloco e não fazem flash. A suíte completa
-mais recente não está verde porque o checkout de desenvolvimento estava sem
-arquivos de referência necessários. `dtb.img` e `build_fs_image.sh` também
-continuam sem origem confirmada. Portanto não há ZIP Alpha 3.2 produzido,
-instalação validada, flash nem boot testado.
+chamam TWRP, não abrem dispositivos de bloco e não fazem flash. Após a correção,
+**329/329 testes** passaram; `verify_reference.py`, `verify_audit.py`,
+`verify_onerom_port.py`, `compileall`, validação JSON, `bash -n` e
+`git diff --check` também passaram. A suíte inclui imagens DTB sintéticas com
+cabeçalho válido e rejeita DTB ausente/inválido. Ela não compila o kernel real.
+A Alpha 3.2 #25 falhou no empacotamento e não produziu ZIP. A próxima execução,
+com o hook ativo, ainda precisa confirmar o build e o ZIP; não houve instalação,
+flash nem boot testado.

@@ -51,6 +51,8 @@ class TargetTests(unittest.TestCase):
                     'commit': '644f0aacc49ad2410e566de8deb05e6c8211d83d',
                     'upstream_disabled_modules': ['target/beyond1lte/patches/search_indexing']}), \
                  patch.object(prepare, 'install_s10_compat', return_value={'active': ['donor-sdk guard']}), \
+                 patch.object(prepare, 'install_s10_kernel_builder',
+                              return_value={'status': 'pinned-kernel-hook-active'}), \
                  patch.object(prepare, 'install_runtime_paths'), \
                  patch.object(prepare, 'install_preflight'), \
                  patch.object(prepare, 'install_framework'), \
@@ -72,6 +74,7 @@ class TargetTests(unittest.TestCase):
             self.assertEqual(from_marker(marker)[0], 'beyond1lte')
             self.assertEqual(marker['onerom_port']['commit'], '644f0aacc49ad2410e566de8deb05e6c8211d83d')
             self.assertEqual(marker['s10_compatibility']['active'], ['donor-sdk guard'])
+            self.assertEqual(marker['kernel_build']['status'], 'pinned-kernel-hook-active')
 
     def test_s10_package_cannot_be_used_as_s10plus(self):
         from test_alpha import package

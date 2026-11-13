@@ -18,8 +18,15 @@ O importador compara todos os caminhos, tamanhos e Git blob SHA-1 com o
 manifesto antes de alterar o workspace. Arquivos Artisan substituídos são
 preservados em `reference/artisan-before-onerom/`; originais OneROM de arquivos
 adaptados pelo projeto e o `postinstall.edify` upstream ficam em
-`reference/onerom-upstream/`, junto a créditos, licença e recibo. Os marcadores
-upstream `disable` são mantidos exatamente.
+`reference/onerom-upstream/`, junto a créditos, licença e recibo. A importação
+preserva inicialmente todos os marcadores upstream `disable` exatamente. Para o
+build **SM-G973F / `beyond1lte`**, a preparação conserva o marcador original do
+módulo `extremekrnl` em `reference/onerom-upstream/` e remove somente o marcador
+ativo depois de instalar o hook de kernel pinado do projeto: o executor pula
+`customize.sh` quando o marcador está presente, mas o firmware alvo extraído não
+fornece `dtb.img`. Os outros módulos desabilitados mantêm seus marcadores ativos.
+O hook exige os três artefatos e o empacotador continua validando os cabeçalhos;
+veja [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md) para a proveniência e limites.
 
 **Limites de instalação:** o `target/beyond1lte/postinstall.edify` da OneROM
 não substitui o recipe de instalação Artisan ativo. Nenhuma imagem/código de
@@ -75,11 +82,14 @@ OneROM fixada: **474 caminhos e 326.008.869 bytes**, todos conferidos por
 caminho/tamanho/Git blob SHA-1; módulos e cópias protegidas de instalador foram
 verificados estruturalmente. Isso não foi build da ROM nem teste no aparelho.
 
-Verificações host deste merge: **305 testes** passaram; `verify_reference.py`
-confirmou 69 blobs Artisan e 37 referências OneROM históricas; `verify_audit.py`
-confirmou 494 arquivos, incluindo os 283 blobs de texto do novo snapshot. Também
-passaram `compileall` e `bash -n` nos scripts shell versionados. São verificações
-de fontes/proveniência, não validação funcional no telefone.
+Verificações host após a correção do hook de kernel: **329 testes** passaram;
+`verify_reference.py` confirmou 69 blobs Artisan e 37 referências OneROM;
+`verify_audit.py` confirmou 494 arquivos, e `verify_onerom_port.py` verificou
+286 arquivos de fonte/proveniência OneROM. A suíte inclui a regressão que prova
+que o executor já alcança o hook ativo e que o marcador upstream continua
+preservado. Também passaram `compileall`, validação JSON, `bash -n` e
+`git diff --check`. São verificações de fontes/proveniência e fixtures, não
+compilação real do kernel nem validação funcional no telefone.
 
 As atribuições e limites de redistribuição das fontes OneROM estão em
 [`ONEROM-AUDIT.md`](ONEROM-AUDIT.md). GPL para código-fonte não concede, por si

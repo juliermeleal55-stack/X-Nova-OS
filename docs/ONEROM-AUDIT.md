@@ -47,16 +47,30 @@ remains the active installer.
 The normal target/platform patch directories are populated with the OneROM
 modules and resources, including their source module metadata, scripts, patches,
 configuration files, system/vendor files, APK/image/native assets and kernel
-payloads. The upstream `disable` markers are retained exactly, including the
-markers on `extradim`, `extremekrnl`, `search_indexing`, `usb_initialization`,
-`user_defaults` and `wallpaper_capture`. Other modules are imported according
-to their upstream state; this is a source port, not selective activation of the
-project-authored search-indexing adapter.
+payloads. The import first retains every upstream `disable` marker byte-for-byte
+and records the disabled module inventory.
 
-The separate project-authored `search_indexing/adapt_candidate.py` remains
-review-only and outside the build. The original upstream search-indexing
-module is copied with its upstream `disable` marker intact. The fixture-based
-adapter checks do not constitute donor APK/DEX or device tests.
+For the **SM-G973F / `beyond1lte` build only**, workspace preparation then
+activates the project-pinned `integration/artisan/extremekrnl.sh` replacement.
+The module runner returns before sourcing `customize.sh` whenever its `disable`
+marker exists; leaving that marker active skipped the kernel compiler. The
+Alpha 3.2 #25 logs show stock target extraction supplied `boot.img` and
+`dtbo.img`, but not `dtb.img`, so the later RAW packaging gate correctly stopped.
+Preparation now preserves the exact OneROM marker at
+`reference/onerom-upstream/platform/exynos9820/patches/extremekrnl/disable`,
+removes only the active workspace marker, and installs the pinned hook. Its
+pinned kernel revision must produce non-empty `boot.img`, `dtb.img`, and
+`dtbo.img`; the existing RAW/ZIP validators still reject missing or malformed
+images. The original OneROM binaries are not used as substitutes for these
+pinned build outputs. This is not boot/runtime validation.
+
+Other upstream markers remain active, including those on `extradim`,
+`search_indexing`, `usb_initialization`, `user_defaults` and
+`wallpaper_capture`. The separate project-authored
+`search_indexing/adapt_candidate.py` remains review-only and outside the build.
+The original upstream search-indexing module is copied with its upstream
+`disable` marker intact. The fixture-based adapter checks do not constitute
+donor APK/DEX or device tests.
 
 ## Credit and redistribution boundaries
 

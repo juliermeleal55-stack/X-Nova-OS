@@ -148,6 +148,68 @@ def patch_parallel_builds(workspace):
     path.write_text(text)
 
 
+def install_s10_kernel_builder(workspace):
+    """Activate the pinned S10 kernel hook without losing OneROM source state."""
+    workspace = Path(workspace).resolve(strict=True)
+    module = workspace / 'platform/exynos9820/patches/extremekrnl'
+    module_prop = module / 'module.prop'
+    active_hook = module / 'customize.sh'
+    disable_marker = module / 'disable'
+    source_root = ROOT / 'integration/onerom/upstream/platform/exynos9820/patches/extremekrnl'
+    pinned_customization = source_root / 'customize.sh'
+    pinned_disable = source_root / 'disable'
+    replacement_hook = ROOT / 'integration/artisan/extremekrnl.sh'
+    upstream_reference = workspace / 'reference/onerom-upstream/platform/exynos9820/patches/extremekrnl'
+    upstream_customization = upstream_reference / 'customize.sh'
+    upstream_disable = upstream_reference / 'disable'
+
+    for directory, description in (
+        (module, 'OneROM kernel module'),
+        (workspace / 'reference/onerom-upstream', 'OneROM provenance directory'),
+    ):
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValueError(f'Missing or unsafe {description}: {directory}')
+    for path, description in (
+        (module_prop, 'OneROM kernel module metadata'),
+        (active_hook, 'active OneROM kernel customization'),
+        (disable_marker, 'active OneROM kernel disable marker'),
+        (pinned_customization, 'pinned OneROM kernel customization'),
+        (pinned_disable, 'pinned OneROM kernel disable marker'),
+        (replacement_hook, 'pinned Artisan kernel build hook'),
+        (upstream_customization, 'preserved OneROM kernel customization'),
+    ):
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f'Missing or unsafe {description}: {path}')
+    if (active_hook.read_bytes() != pinned_customization.read_bytes()
+            or upstream_customization.read_bytes() != pinned_customization.read_bytes()):
+        raise ValueError('Active or preserved OneROM kernel customization differs from its pinned source')
+    if disable_marker.read_bytes() != pinned_disable.read_bytes():
+        raise ValueError('OneROM kernel disable marker differs from the pinned source')
+    if upstream_disable.exists() or upstream_disable.is_symlink():
+        if (upstream_disable.is_symlink() or not upstream_disable.is_file()
+                or upstream_disable.read_bytes() != pinned_disable.read_bytes()):
+            raise ValueError('Preserved OneROM kernel disable marker differs from the pinned source')
+    else:
+        shutil.copy2(disable_marker, upstream_disable)
+
+    # apply_modules.sh returns immediately when `disable` exists, before it
+    # sources customize.sh. The upstream marker stays byte-exact in provenance;
+    # only the active project module is enabled so its pinned compiler can emit
+    # the required boot.img, dtb.img, and dtbo.img.
+    disable_marker.unlink()
+    shutil.copyfile(replacement_hook, active_hook)
+    return {
+        'status': 'pinned-kernel-hook-active',
+        'hook': 'integration/artisan/extremekrnl.sh',
+        'kernel_repository': 'Android-Artisan/android_kernel_samsung_exynos9820',
+        'kernel_revision': '9a0a792d227c8ae6cddac0c9d68a8bb9782c44cb',
+        'required_images': ['boot.img', 'dtb.img', 'dtbo.img'],
+        'upstream_disable_marker': str(upstream_disable.relative_to(workspace)),
+        'upstream_disable_marker_sha256': hashlib.sha256(pinned_disable.read_bytes()).hexdigest(),
+        'upstream_kernel_binaries': 'preserved; not substituted for pinned build outputs',
+    }
+
+
 def apply_overlay(workspace, codename=DEFAULT_TARGET):
     device = select(codename)
     donor=json.loads((ROOT/'integration/donors/s24fe.json').read_text())
@@ -169,7 +231,13 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
                     workspace / 'unica/configs/essi_64.sh')
     kernel_module = workspace / 'platform/exynos9820/patches/extremekrnl/customize.sh'
     kernel_module.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(ROOT / 'integration/artisan/extremekrnl.sh', kernel_module)
+    if codename == 'beyond1lte':
+        kernel_build = install_s10_kernel_builder(workspace)
+    else:
+        # Keep the existing S10+ behavior; the complete OneROM source port and
+        # this reactivation policy are scoped to the normal SM-G973F only.
+        shutil.copyfile(ROOT / 'integration/artisan/extremekrnl.sh', kernel_module)
+        kernel_build = None
     patch_downloader(workspace)
     patch_firmware_lookup(workspace)
     patch_parallel_builds(workspace)
@@ -215,6 +283,7 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
         'onerom_compatibility': onerom,
         'onerom_port': onerom_port,
         's10_compatibility': s10_compatibility,
+        'kernel_build': kernel_build,
         'donor_commit': donor['commit'],
         'donor_profile': donor,
         'tooling_source_commit': '609fa7cc738e42dedcc31ffecbe4aefc0b34d6e2',
