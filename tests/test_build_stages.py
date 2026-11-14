@@ -82,17 +82,22 @@ class StageTests(unittest.TestCase):
         self.assertIn('ARTISAN-OTA-UNTESTED', text)
         self.assertIn('compression-level: 0', text)
 
-    def test_s10plus_build_request_uses_explicit_experimental_ota_retry(self):
+    def test_s10plus_build_request_uses_content_sized_experimental_ota_retry(self):
         caller = (ROOT / '.github/workflows/s10plus-ota-request.yml').read_text()
         reusable = (ROOT / '.github/workflows/alpha.yml').read_text()
+        collector = (ROOT / 'scripts/collect_alpha.py').read_text()
         self.assertIn('target: beyond2lte', caller)
         self.assertIn('output_format: artisan-ota', caller)
         self.assertIn("alpha_version: '3'", caller)
         self.assertIn('experimental_patch_failures: true', caller)
-        self.assertIn('documented failure-tolerant mode', caller)
-        self.assertIn('partition_layout: stock', caller)
+        self.assertIn('partition_layout: content-sized', caller)
+        self.assertIn('owner-managed repartition', caller)
+        self.assertIn('620 MiB / 650,117,120 bytes', caller)
+        self.assertIn('1,540,594,508 bytes / ~1.43 GiB', caller)
+        self.assertIn('CUSTOM REPARTITION REQUIRED', caller)
         self.assertIn('SM-G975F / beyond2lte', caller)
         self.assertIn('description: Continue despite patch/module failures; boot NOT validated\n        type: boolean\n        default: false', reusable)
+        self.assertIn('-CUSTOM-REPARTITION-REQUIRED', collector)
         self.assertIn('ARTISAN-OTA-UNTESTED', reusable)
 
     def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):

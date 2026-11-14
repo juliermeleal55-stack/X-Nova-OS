@@ -48,30 +48,42 @@ SM-G973F / beyond1lte.
   altera o firmware doador nem os créditos/licenças/proveniência ArtisanROM e
   OneROM.
 
-## Resultado do primeiro build S10+
+## Resultados de CI e estratégia de build
 
 O run [43628169508](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43628169508)
-passou pela validação de integração, compilação das ferramentas, download e extração
-verificados dos firmwares S721B/EUX e G975F/AUT e pelos checks de identidade/layout.
-Parou no preflight estrito, antes da compilação de kernel/APKs/JARs ou da geração
-do OTA: vários hunks/âncoras não correspondiam às versões extraídas de
-`framework`, Wi-Fi, `SettingsProvider`, `SecSettings` e `SystemUI`. Nenhuma
-alteração foi forçada para satisfazer esses patches. O run não produziu ZIP de
-ROM nem artifact OTA; só publicou `beyond2lte-alpha-build-diagnostics`.
+(Build #2) passou pela validação de integração, compilação das ferramentas,
+download/extracção verificados dos firmwares S721B/EUX e G975F/AUT e pelos
+checks de identidade/layout. O preflight estrito parou antes da compilação de
+kernel/APKs/JARs ou da geração do OTA: vários hunks/âncoras não correspondiam
+às versões extraídas de `framework`, Wi-Fi, `SettingsProvider`, `SecSettings` e
+`SystemUI`. Nenhuma alteração foi forçada. Não produziu ZIP de ROM/OTA; publicou
+somente `beyond2lte-alpha-build-diagnostics`.
 
-O download desse artifact via `gh run download` também terminou em `EOF` no host
-externo de armazenamento do Actions. As anotações do run confirmam as falhas,
-mas não fornecem aqui o relatório integral. O ZIP Alpha 3 original continua
-sem inspeção; não foi substituído por suposições como se fosse evidência.
+O download desse artifact via `gh run download` terminou em `EOF` no host externo
+de armazenamento do Actions. As anotações confirmam as falhas, mas não fornecem
+aqui o relatório integral. O ZIP Alpha 3 original segue sem inspeção.
 
-A próxima tentativa ativa `experimental_patch_failures: true` explicitamente:
-se a cobertura do preflight estiver completa, os erros ficam registrados como
-`experimental-with-failures` e a pipeline pode tentar a compilação/empacotamento.
-Isso **não** chama patches rejeitados de sucesso nem os força a aplicar. Falhas
-de compilação, verificação de integridade, capacidade, identificadores ou
-montagem/validação do pacote continuam bloqueantes. Um ZIP eventual ainda será
-experimental e **UNTESTED**; divergências podem deixar alterações parciais,
-causar regressões ou impedir o boot.
+O run [43633658007](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43633658007)
+(Build #3) ativou explicitamente a tolerância experimental. O preflight percorreu
+43 módulos e 54 tentativas de patch, registrando 15 falhas como
+`experimental-with-failures` (não como sucesso; boot não validado). A continuação
+foi bloqueada pelo controle de capacidade do layout stock: o payload mínimo de
+`product` mediu 1.540.594.508 bytes, acima do cap extraído do firmware alvo,
+650.117.120 bytes (620 MiB). Não houve build de kernel/APK/JAR nem ZIP OTA. O
+artifact de diagnóstico existe; isso é uma incompatibilidade concreta com o
+layout stock, não um limite para remover ou contornar silenciosamente.
+
+A próxima tentativa foi configurada com `partition_layout: content-sized` para
+dimensionar as imagens pelo conteúdo e tentar obter o pacote. Esse modo **não** valida nem
+promete um layout físico: qualquer OTA gerada será nomeada
+`CUSTOM-REPARTITION-REQUIRED`, trará `REQUIRED-IMAGE-SIZES.json` e exigirá
+reparticionamento manual gerido pelo proprietário depois de conhecer os tamanhos.
+O updater apenas verifica, antes de qualquer gravação, a capacidade e o estado
+não montado das partições; não reparticiona, formata nem grava se a capacidade
+for insuficiente. Portanto não será instalável no layout stock atual se as
+partições não comportarem esses tamanhos. Falhas de patch continuam registradas;
+falhas de compilação, integridade, capacidade em runtime ou validação do pacote
+continuam bloqueantes. Qualquer output será experimental e **UNTESTED**.
 
 ## Validações ainda pendentes
 

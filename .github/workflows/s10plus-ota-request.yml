@@ -1,9 +1,11 @@
-# Explicit experimental test-build request for Galaxy S10+ SM-G975F / beyond2lte.
-# The strict Build #2 preflight found target/donor patch mismatches; this retry opts into
-# documented failure-tolerant mode. Failures remain recorded, and output stays UNTESTED.
+# Experimental test-build request for Galaxy S10+ SM-G975F / beyond2lte.
+# Build #2 found donor/target patch mismatches; Build #3 recorded them experimentally but
+# stock product capacity (620 MiB / 650,117,120 bytes) is below the payload lower bound
+# (1,540,594,508 bytes / ~1.43 GiB). Retry content-sized; owner-managed repartition required.
+# Failed patches remain recorded; installer capacity checks stay fail-closed; output UNTESTED.
 # Pushes affecting this file start one GitHub Actions build; no public release is created.
 name: Requested Galaxy S10+ SM-G975F Artisan OTA test build
-run-name: "Beyoud Alpha 3 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - Artisan OTA / UNTESTED"
+run-name: "Beyoud Alpha 3 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - Artisan OTA / CUSTOM REPARTITION REQUIRED / UNTESTED"
 on:
   push:
     branches: [arena/0d47b1d6-artisanrom-beyoud]
@@ -20,4 +22,4 @@ jobs:
       target: beyond2lte
       diagnostic_only: false
       experimental_patch_failures: true
-      partition_layout: stock
+      partition_layout: content-sized
