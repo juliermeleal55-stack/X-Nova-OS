@@ -20,9 +20,9 @@ def selected_layout(workspace):
     if name=='stock':return dict(id='stock',sha256=None)
     if name=='content-sized':
         codename,device=from_marker(json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text()))
-        if device['model']!='SM-G973F' or codename!='beyond1lte':
-            raise ValueError('Content-sized layout is scoped to SM-G973F')
-        return dict(id=name,sha256=None,requires='Owner-managed repartition sized AFTER image generation; no fixed capacity promise.',
+        if (device['model'],codename) not in {('SM-G973F','beyond1lte'),('SM-G975F','beyond2lte')}:
+            raise ValueError('Content-sized layout is scoped to the audited Exynos S10/S10+ candidates')
+        return dict(id=name,sha256=None,requires='Owner-managed repartition sized AFTER image generation; no fixed capacity promise; no automatic repartition.',
                     image_size_caps=dict.fromkeys(('system','vendor','product','odm','prism','optics')))
     if name!='extreme-default':raise ValueError('Unknown explicit partition layout')
     path=Path(__file__).resolve().parent/'partition_layouts/extreme-default.json'

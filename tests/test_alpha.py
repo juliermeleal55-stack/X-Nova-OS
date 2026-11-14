@@ -17,11 +17,16 @@ spec.loader.exec_module(alpha)
 def package(path, model='SM-G975F', boot=b'candidate-boot', payload=True):
     with zipfile.ZipFile(path, 'w') as archive:
         archive.writestr('META-INF/com/google/android/update-binary', b'installer')
-        archive.writestr('META-INF/com/google/android/updater-script', f'getprop("ro.product.model") == "{model}"')
+        script = f'getprop("ro.product.model") == "{model}"'
+        if payload:
+            script += '\nblock_image_update("/dev/block/by-name/system", package_extract_file("system.transfer.list"), "system.new.dat.br", "system.patch.dat");'
+        archive.writestr('META-INF/com/google/android/updater-script', script)
         archive.writestr('boot.img', boot)
+        archive.writestr('dtb.img', b'candidate-dtb')
         archive.writestr('dtbo.img', b'candidate-dtbo')
         if payload:
             archive.writestr('system.new.dat.br', b'candidate-system')
+            archive.writestr('system.transfer.list', b'0')
 
 
 class AlphaTests(unittest.TestCase):
@@ -131,6 +136,37 @@ class AlphaTests(unittest.TestCase):
                             target.writestr(name,data)
                     path=other
                 with self.assertRaises(ValueError):alpha.check_package(path,allowed_partitions={'system','vendor','product'})
+
+    def test_ota_payload_names_must_match_the_written_partition(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source_path = Path(tmp) / 'source.zip'
+            rewritten_path = Path(tmp) / 'mismatched.zip'
+            package(source_path)
+            with zipfile.ZipFile(source_path) as source, zipfile.ZipFile(rewritten_path, 'w') as target:
+                for name in source.namelist():
+                    data = source.read(name)
+                    if name.endswith('updater-script'):
+                        data = data.replace(b'system.transfer.list', b'vendor.transfer.list')
+                    target.writestr(name, data)
+            with self.assertRaisesRegex(ValueError, 'do not match target partition'):
+                alpha.check_package(rewritten_path)
+
+    def test_unreviewed_postinstall_resize_and_recovery_write_are_rejected(self):
+        for operation in (
+                b'run_program("/bin/resize2fs", "/dev/block/by-name/system");',
+                b'package_extract_file("recovery.img", "/dev/block/by-name/recovery");'):
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as tmp:
+                source_path = Path(tmp) / 'source.zip'
+                rewritten_path = Path(tmp) / 'unsafe.zip'
+                package(source_path)
+                with zipfile.ZipFile(source_path) as source, zipfile.ZipFile(rewritten_path, 'w') as target:
+                    for name in source.namelist():
+                        data = source.read(name)
+                        if name.endswith('updater-script'):
+                            data += b'\n' + operation
+                        target.writestr(name, data)
+                with self.assertRaises(ValueError):
+                    alpha.check_package(rewritten_path)
 
     def test_wrapper_propagates_build_failure(self):
         with tempfile.TemporaryDirectory() as tmp:

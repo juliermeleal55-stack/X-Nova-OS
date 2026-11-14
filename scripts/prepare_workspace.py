@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 import shutil
@@ -127,7 +128,7 @@ def patch_firmware_lookup(workspace):
 
 
 def patch_parallel_builds(workspace):
-    """Track bounded workers in make_rom; the legacy recovery ZIP is not used."""
+    """Track bounded workers in make_rom before the selected package stage."""
     relative = 'scripts/make_rom.sh'
     path = workspace / relative
     text = path.read_text()
@@ -210,6 +211,82 @@ def install_s10_kernel_builder(workspace):
     }
 
 
+def install_s10plus_kernel_builder(workspace):
+    """Activate the pinned kernel builder for the historical Artisan S10+ target."""
+    workspace = Path(workspace).resolve(strict=True)
+    module = workspace / 'platform/exynos9820/patches/extremekrnl'
+    module_prop = module / 'module.prop'
+    active_hook = module / 'customize.sh'
+    disable_marker = module / 'disable'
+    references = {
+        module_prop: ROOT / 'reference/artisan-s10/platform/exynos9820/patches/extremekrnl/module.prop',
+        active_hook: ROOT / 'reference/artisan-s10/platform/exynos9820/patches/extremekrnl/customize.sh',
+    }
+    manifest = json.loads((ROOT / 'manifests/artisan-s10-files.json').read_text())
+    pinned = {entry['path']: entry for entry in manifest['files']}
+    if manifest.get('repository') != 'ArtisanROM-archive/ArtisanROM_old' or manifest.get('commit') != BASE_COMMIT:
+        raise ValueError('Artisan S10+ source manifest differs from the pinned base')
+    for directory in (workspace / 'platform', workspace / 'platform/exynos9820',
+                      module.parent, module,):
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValueError(f'Missing/unsafe Artisan S10+ kernel module directory: {directory}')
+    if disable_marker.exists() or disable_marker.is_symlink():
+        raise ValueError('Pinned Artisan S10+ kernel module is disabled; refusing a build without boot images')
+    for destination, reference in references.items():
+        if destination.is_symlink() or not destination.is_file() or reference.is_symlink() or not reference.is_file():
+            raise ValueError(f'Missing/unsafe pinned Artisan S10+ kernel input: {destination.name}')
+        relative = destination.relative_to(workspace).as_posix()
+        entry = pinned.get(relative)
+        data = reference.read_bytes()
+        blob_sha = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+        if (entry is None or entry.get('sha') != blob_sha or entry.get('size') != len(data)
+                or destination.read_bytes() != data):
+            raise ValueError(f'Artisan S10+ kernel module differs from its retained source: {relative}')
+    replacement = ROOT / 'integration/artisan/extremekrnl.sh'
+    if replacement.is_symlink() or not replacement.is_file():
+        raise ValueError('Pinned Artisan kernel build hook is missing/unsafe')
+    shutil.copyfile(replacement, active_hook)
+    return {
+        'status': 'pinned-kernel-hook-active',
+        'hook': 'integration/artisan/extremekrnl.sh',
+        'kernel_repository': 'Android-Artisan/android_kernel_samsung_exynos9820',
+        'kernel_revision': '9a0a792d227c8ae6cddac0c9d68a8bb9782c44cb',
+        'target_codename': 'beyond2lte',
+        'target_model': 'SM-G975F',
+        'required_images': ['boot.img', 'dtb.img', 'dtbo.img'],
+        'artisan_module_manifest_commit': BASE_COMMIT,
+        'original_customizer_blob_sha1': pinned['platform/exynos9820/patches/extremekrnl/customize.sh']['sha'],
+    }
+
+
+def disable_s10plus_postinstall(workspace):
+    """Exclude the unaudited historical e2fsck/resize2fs hook from S10+ OTA ZIPs."""
+    workspace = Path(workspace).resolve(strict=True)
+    target_root = workspace / 'target'
+    target_dir = target_root / 'beyond2lte'
+    path = target_dir / 'postinstall.edify'
+    reference = ROOT / 'reference/artisan-s10/target/beyond2lte/postinstall.edify'
+    if any(directory.is_symlink() or not directory.is_dir() for directory in (target_root, target_dir)):
+        raise ValueError('Missing/unsafe beyond2lte target directory')
+    if path.is_symlink() or not path.is_file() or reference.is_symlink() or not reference.is_file():
+        raise ValueError('Missing/unsafe historical S10+ postinstall; refusing an unaudited installer hook')
+    original = path.read_bytes()
+    if original != reference.read_bytes():
+        raise ValueError('Historical S10+ postinstall differs from its retained reference; refusing to remove unknown code')
+    commands = sorted(set(re.findall(rb'run_program\("([^"\n]+)"', original)))
+    if not any(b'e2fsck' in command for command in commands) or not any(b'resize2fs' in command for command in commands):
+        raise ValueError('Expected historical S10+ filesystem mutation hook was not found')
+    digest = hashlib.sha256(original).hexdigest()
+    path.unlink()
+    return {
+        'status': 'excluded-unreviewed-postinstall',
+        'path': 'target/beyond2lte/postinstall.edify',
+        'original_sha256': digest,
+        'commands': [command.decode('ascii') for command in commands],
+        'reason': 'Do not grow/check filesystems until the exact device and partition layout are confirmed and this hook is audited.',
+    }
+
+
 def apply_overlay(workspace, codename=DEFAULT_TARGET):
     device = select(codename)
     donor=json.loads((ROOT/'integration/donors/s24fe.json').read_text())
@@ -217,8 +294,11 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     if hashlib.sha256(raw).hexdigest()!=donor['sha256']:
         raise ValueError('S24 FE donor config differs from pinned provenance')
     model = device["model"]
-    # The complete OneROM tree is scoped to the normal S10. Preserve the
-    # established S10+ compatibility path rather than inferring a port there.
+    output_format = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
+    if output_format not in {'twrp-zip', 'artisan-ota'}:
+        raise ValueError(f'Unsupported ROM output format: {output_format}')
+    if output_format == 'twrp-zip' and codename != 'beyond1lte':
+        raise ValueError('RAW-image TWRP ZIP output is audited only for SM-G973F / beyond1lte')
     onerom_port = import_onerom_sources(workspace, codename)
     shutil.copytree(ROOT / 'integration', workspace / 'integration')
     # The generated package embeds pinned source/license provenance in its ZIP;
@@ -233,11 +313,10 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     kernel_module.parent.mkdir(parents=True, exist_ok=True)
     if codename == 'beyond1lte':
         kernel_build = install_s10_kernel_builder(workspace)
+        postinstall_policy = None
     else:
-        # Keep the existing S10+ behavior; the complete OneROM source port and
-        # this reactivation policy are scoped to the normal SM-G973F only.
-        shutil.copyfile(ROOT / 'integration/artisan/extremekrnl.sh', kernel_module)
-        kernel_build = None
+        kernel_build = install_s10plus_kernel_builder(workspace)
+        postinstall_policy = disable_s10plus_postinstall(workspace)
     patch_downloader(workspace)
     patch_firmware_lookup(workspace)
     patch_parallel_builds(workspace)
@@ -245,7 +324,7 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     install_framework(workspace)
     install_preflight(workspace)
     install_runtime_paths(workspace)
-    apply_build_policy(workspace)
+    apply_build_policy(workspace, output_format=output_format)
     if codename == 'beyond1lte':
         s10_compatibility = install_s10_compat(workspace, codename)
         onerom = {
@@ -280,10 +359,12 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     (workspace / 'BEYOUD-WORKSPACE.json').write_text(json.dumps({
         'base_commit': BASE_COMMIT, 'status': 'unvalidated-candidate',
         'target': model, 'codename': codename, 'flashable_release': False,
+        'output_format': output_format,
         'onerom_compatibility': onerom,
         'onerom_port': onerom_port,
         's10_compatibility': s10_compatibility,
         'kernel_build': kernel_build,
+        'postinstall_policy': postinstall_policy,
         'donor_commit': donor['commit'],
         'donor_profile': donor,
         'tooling_source_commit': '609fa7cc738e42dedcc31ffecbe4aefc0b34d6e2',

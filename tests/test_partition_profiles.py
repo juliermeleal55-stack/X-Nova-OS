@@ -23,6 +23,11 @@ def s10(root):
     (root/'out/fw/SM-G973F_AUT/os_partitions_metadata.txt').write_text('system_size=5976883200\nvendor_size=1153433600\nproduct_size=650117120\n')
 
 
+def s10plus(root):
+    fixture(root);firmware(root)
+    (root/'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(target='SM-G975F',codename='beyond2lte')))
+
+
 class PartitionProfileTests(unittest.TestCase):
     def setUp(self):self.enterContext(contextlib.redirect_stdout(io.StringIO()))
 
@@ -45,6 +50,14 @@ class PartitionProfileTests(unittest.TestCase):
                 with self.assertRaises(ValueError):selected_layout(root)
             with patch.dict(os.environ,BEYOUD_PARTITION_LAYOUT='unknown'):
                 with self.assertRaises(ValueError):selected_layout(root)
+
+    def test_content_sized_profile_accepts_only_the_explicit_s10plus_candidate_without_caps(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, BEYOUD_PARTITION_LAYOUT='content-sized'):
+            root=Path(tmp);s10plus(root)
+            data=capture(root)
+            self.assertEqual((data['model'], data['codename']), ('SM-G975F', 'beyond2lte'))
+            self.assertEqual(data['partition_layout']['id'], 'content-sized')
+            self.assertTrue(all(value is None for value in data['image_size_caps'].values()))
 
     def test_caps_survive_retirement_and_cache_cannot_cross_layouts(self):
         with tempfile.TemporaryDirectory() as tmp:

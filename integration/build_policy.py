@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Strict transformations of the pinned Artisan scripts; refuse schema drift."""
+import os
 from pathlib import Path
 import re
 
@@ -144,7 +145,11 @@ def debloat_workers(text):
     return result.rstrip() + '\nreturn 0\n'
 
 
-def apply(workspace):
+def apply(workspace, output_format=None):
+    """Patch the pinned Artisan build for the explicitly selected package format."""
+    output_format = output_format or os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
+    if output_format not in {'twrp-zip', 'artisan-ota'}:
+        raise ValueError(f'Unsupported ROM output format: {output_format}')
     make = workspace / 'scripts/make_rom.sh'
     legacy_zip_file = workspace / 'scripts/internal/build_flashable_zip.sh'
     fw_utils = workspace / 'scripts/utils/firmware_utils.sh'
@@ -153,17 +158,19 @@ def apply(workspace):
     make_text = bound_workers(make.read_text())
     cleanup = 'if [ -n "$GITHUB_ACTIONS" ]; then\n    bash "$SRC_DIR/scripts/cleanup.sh" fw kernel\nfi\n\n'
     make_text = once(make_text, cleanup, '')
-    # New builds use the dedicated TWRP ZIP stage. Keep the pinned legacy
-    # recovery/OTA ZIP builder byte-for-byte unchanged and do not invoke it.
     outputs = {make: make_text,
                fw_utils: stream_lz4(fw_utils.read_text()), extract: partition_policy(extract.read_text())}
+    if output_format == 'artisan-ota':
+        # Restore Artisan's historical TWRP OTA payload (.new.dat.br +
+        # transfer.list), with current fs/Brotli/updater and mount-safety checks.
+        outputs[legacy_zip_file] = zip_policy(legacy_zip_file.read_text())
     config = workspace / 'scripts/internal/gen_config_file.sh'
     outputs[config] = once(config.read_text(), 'GET_BUILD_VAR "ROM_BUILD_TIMESTAMP" "$(date +%s)"',
                            'GET_BUILD_VAR "ROM_BUILD_TIMESTAMP" "${BEYOUD_BUILD_TIMESTAMP:-$(date +%s)}"')
     # Bound the pinned host scripts' explicit nproc parallelism too. Third-party
     # nested build systems remain separately audited rather than silently edited.
     for path in list((workspace / 'scripts').rglob('*.sh')) + [workspace / 'external/make.sh']:
-        if path.is_file() and path != legacy_zip_file:
+        if path.is_file() and (path != legacy_zip_file or output_format == 'artisan-ota'):
             content = outputs.get(path, path.read_text())
             outputs[path] = content.replace('$(nproc --all)', '${BEYOUD_JOBS:-1}').replace('$(nproc)', '${BEYOUD_JOBS:-1}')
     debloat = workspace / 'unica/patches/debloat/customize.sh'

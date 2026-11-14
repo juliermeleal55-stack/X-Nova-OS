@@ -1,0 +1,21 @@
+# Explicit, strict test-build request for Galaxy S10+ SM-G975F / beyond2lte.
+# Pushes affecting this file start one GitHub Actions build; no public release is created.
+name: Requested Galaxy S10+ SM-G975F Artisan OTA test build
+run-name: "Beyoud Alpha 3 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - Artisan OTA / UNTESTED"
+on:
+  push:
+    branches: [arena/0d47b1d6-artisanrom-beyoud]
+    paths:
+      - .github/workflows/s10plus-ota-request.yml
+permissions:
+  contents: read
+jobs:
+  build:
+    uses: ./.github/workflows/alpha.yml
+    with:
+      alpha_version: '3'
+      output_format: artisan-ota
+      target: beyond2lte
+      diagnostic_only: false
+      experimental_patch_failures: false
+      partition_layout: stock

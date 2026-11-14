@@ -2,6 +2,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -15,6 +16,9 @@ summary=importlib.util.module_from_spec(spec);spec.loader.exec_module(summary)
 
 
 class PatchDiagnosticTests(unittest.TestCase):
+    def setUp(self):
+        self.enterContext(patch.dict(os.environ, BEYOUD_OUTPUT_FORMAT='artisan-ota'))
+
     def test_diagnostic_runs_preflight_once_and_never_creates_patch_success_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);fixture(root);calls=[]
@@ -48,12 +52,16 @@ class PatchDiagnosticTests(unittest.TestCase):
 
     def test_workflow_gates_all_rom_producing_steps(self):
         text=(ROOT/'.github/workflows/alpha.yml').read_text()
-        for name in ('Preflight modules and apply patches using pinned OneROM boot images',
+        for name in ('Strictly preflight and apply the selected target patches',
                      'Capture package inputs and retire verified firmware trees',
-                     'Build and verify the TWRP-installable ROM ZIP from RAW partition images',
-                     'Validate TWRP ZIP; reject OTA payloads and recovery images',
-                     'Upload only the TWRP-installable ROM ZIP'):
+                     'Build the selected experimental installer package'):
             self.assertIn('- name: '+name+'\n        if: ${{ !inputs.diagnostic_only }}',text)
+        for name, output_format in (
+                ('Validate TWRP ZIP; reject OTA payloads and recovery images','twrp-zip'),
+                ('Collect verified Artisan OTA ZIP, checksum and warnings','artisan-ota'),
+                ('Upload verified TWRP-installable ROM ZIP','twrp-zip'),
+                ('Upload verified Artisan OTA test artifact','artisan-ota')):
+            self.assertIn('- name: '+name+'\n        if: ${{ !inputs.diagnostic_only && inputs.output_format == \'%s\' }}' % output_format,text)
         request=(ROOT/'.github/workflows/s24fe-patch-diagnostic-request.yml').read_text()
         self.assertIn('diagnostic_only: true',request)
         self.assertIn('experimental_patch_failures: true',request)

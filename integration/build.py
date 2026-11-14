@@ -27,7 +27,25 @@ from integration.twrp_package import verify_workspace as verify_twrp_package
 from integration.static_layout import normalize as normalize_static_layout
 
 STAGES = ('dependencies', 'source', 'target', 'patch', 'retire', 'package')
+OUTPUT_FORMATS = {'twrp-zip', 'artisan-ota'}
 RESERVE = 2 * 1024**3
+
+
+def selected_output_format():
+    value = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
+    if value not in OUTPUT_FORMATS:
+        raise ValueError(f'Unsupported ROM output format: {value}')
+    return value
+
+
+def validate_output_target(output_format, codename, model):
+    if output_format not in OUTPUT_FORMATS:
+        raise ValueError(f'Unsupported ROM output format: {output_format}')
+    if output_format == 'twrp-zip' and (codename, model) != ('beyond1lte', 'SM-G973F'):
+        raise ValueError('RAW-image TWRP ZIP output is audited only for SM-G973F / beyond1lte')
+    if output_format == 'artisan-ota' and (codename, model) not in {
+            ('beyond1lte', 'SM-G973F'), ('beyond2lte', 'SM-G975F')}:
+        raise ValueError('Artisan OTA output is limited to the explicit Exynos S10/S10+ candidates')
 
 
 def digest_path(path):
@@ -65,13 +83,34 @@ def identity(workspace):
     entries = {name: digest_path(workspace / name) if (workspace / name).exists() else None for name in scopes}
     entries['partition_layout'] = os.environ.get('BEYOUD_PARTITION_LAYOUT','stock')
     entries['experimental_patch_failures'] = os.environ.get('BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES') == '1'
-    entries['output_format'] = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
+    entries['output_format'] = selected_output_format()
+    marker = json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text())
+    codename, device = from_marker(marker)
+    validate_output_target(entries['output_format'], codename, device['model'])
+    if marker.get('output_format') not in (None, entries['output_format']):
+        raise ValueError('Workspace output format differs from the requested build format')
     entries['alpha_version'] = os.environ.get('BEYOUD_ALPHA_VERSION')
     entries['github_run_number'] = os.environ.get('GITHUB_RUN_NUMBER')
     entries['github_run_attempt'] = os.environ.get('GITHUB_RUN_ATTEMPT')
-    if entries['output_format'] != 'twrp-zip':
-        raise ValueError('Only the TWRP-installable ROM ZIP output format is supported')
     return hashlib.sha256(json.dumps(entries, sort_keys=True).encode()).hexdigest()
+
+
+def _legacy_package_path(workspace, codename):
+    candidates = sorted((workspace / 'out').glob(f'*alpha1*{codename}*.zip'))
+    if len(candidates) != 1:
+        raise ValueError(f'Expected exactly one Artisan OTA ZIP for {codename}, found {len(candidates)}')
+    package = candidates[0]
+    if package.is_symlink() or not package.is_file():
+        raise ValueError('Artisan OTA package must be a regular file')
+    marker = json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text())
+    _, device = from_marker(marker)
+    from scripts.collect_alpha import check_package
+    inputs = load_package_inputs(workspace)
+    check_package(package, device['model'], image_caps(inputs))
+    raw_images = workspace / 'out/raw-images' / codename
+    if raw_images.exists() or raw_images.is_symlink():
+        raise ValueError('Artisan OTA output must not include the Alpha 3.2 RAW image staging bundle')
+    return package
 
 
 def output_proof(workspace, stage, codename):
@@ -82,17 +121,21 @@ def output_proof(workspace, stage, codename):
         'target': [out / 'fw' / '_'.join(item.split('/')[:2]) for item in configured_firmwares(out / 'config.sh', 'target')] + [out / 'beyoud-firmware-inspection.json'],
         'patch': [out / 'target' / codename / 'work_dir'],
         'retire': [out / 'beyoud-package-inputs.json', out / 'beyoud-fw-retired.json'],
-        'package': [workspace / TWRP_OUTPUT_ROOT / codename,
-                    workspace / TWRP_PROOF_ROOT / f'{codename}.json',
-                    out / 'raw-images' / codename,
-                    workspace / RAW_PROOF_ROOT / f'{codename}.json'],
-    }[stage]
+    }
+    if stage == 'package':
+        if selected_output_format() == 'twrp-zip':
+            paths[stage] = [workspace / TWRP_OUTPUT_ROOT / codename,
+                            workspace / TWRP_PROOF_ROOT / f'{codename}.json',
+                            out / 'raw-images' / codename,
+                            workspace / RAW_PROOF_ROOT / f'{codename}.json']
+            if len(paths[stage]) != 4:
+                raise ValueError('Expected one TWRP ROM ZIP, proof and exact RAW image inputs; use a fresh workspace if ambiguous')
+            verify_twrp_package(workspace)
+        else:
+            paths[stage] = [_legacy_package_path(workspace, codename)]
+    paths = paths[stage]
     if stage == 'retire' and ((out / 'fw').exists() or json.loads(paths[1].read_text()).get('status') != 'retired'):
         raise ValueError('Firmware retirement is incomplete')
-    if stage == 'package' and len(paths) != 4:
-        raise ValueError('Expected one TWRP ROM ZIP, its proof, and the exact RAW image inputs; use a fresh workspace if ambiguous')
-    if stage == 'package':
-        verify_twrp_package(workspace)
     if stage == 'patch' and not (paths[0] / '.completed').is_file():
         raise ValueError('Patch stage did not produce .completed')
     if stage == 'dependencies' and (not paths[0].is_dir() or not any(paths[0].iterdir())):
@@ -119,9 +162,14 @@ def resources(workspace):
 
 
 def environment(workspace, codename, jobs):
-    output_format = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
-    if output_format != 'twrp-zip':
-        raise ValueError('Only the TWRP-installable ROM ZIP output format is supported')
+    output_format = selected_output_format()
+    marker = json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text())
+    marked_codename, device = from_marker(marker)
+    if marked_codename != codename:
+        raise ValueError('Workspace target changed during environment setup')
+    validate_output_target(output_format, codename, device['model'])
+    if marker.get('output_format') not in (None, output_format):
+        raise ValueError('Workspace output format differs from the requested build format')
     env = dict(os.environ, BEYOUD_JOBS=str(jobs), MAKEFLAGS=f'-j{jobs}',
                CMAKE_BUILD_PARALLEL_LEVEL=str(jobs), CARGO_BUILD_JOBS=str(jobs),
                BEYOUD_OUTPUT_FORMAT=output_format)
@@ -208,8 +256,34 @@ def validate_prior(workspace, stage, source_id, codename):
             raise ValueError(f'Outputs changed after stage {name}; refusing stale resume')
 
 
+def _legacy_package_budget(workspace, codename):
+    """Conservative disk estimate for Artisan img2sdat/Brotli OTA packaging."""
+    root = workspace / 'out/target' / codename / 'work_dir'
+    sizes = []
+    for name in ('system', 'vendor', 'product', 'odm', 'system_ext', 'prism', 'optics',
+                 'vendor_dlkm', 'odm_dlkm', 'system_dlkm'):
+        path = root / name
+        if path.is_symlink():
+            raise ValueError(f'Unsafe partition tree for Artisan OTA sizing: {name}')
+        if path.is_dir():
+            sizes.append(sum(entry.stat().st_size for entry in path.rglob('*')
+                             if entry.is_file() and not entry.is_symlink()))
+    if not sizes:
+        raise ValueError('No partition trees for Artisan OTA package sizing')
+    total = sum(sizes)
+    required = int(max(total * 3.6, total * 1.2 + max(sizes) * 2.4)) + RESERVE
+    free = shutil.disk_usage(workspace).free
+    print(f'Artisan OTA planning estimate: free={free}, required={required}', flush=True)
+    if free < required:
+        raise ValueError('Artisan OTA payload/intermediates exceed available storage; do not bypass the guard')
+    return dict(output_format='artisan-ota', free=free, estimated_required=required,
+                partition_tree_bytes=sizes)
+
+
 def package_budget(workspace, codename):
-    """Estimate staged RAW images, their uncompressed TWRP ZIP, and intermediates."""
+    """Estimate the selected package format and its intermediate image footprint."""
+    if selected_output_format() == 'artisan-ota':
+        return _legacy_package_budget(workspace, codename)
     root = workspace / 'out/target' / codename / 'work_dir'
     inputs = load_package_inputs(workspace)
     caps = image_caps(inputs)
@@ -315,12 +389,17 @@ def execute(workspace, stage, jobs=1):
                     inventory(workspace, codename, env)
                 if stage == 'package':
                     receipt['package_budget'] = package_budget(workspace, codename)
+                package_command = (
+                    ['./scripts/internal/build_flashable_zip.sh']
+                    if selected_output_format() == 'artisan-ota'
+                    else [sys.executable, './integration/twrp_package.py', str(workspace)]
+                )
                 command = {
                     'dependencies': ['./scripts/build_dependencies.sh'],
                     'source': [sys.executable, './integration/samloader/stage.py', str(workspace), 'source'],
                     'target': [sys.executable, './integration/samloader/stage.py', str(workspace), 'target'],
                     'patch': ['./scripts/make_rom.sh', '--force', '--no-rom-zip'],
-                    'package': [sys.executable, './integration/twrp_package.py', str(workspace)],
+                    'package': package_command,
                 }[stage]
                 with (logs / f'resources-{stage}-{time.time_ns()}.jsonl').open('w') as telemetry:
                     if stage == 'patch':

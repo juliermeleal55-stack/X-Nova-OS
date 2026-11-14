@@ -141,7 +141,7 @@ class PatchPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);fixture(root)
             error=subprocess.CalledProcessError(1,['make_rom.sh'])
-            with patch.object(build,'environment',return_value={}), patch.object(build,'validate_prior'), patch.object(build,'run_command',side_effect=error) as run:
+            with patch.dict(os.environ, BEYOUD_OUTPUT_FORMAT='artisan-ota'), patch.object(build,'environment',return_value={}), patch.object(build,'validate_prior'), patch.object(build,'run_command',side_effect=error) as run:
                 with self.assertRaises(subprocess.CalledProcessError):build.execute(root,'patch')
                 self.assertEqual(run.call_count,1)
                 self.assertEqual(run.call_args.args[2]['BEYOUD_PATCH_PREFLIGHT'],'1')
@@ -177,8 +177,9 @@ class ExperimentalPatchPolicyTests(unittest.TestCase):
         from integration.build import identity
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
-            with patch.dict(os.environ,BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES='0'):
+            (root/'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(target='SM-G973F',codename='beyond1lte')))
+            with patch.dict(os.environ,BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES='0',BEYOUD_OUTPUT_FORMAT='twrp-zip'):
                 strict=identity(root)
-            with patch.dict(os.environ,BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES='1'):
+            with patch.dict(os.environ,BEYOUD_EXPERIMENTAL_ALLOW_PATCH_FAILURES='1',BEYOUD_OUTPUT_FORMAT='twrp-zip'):
                 experimental=identity(root)
             self.assertNotEqual(strict,experimental)

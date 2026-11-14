@@ -50,6 +50,40 @@ class WorkspaceTests(unittest.TestCase):
             self.assertIn('hook-loaded', executed.stdout)
             self.assertNotIn('disabled', executed.stdout)
 
+    def test_s10plus_kernel_hook_is_verified_then_activated(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary)
+            module = workspace / 'platform/exynos9820/patches/extremekrnl'
+            module.mkdir(parents=True)
+            reference = ROOT / 'reference/artisan-s10/platform/exynos9820/patches/extremekrnl'
+            for name in ('module.prop', 'customize.sh'):
+                (module / name).write_bytes((reference / name).read_bytes())
+            record = prepare.install_s10plus_kernel_builder(workspace)
+            self.assertEqual(record['status'], 'pinned-kernel-hook-active')
+            self.assertEqual(record['target_codename'], 'beyond2lte')
+            self.assertEqual((module / 'customize.sh').read_bytes(),
+                             (ROOT / 'integration/artisan/extremekrnl.sh').read_bytes())
+            self.assertFalse((module / 'disable').exists())
+
+    def test_s10plus_postinstall_is_excluded_only_when_it_matches_the_reference(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary)
+            target = workspace / 'target/beyond2lte'
+            target.mkdir(parents=True)
+            hook = ROOT / 'reference/artisan-s10/target/beyond2lte/postinstall.edify'
+            path = target / 'postinstall.edify'
+            path.write_bytes(hook.read_bytes())
+            record = prepare.disable_s10plus_postinstall(workspace)
+            self.assertEqual(record['status'], 'excluded-unreviewed-postinstall')
+            self.assertFalse(path.exists())
+            self.assertEqual(record['commands'], ['/bin/e2fsck', '/bin/resize2fs'])
+            self.assertRegex(record['original_sha256'], r'^[0-9a-f]{64}$')
+
+            path.write_bytes(b'unknown installer code')
+            with self.assertRaisesRegex(ValueError, 'differs from its retained reference'):
+                prepare.disable_s10plus_postinstall(workspace)
+            self.assertEqual(path.read_bytes(), b'unknown installer code')
+
     def test_s10_kernel_builder_rejects_changed_disable_marker_without_mutation(self):
         with tempfile.TemporaryDirectory() as temporary:
             workspace = Path(temporary)
@@ -92,10 +126,24 @@ class WorkspaceTests(unittest.TestCase):
             misc = workspace / 'platform/exynos9820/patches/miscs/customize.sh'
             misc.parent.mkdir(parents=True, exist_ok=True)
             misc.write_text((ROOT / 'reference/artisan-s10/platform/exynos9820/patches/miscs/customize.sh').read_text())
-            with patch.object(prepare, 'install_runtime_paths'), patch.object(prepare, 'install_preflight'), patch.object(prepare, 'install_framework'), patch.object(prepare, 'apply_build_policy'), patch.object(prepare, 'patch_firmware_lookup'), patch.object(prepare, 'patch_parallel_builds'), patch.object(prepare, 'patch_sequential_firmwares'), patch.object(prepare, 'install_onerom', return_value={'repository': 'test', 'commit': 'test', 'upstream_disabled_modules': []}):
+            with (
+                patch.dict(prepare.os.environ, BEYOUD_OUTPUT_FORMAT='artisan-ota'),
+                patch.object(prepare, 'install_runtime_paths'),
+                patch.object(prepare, 'install_preflight'),
+                patch.object(prepare, 'install_framework'),
+                patch.object(prepare, 'apply_build_policy'),
+                patch.object(prepare, 'patch_firmware_lookup'),
+                patch.object(prepare, 'patch_parallel_builds'),
+                patch.object(prepare, 'patch_sequential_firmwares'),
+                patch.object(prepare, 'install_s10plus_kernel_builder', return_value={'status': 'pinned-kernel-hook-active'}),
+                patch.object(prepare, 'disable_s10plus_postinstall', return_value={'status': 'excluded-unreviewed-postinstall'}),
+                patch.object(prepare, 'install_onerom', return_value={'repository': 'test', 'commit': 'test', 'upstream_disabled_modules': []}),
+            ):
                 prepare.apply_overlay(workspace, 'beyond2lte')
             import json
             marker=json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text())
+            self.assertEqual(marker['output_format'], 'artisan-ota')
+            self.assertEqual(marker['postinstall_policy']['status'], 'excluded-unreviewed-postinstall')
             self.assertEqual(marker['donor_profile']['model'],'SM-S721B')
             self.assertEqual(marker['donor_profile']['reference_version'], 'S721BXXSFEZJ1/S721BOXMFEZJ1/S721BXXSFEZJ1/S721BXXSFEZJ1')
             self.assertEqual(marker['donor_commit'],'541074191937f2d7c033be7a10cf5d99146cc98f')

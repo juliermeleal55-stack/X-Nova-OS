@@ -21,10 +21,12 @@ python3 scripts/collect_alpha.py /outside/repo/s10-work /outside/repo/s10-result
 python3 scripts/port.py doctor --target beyond1lte
 ```
 
-Default CLI target remains beyond2lte/SM-G975F. Generated markers now contain
-model AND codename. Wrappers reject mismatched/unknown markers; legacy G975F
-markers remain readable. Package names and model assertions are device-specific,
-so a G973F archive is rejected by the G975F collector and vice versa.
+The default CLI target is beyond1lte/SM-G973F. The separate S10+ candidate,
+beyond2lte/SM-G975F, remains research-only and uses the legacy Artisan OTA path
+rather than the Alpha 3.2 TWRP/RAW path; see [S10+ OTA research](S10PLUS-OTA-RESEARCH.md).
+Generated markers contain model AND codename. Wrappers reject mismatched/unknown
+markers; package names and model assertions are device-specific, so a G973F
+archive is rejected by the G975F collector and vice versa.
 
 The alpha workflow is now **manual** (workflow_dispatch) with a target selector,
 to avoid automatically starting expensive firmware builds just by changing the

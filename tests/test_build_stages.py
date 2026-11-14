@@ -25,7 +25,8 @@ spec.loader.exec_module(prepare)
 
 def fixture(root):
     (root / 'out').mkdir()
-    (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(target='SM-G975F', codename='beyond2lte')))
+    (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(
+        target='SM-G975F', codename='beyond2lte', output_format='artisan-ota')))
     (root / 'out/config.sh').write_text('SOURCE_FIRMWARE="SM-S926B/EUX"\nTARGET_FIRMWARE="SM-G975F/AUT"\nSOURCE_API_LEVEL="37"\nTARGET_API_LEVEL="31"\nSOURCE_HAS_SYSTEM_EXT="true"\n')
     records = [dict(model=model, csc=csc, version='A/B/C/D', size=100)
                for model, csc in [('SM-S926B', 'EUX'), ('SM-G975F', 'AUT')]]
@@ -46,8 +47,21 @@ def firmware(root):
 
 
 class StageTests(unittest.TestCase):
-    def test_workflow_keeps_staged_inputs_and_builds_twrp_zip_only(self):
+    def setUp(self):
+        self.enterContext(patch.dict(os.environ, BEYOUD_OUTPUT_FORMAT='artisan-ota'))
+
+    def test_output_format_gates_do_not_allow_twrp_or_other_models_for_s10plus(self):
+        with self.assertRaisesRegex(ValueError, 'audited only for SM-G973F'):
+            build.validate_output_target('twrp-zip', 'beyond2lte', 'SM-G975F')
+        with self.assertRaisesRegex(ValueError, 'explicit Exynos'):
+            build.validate_output_target('artisan-ota', 'beyond2lte', 'SM-G975N')
+        with self.assertRaisesRegex(ValueError, 'Unsupported ROM output format'):
+            build.validate_output_target('raw-img', 'beyond2lte', 'SM-G975F')
+        build.validate_output_target('artisan-ota', 'beyond2lte', 'SM-G975F')
+
+    def test_workflow_gates_twrp_and_artisan_ota_outputs(self):
         text = (ROOT / '.github/workflows/alpha.yml').read_text()
+        build = (ROOT / 'integration/build.py').read_text()
         self.assertNotIn('split -b', text)
         self.assertNotIn('.part.', text)
         self.assertNotIn('samsunggithub/oneui85-lab', text)
@@ -55,13 +69,27 @@ class StageTests(unittest.TestCase):
         positions = [text.index(f'build_candidate.sh "$WORKSPACE" {stage}') for stage in stages]
         self.assertEqual(positions, sorted(positions))
         self.assertIn('scripts/build_candidate.sh "$WORKSPACE" package', text)
+        self.assertIn('BEYOUD_OUTPUT_FORMAT: ${{ inputs.output_format }}', text)
+        self.assertIn("inputs.output_format == 'twrp-zip'", text)
+        self.assertIn("inputs.output_format == 'artisan-ota'", text)
         self.assertIn('validate_twrp_zip.py', text)
-        self.assertIn("'./integration/twrp_package.py'", (ROOT / 'integration/build.py').read_text())
+        self.assertIn("'./integration/twrp_package.py'", build)
         self.assertIn('twrp-zips/$BEYOUD_TARGET/*.zip', text)
-        self.assertNotIn('collect_alpha.py', text)
-        self.assertNotIn('build_flashable_zip.sh', text)
+        self.assertIn('collect_alpha.py', text)
+        self.assertIn('"$WORKSPACE/out/alpha-artifact"', text)
+        self.assertIn("'./scripts/internal/build_flashable_zip.sh'", build)
         self.assertIn('TWRP-ROM-ZIP-UNTESTED', text)
+        self.assertIn('ARTISAN-OTA-UNTESTED', text)
         self.assertIn('compression-level: 0', text)
+
+    def test_s10plus_build_request_is_strict_and_uses_artisan_ota(self):
+        caller = (ROOT / '.github/workflows/s10plus-ota-request.yml').read_text()
+        self.assertIn('target: beyond2lte', caller)
+        self.assertIn('output_format: artisan-ota', caller)
+        self.assertIn("alpha_version: '3'", caller)
+        self.assertIn('experimental_patch_failures: false', caller)
+        self.assertIn('partition_layout: stock', caller)
+        self.assertIn('SM-G975F / beyond2lte', caller)
 
     def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):
         caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()
@@ -82,7 +110,7 @@ class StageTests(unittest.TestCase):
             prepare.patch_firmware_lookup(root)
             prepare.patch_parallel_builds(root)
             prepare.patch_sequential_firmwares(root)
-            prepare.apply_build_policy(root)
+            prepare.apply_build_policy(root, output_format='twrp-zip')
             for path in root.rglob('*.sh'):
                 subprocess.run(['bash', '-n', str(path)], check=True)
             text = (root / 'scripts/extract_fw.sh').read_text()
@@ -92,6 +120,20 @@ class StageTests(unittest.TestCase):
                              (ROOT / 'reference/build/scripts/internal/build_flashable_zip.sh').read_bytes())
             self.assertNotIn('BEYOUD_COMPRESS_PARTITION', (root / 'scripts/internal/build_flashable_zip.sh').read_text())
             self.assertIn('set -o pipefail', (root / 'scripts/utils/firmware_utils.sh').read_text())
+
+    def test_artisan_ota_policy_transforms_the_legacy_builder_with_safe_static_payloads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / 'reference/build', root, dirs_exist_ok=True)
+            prepare.patch_parallel_builds(root)
+            prepare.apply_build_policy(root, output_format='artisan-ota')
+            script_path = root / 'scripts/internal/build_flashable_zip.sh'
+            script = script_path.read_text()
+            self.assertIn('BEYOUD_COMPRESS_PARTITION', script)
+            self.assertIn('$PARTITION.new.dat.br', script)
+            self.assertIn('partition-layout-check.sh', script)
+            self.assertNotRegex(script, r'(?m)^\s*unmount\(')
+            subprocess.run(['bash', '-n', str(script_path)], check=True)
 
     def test_apktool_uses_one_decode_pass_and_per_dex_api_metadata(self):
         script = ROOT / 'integration/artisan/apktool.sh'
@@ -227,6 +269,8 @@ EXTRACT_OS_PARTITIONS
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixture(root)
+            package_file = root / 'out/ArtisanROM_UNOFFICIAL_0.1.0-alpha1_test_beyond2lte.zip'
+
             def command(cmd, workspace, env, telemetry):
                 if 'build_dependencies' in str(cmd):
                     tool = root / 'out/tools/bin/tool'
@@ -241,21 +285,15 @@ EXTRACT_OS_PARTITIONS
                     work = root / 'out/target/beyond2lte/work_dir'
                     work.mkdir(parents=True)
                     (work / '.completed').write_text('complete')
-                elif 'integration/twrp_package.py' in str(cmd):
-                    zip_dir = root / 'out/twrp-zips/beyond2lte'
-                    zip_dir.mkdir(parents=True)
-                    (zip_dir / 'synthetic.zip').write_bytes(b'zip')
-                    zip_proof = root / 'out/twrp-zip-proof/beyond2lte.json'
-                    zip_proof.parent.mkdir(parents=True, exist_ok=True)
-                    zip_proof.write_text(json.dumps({'synthetic': True}))
-                    images = root / 'out/raw-images/beyond2lte'
-                    images.mkdir(parents=True)
-                    (images / 'system.img').write_bytes(b'raw')
-                    image_proof = root / 'out/raw-image-proof/beyond2lte.json'
-                    image_proof.parent.mkdir(parents=True, exist_ok=True)
-                    image_proof.write_text(json.dumps({'synthetic': True}))
+                elif 'build_flashable_zip.sh' in str(cmd):
+                    package_file.write_bytes(b'synthetic Artisan OTA package')
                 return 100
-            with patch.object(build, 'environment', return_value={}), patch.object(build, 'run_command', side_effect=command), patch.object(build, 'package_budget', return_value={}), patch.object(build, 'normalize_static_layout', return_value={}), patch.object(build, 'verify_twrp_package', return_value={}):
+
+            with patch.object(build, 'environment', return_value={}), \
+                 patch.object(build, 'run_command', side_effect=command), \
+                 patch.object(build, 'package_budget', return_value={}), \
+                 patch.object(build, 'normalize_static_layout', return_value={}), \
+                 patch.object(build, '_legacy_package_path', return_value=package_file):
                 with self.assertRaises(ValueError):
                     build.execute(root, 'patch')
                 for stage in ('dependencies', 'source', 'target', 'patch', 'retire', 'package'):
