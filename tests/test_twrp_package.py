@@ -95,7 +95,8 @@ class TWRPPackageTests(unittest.TestCase):
             marker['target'] = 'SM-G975F'
             marker['codename'] = 'beyond2lte'
             (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps(marker))
-            with patch.object(twrp_package, 'build_raw_images') as build_images:
+            with patch.dict(os.environ, {'BEYOUD_OUTPUT_FORMAT': 'twrp-zip'}), \
+                 patch.object(twrp_package, 'build_raw_images') as build_images:
                 with self.assertRaisesRegex(ValueError, 'SM-G973F / beyond1lte only'):
                     twrp_package.build_workspace(root)
                 build_images.assert_not_called()

@@ -1,5 +1,6 @@
 # Explicit, strict test-build request for Galaxy S10+ SM-G975F / beyond2lte.
 # Pushes affecting this file start one GitHub Actions build; no public release is created.
+# Retry: the host integration suite pins TWRP-only tests to their own output mode.
 name: Requested Galaxy S10+ SM-G975F Artisan OTA test build
 run-name: "Beyoud Alpha 3 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - Artisan OTA / UNTESTED"
 on:
