@@ -173,7 +173,7 @@ jobs:
       - name: Diagnose modules and patches only, without producing a ROM
         if: inputs.diagnostic_only
         run: bash scripts/build_candidate.sh "$WORKSPACE" diagnostic
-      - name: Strictly preflight and apply the selected target patches
+      - name: Preflight and apply target patches (strict unless failures are explicitly experimental)
         if: ${{ !inputs.diagnostic_only }}
         run: bash scripts/build_candidate.sh "$WORKSPACE" patch
       - name: Capture package inputs and retire verified firmware trees

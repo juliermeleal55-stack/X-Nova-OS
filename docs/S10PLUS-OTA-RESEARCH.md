@@ -48,14 +48,40 @@ SM-G973F / beyond1lte.
   altera o firmware doador nem os créditos/licenças/proveniência ArtisanROM e
   OneROM.
 
-## Próximos bloqueios
+## Resultado do primeiro build S10+
 
-Antes de iniciar build: inspecionar o ZIP Alpha 3 real, auditar o firmware e o
-layout/aliases de partições do beyond2lte e revisar o updater legado. A
+O run [43628169508](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43628169508)
+passou pela validação de integração, compilação das ferramentas, download e extração
+verificados dos firmwares S721B/EUX e G975F/AUT e pelos checks de identidade/layout.
+Parou no preflight estrito, antes da compilação de kernel/APKs/JARs ou da geração
+do OTA: vários hunks/âncoras não correspondiam às versões extraídas de
+`framework`, Wi-Fi, `SettingsProvider`, `SecSettings` e `SystemUI`. Nenhuma
+alteração foi forçada para satisfazer esses patches. O run não produziu ZIP de
+ROM nem artifact OTA; só publicou `beyond2lte-alpha-build-diagnostics`.
+
+O download desse artifact via `gh run download` também terminou em `EOF` no host
+externo de armazenamento do Actions. As anotações do run confirmam as falhas,
+mas não fornecem aqui o relatório integral. O ZIP Alpha 3 original continua
+sem inspeção; não foi substituído por suposições como se fosse evidência.
+
+A próxima tentativa ativa `experimental_patch_failures: true` explicitamente:
+se a cobertura do preflight estiver completa, os erros ficam registrados como
+`experimental-with-failures` e a pipeline pode tentar a compilação/empacotamento.
+Isso **não** chama patches rejeitados de sucesso nem os força a aplicar. Falhas
+de compilação, verificação de integridade, capacidade, identificadores ou
+montagem/validação do pacote continuam bloqueantes. Um ZIP eventual ainda será
+experimental e **UNTESTED**; divergências podem deixar alterações parciais,
+causar regressões ou impedir o boot.
+
+## Validações ainda pendentes
+
+O pacote Alpha 3 real, layout/aliases físicos de partições do beyond2lte e
+compatibilidade real de firmware/kernel/vendor não foram validados. Isso não
+bloqueia a tentativa de build, mas impede alegações de instalação segura. A
 confirmação do modelo SM-G975F já foi recebida. Não incluir nem modificar
 recovery, não usar Odin/Heimdall e não interpretar testes estruturais como
 validação de flash ou boot.
 
-Até aqui não houve build S10+, flash, teste de boot ou validação em hardware.
-O erro histórico `Failed to unmount /system: No such volume` não foi reintroduzido:
-a via OTA não emite `unmount()` Edify incondicional.
+O primeiro run não produziu ZIP OTA; não houve flash, teste de boot ou validação
+em hardware. O erro histórico `Failed to unmount /system: No such volume` não foi
+reintroduzido: a via OTA não emite `unmount()` Edify incondicional.

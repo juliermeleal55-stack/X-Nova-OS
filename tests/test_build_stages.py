@@ -82,14 +82,18 @@ class StageTests(unittest.TestCase):
         self.assertIn('ARTISAN-OTA-UNTESTED', text)
         self.assertIn('compression-level: 0', text)
 
-    def test_s10plus_build_request_is_strict_and_uses_artisan_ota(self):
+    def test_s10plus_build_request_uses_explicit_experimental_ota_retry(self):
         caller = (ROOT / '.github/workflows/s10plus-ota-request.yml').read_text()
+        reusable = (ROOT / '.github/workflows/alpha.yml').read_text()
         self.assertIn('target: beyond2lte', caller)
         self.assertIn('output_format: artisan-ota', caller)
         self.assertIn("alpha_version: '3'", caller)
-        self.assertIn('experimental_patch_failures: false', caller)
+        self.assertIn('experimental_patch_failures: true', caller)
+        self.assertIn('documented failure-tolerant mode', caller)
         self.assertIn('partition_layout: stock', caller)
         self.assertIn('SM-G975F / beyond2lte', caller)
+        self.assertIn('description: Continue despite patch/module failures; boot NOT validated\n        type: boolean\n        default: false', reusable)
+        self.assertIn('ARTISAN-OTA-UNTESTED', reusable)
 
     def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):
         caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()

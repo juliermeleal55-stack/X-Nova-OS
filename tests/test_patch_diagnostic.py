@@ -52,7 +52,7 @@ class PatchDiagnosticTests(unittest.TestCase):
 
     def test_workflow_gates_all_rom_producing_steps(self):
         text=(ROOT/'.github/workflows/alpha.yml').read_text()
-        for name in ('Strictly preflight and apply the selected target patches',
+        for name in ('Preflight and apply target patches (strict unless failures are explicitly experimental)',
                      'Capture package inputs and retire verified firmware trees',
                      'Build the selected experimental installer package'):
             self.assertIn('- name: '+name+'\n        if: ${{ !inputs.diagnostic_only }}',text)

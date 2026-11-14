@@ -1,6 +1,7 @@
-# Explicit, strict test-build request for Galaxy S10+ SM-G975F / beyond2lte.
+# Explicit experimental test-build request for Galaxy S10+ SM-G975F / beyond2lte.
+# The strict Build #2 preflight found target/donor patch mismatches; this retry opts into
+# documented failure-tolerant mode. Failures remain recorded, and output stays UNTESTED.
 # Pushes affecting this file start one GitHub Actions build; no public release is created.
-# Retry: the host integration suite pins TWRP-only tests to their own output mode.
 name: Requested Galaxy S10+ SM-G975F Artisan OTA test build
 run-name: "Beyoud Alpha 3 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - Artisan OTA / UNTESTED"
 on:
@@ -18,5 +19,5 @@ jobs:
       output_format: artisan-ota
       target: beyond2lte
       diagnostic_only: false
-      experimental_patch_failures: false
+      experimental_patch_failures: true
       partition_layout: stock
