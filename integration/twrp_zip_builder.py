@@ -48,6 +48,7 @@ DEVICE_BASE_DEFAULT = '/dev/block/by-name'
 LICENSE_FILE = ROOT / 'integration/onerom/upstream/LICENSE'
 LICENSE_ENTRY = 'LICENSES/GPL-3.0-or-later.txt'
 CREDITS_ENTRY = 'CREDITS/OneROM-S10.md'
+S10PLUS_CREDITS_ENTRY = 'CREDITS/OneROM-S10Plus.md'
 TARGET_MODEL_TOKEN = b'@@TARGET_MODEL@@'
 
 
@@ -63,7 +64,18 @@ def _update_binary(model):
     return template.replace(TARGET_MODEL_TOKEN, model.encode('ascii'))
 
 
-def _credits_file():
+def _credits_entry(model, codename):
+    if (model, codename) == ('SM-G975F', 'beyond2lte'):
+        return S10PLUS_CREDITS_ENTRY
+    return CREDITS_ENTRY
+
+
+def _credits_file(model, codename):
+    if (model, codename) == ('SM-G975F', 'beyond2lte'):
+        path = ROOT / 'integration/onerom/CREDITS-S10PLUS.md'
+        if path.is_symlink() or not path.is_file():
+            raise ValueError('Target-scoped OneROM S10+ credits/provenance file is missing/unsafe')
+        return path
     candidates = (
         ROOT / 'reference/onerom-upstream/CREDITS.md',
         ROOT / 'reference/onerom-port-candidates/CREDITS.md',
@@ -117,6 +129,13 @@ def _provenance(records, raw_receipt=None, *, model='SM-G973F', codename='beyond
         raise ValueError('Pinned Artisan/OneROM source manifests are required in the ROM ZIP')
     if (codename, model) not in TWRP_ROM_TARGETS:
         raise ValueError('TWRP ZIP provenance target is not an approved exact Exynos model')
+    if (model, codename) == ('SM-G975F', 'beyond2lte'):
+        onerom_credit = (
+            'OneROM: limited shared Exynos 9820 compatibility reference for this SM-G975F/beyond2lte candidate; '
+            'target/beyond1lte patch modules are not imported or activated. See the target-scoped credits file.'
+        )
+    else:
+        onerom_credit = 'OneROM: pinned target and Exynos adaptation; retain its GPL notices and per-file credits.'
     return {
         'model': model,
         'codename': codename,
@@ -131,7 +150,7 @@ def _provenance(records, raw_receipt=None, *, model='SM-G973F', codename='beyond
         'source_manifests': source_manifests,
         'credits': [
             'ArtisanROM: S10/Exynos build foundation; retain upstream attribution.',
-            'OneROM: pinned target and Exynos adaptation; retain its GPL notices and per-file credits.',
+            onerom_credit,
             'ExtremeROM and UN1CA: upstream framework/tooling references; preserve their respective notices.',
             'Samsung and donor-firmware authors: proprietary firmware/assets retain their own terms.',
             'Kernel authors and KernelSU Next contributors retain their original attribution/licensing.',
@@ -145,6 +164,7 @@ def _provenance(records, raw_receipt=None, *, model='SM-G973F', codename='beyond
 
 
 def _notices(provenance):
+    credits_entry = _credits_entry(provenance['model'], provenance['codename'])
     lines = [
         'X-NovaOS experimental TWRP ROM ZIP — source and license notices',
         '',
@@ -161,7 +181,7 @@ def _notices(provenance):
     lines.extend('- ' + item for item in provenance['licenses'])
     lines += [
         '',
-        f'OneROM module/kernel credits and source provenance: see {CREDITS_ENTRY}.',
+        f'OneROM module/kernel credits and source provenance: see {credits_entry}.',
         'Pinned source provenance is recorded in installer/provenance.json and the repository manifests.',
         'Preserve original source credits, copyright notices, and license terms when redistributing components.',
     ]
@@ -331,6 +351,7 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
                     or stat.S_ISLNK(mode)):
                 raise ValueError('TWRP ZIP contains an unsafe path or symlink')
         records = _read_manifest(archive)
+        credits_entry = _credits_entry(expected_model, expected_codename)
         expected_entries = {
             UPDATE_BINARY,
             'installer/manifest.tsv',
@@ -343,7 +364,7 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
             'WARNING.txt',
             'NOTICES.txt',
             LICENSE_ENTRY,
-            CREDITS_ENTRY,
+            credits_entry,
         } | {f"images/{record['name']}.img" for record in records}
         if set(names) != expected_entries:
             raise ValueError('TWRP ZIP has unexpected/missing installer or payload entries')
@@ -411,9 +432,9 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
             raise ValueError('Retained GPL license text is missing/unsafe')
         if archive.read(LICENSE_ENTRY) != LICENSE_FILE.read_bytes():
             raise ValueError('TWRP ZIP GPL license text differs from the retained source license')
-        credits_file = _credits_file()
-        if archive.read(CREDITS_ENTRY) != credits_file.read_bytes():
-            raise ValueError('TWRP ZIP OneROM credits differ from the retained source')
+        credits_file = _credits_file(expected_model, expected_codename)
+        if archive.read(credits_entry) != credits_file.read_bytes():
+            raise ValueError('TWRP ZIP OneROM credits differ from the target-scoped retained source')
         notices = archive.read('NOTICES.txt').decode('utf-8')
         if any(name not in notices for name in ('ArtisanROM', 'OneROM', 'ExtremeROM', 'UN1CA', 'Samsung')):
             raise ValueError('TWRP ZIP attribution notices are incomplete')
@@ -555,8 +576,8 @@ def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None,
                 if LICENSE_FILE.is_symlink() or not LICENSE_FILE.is_file():
                     raise ValueError('Retained GPL license text is missing/unsafe')
                 archive.write(LICENSE_FILE, LICENSE_ENTRY)
-                credits_file = _credits_file()
-                archive.write(credits_file, CREDITS_ENTRY)
+                credits_file = _credits_file(expected_model, expected_codename)
+                archive.write(credits_file, _credits_entry(expected_model, expected_codename))
                 archive.writestr('NOTICES.txt', _notices(provenance))
                 archive.writestr('installer/provenance.json', json.dumps(provenance, indent=2) + '\n')
                 # Last entry deliberately exercises ZIP64 local-header handling.

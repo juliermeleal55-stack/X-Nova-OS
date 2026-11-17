@@ -6,6 +6,7 @@
 # Tolerated patch failures remain recorded; compile/package errors are fatal; no public release is created.
 # Editing this request file starts one full Actions build; newer content-sized S10+ attempts supersede stale same-target runs.
 # Build #7 stopped before packaging when Gradle could not resolve the pinned Maven Publish plugin; retry unchanged inputs.
+# Build #8 built images but hit a missing target-scoped OneROM credits file; package provenance staging is now fixed.
 name: Requested Galaxy S10+ SM-G975F X-NovaOS Alpha TWRP ROM ZIP build
 run-name: "X-NovaOS Alpha 3.2 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - TWRP ROM ZIP / CONTENT-SIZED / NO FIXED SIZE CAP / UNTESTED"
 on:

@@ -149,6 +149,7 @@ class WorkspaceTests(unittest.TestCase):
             self.assertEqual(marker['donor_commit'],'541074191937f2d7c033be7a10cf5d99146cc98f')
             self.assertTrue((workspace / 'manifests/onerom.json').is_file())
             self.assertTrue((workspace / 'integration/twrp_zip_builder.py').is_file())
+            self.assertTrue((workspace / 'integration/onerom/CREDITS-S10PLUS.md').is_file())
             self.assertIn('0.1.0-alpha1', (workspace / 'unica/configs/version.sh').read_text())
             self.assertIn('TARGET_ASSERT_MODEL=("SM-G975F")', target.read_text())
             self.assertIn('TARGET_SUPER_PARTITION_SIZE=0', target.read_text())
