@@ -29,8 +29,10 @@ assertion are adapted. OneROM patches explicitly scoped to beyond1lte are not
 copied to beyond2lte; the common compatibility pieces remain source-pinned.
 There are no fixed image-size caps. The installer checks actual image sizes
 against current target capacities read-only and never repartitions or formats.
-The physical G975F partition table, build completion and boot remain unverified;
-see [S10+ OTA research](S10PLUS-OTA-RESEARCH.md).
+The physical G975F partition table and boot remain unverified. Build #7 failed
+while resolving a Gradle plugin before packaging; the retry, Build #8, passed
+build-tools compilation and was downloading firmware at last check. No S10+ ZIP
+has been validated yet; see [S10+ OTA research](S10PLUS-OTA-RESEARCH.md).
 
 Generated markers contain model AND codename. Wrappers reject mismatched/unknown
 markers; package names and model assertions are device-specific. The S10+ path

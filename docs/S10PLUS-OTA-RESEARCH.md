@@ -7,7 +7,9 @@
 > a falhas de patch. A configuração/overlay Artisan beyond2lte e a guarda exata
 > do instalador são target-specific; patches OneROM explicitamente exclusivos
 > de beyond1lte não são copiados. As imagens RAW `.img` e o empacotamento vêm do
-> pipeline TWRP S10 existente. Não há teto fixo de tamanho, reparticionamento,
+> pipeline TWRP S10 existente. Não há teto fixo; o ZIP será marcado
+> `CUSTOM-REPARTITION-REQUIRED`, e o proprietário deve gerir manualmente qualquer
+> ajuste de partições após medir as imagens finais. Não há reparticionamento,
 > formatação ou limpeza automática. O instalador compara somente-leitura o
 > tamanho real de cada imagem com a capacidade atual antes de qualquer escrita.
 > Isso não comprova o layout físico do G975F, compatibilidade ArtisanROM,
@@ -32,14 +34,17 @@ Portanto, a composição exata do ZIP Alpha 3 ainda não está comprovada.
 O histórico da pipeline da Alpha 3 chama `scripts/internal/build_flashable_zip.sh`,
 com payloads `img2sdat`/Brotli (`*.new.dat.br`), transfer lists, updater Artisan e
 assinatura `signapk`. A via local `artisan-ota` foi adaptada para esse fluxo
-legado; o output TWRP/RAW da Alpha 3.2 continua separado e restrito a
-SM-G973F / beyond1lte.
+legado. Separadamente, a requisição TWRP/RAW Alpha 3.2 agora seleciona o mesmo
+pipeline de pacote para SM-G975F / beyond2lte e S10 normal, com assets e
+asserção do instalador específicos do alvo; o candidato G975F ainda não produziu
+ZIP validado.
 
-## Gatilhos e proteções da via experimental
+## Proteções da via histórica `artisan-ota` (não selecionada no pedido vigente)
 
-- Preparação S10+ exige `BEYOUD_OUTPUT_FORMAT=artisan-ota`; o default TWRP não
-  é aceito para beyond2lte. O formato também fica registrado no marcador da
-  workspace e nos checkpoints.
+- Na via OTA histórica, a preparação S10+ exigia
+  `BEYOUD_OUTPUT_FORMAT=artisan-ota`; o formato ficava registrado no marcador
+  da workspace e nos checkpoints. O pedido vigente, separadamente, seleciona
+  `twrp-zip` para beyond2lte.
 - O empacotador legado é selecionado somente para os candidatos Exynos
   SM-G973F / beyond1lte e SM-G975F / beyond2lte. Outras combinações falham
   fechadas.
@@ -88,26 +93,36 @@ foi bloqueada pelo controle de capacidade do layout stock: o payload mínimo de
 artifact de diagnóstico existe; isso é uma incompatibilidade concreta com o
 layout stock, não um limite para remover ou contornar silenciosamente.
 
-A próxima tentativa foi configurada com `partition_layout: content-sized` para
-dimensionar as imagens pelo conteúdo e tentar obter o pacote. Esse modo **não** valida nem
-promete um layout físico: qualquer OTA gerada será nomeada
-`CUSTOM-REPARTITION-REQUIRED`, trará `REQUIRED-IMAGE-SIZES.json` e exigirá
-reparticionamento manual gerido pelo proprietário depois de conhecer os tamanhos.
-O updater apenas verifica, antes de qualquer gravação, a capacidade e o estado
-não montado das partições; não reparticiona, formata nem grava se a capacidade
-for insuficiente. Portanto não será instalável no layout stock atual se as
-partições não comportarem esses tamanhos. Falhas de patch continuam registradas;
-falhas de compilação, integridade, capacidade em runtime ou validação do pacote
-continuam bloqueantes. Qualquer output será experimental e **UNTESTED**.
+Na tentativa histórica da via `artisan-ota`, foi escolhido
+`partition_layout: content-sized`. Isso não validava nem prometia um layout
+físico: naquele formato, o OTA seria rotulado `CUSTOM-REPARTITION-REQUIRED`,
+traria `REQUIRED-IMAGE-SIZES.json` e dependeria de reparticionamento manual pelo
+proprietário. O updater só verificaria a capacidade e o estado não montado antes
+de gravar; nunca reparticionaria, formataria nem gravaria se a capacidade fosse
+insuficiente. Essa via OTA não é a solicitação atual: a requisição vigente usa
+TWRP/RAW `.img`, também com `content-sized`, e o instalador mantém a checagem de
+capacidade somente-leitura. Falhas de patch permanecem registradas; falhas de
+compilação, integridade, capacidade em runtime ou validação do pacote continuam
+bloqueantes. Qualquer output experimental segue **UNTESTED**.
 
 ## Validações ainda pendentes
 
 O pacote Alpha 3 real, layout/aliases físicos de partições do beyond2lte e
-compatibilidade real de firmware/kernel/vendor não foram validados. Isso não
-bloqueia a tentativa de build, mas impede alegações de instalação segura. A
-confirmação do modelo SM-G975F já foi recebida. Não incluir nem modificar
-recovery, não usar Odin/Heimdall e não interpretar testes estruturais como
-validação de flash ou boot.
+compatibilidade real de firmware/kernel/vendor não foram validados. A confirmação
+do modelo SM-G975F já foi recebida. Não incluir nem modificar recovery, não usar
+Odin/Heimdall e não interpretar testes estruturais como validação de flash ou
+boot.
+
+## Estado do build TWRP/RAW vigente
+
+A [Build #7](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/44017401587)
+falhou no passo de compilação das ferramentas: Gradle não resolveu
+`com.vanniktech.maven.publish:0.33.0`. O erro ocorreu antes de baixar os
+firmwares ou criar pacote; validação ZIP e upload não foram executados. A
+repetição [Build #8](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/44019396347)
+passou pela compilação das ferramentas e estava baixando firmware no último
+check. Ainda não existe ZIP S10+ validado. O workflow de validação do commit
+`3626d2f` passou; isso não prova o build, compatibilidade, instalação ou boot.
 
 O primeiro run não produziu ZIP OTA; não houve flash, teste de boot ou validação
 em hardware. O erro histórico `Failed to unmount /system: No such volume` não foi

@@ -342,10 +342,21 @@ o hook de kernel do mesmo Exynos e a guarda `SM-G975F` do instalador são
 específicos do S10+. Módulos OneROM marcados como exclusivos de beyond1lte não
 são copiados para beyond2lte; os componentes comuns continuam pinados.
 
-`content-sized` não aplica teto fixo de imagem. O ZIP registra bytes reais e o
-instalador TWRP verifica, em leitura somente, cada capacidade atual antes de
-qualquer gravação. O pacote não reparticiona, formata nem limpa. O perfil
+`content-sized` não aplica teto fixo de imagem. O ZIP registra bytes reais,
+leva o sidecar `REQUIRED-IMAGE-SIZES.json` e é rotulado
+`CUSTOM-REPARTITION-REQUIRED`: qualquer ajuste de partições fica a cargo do
+proprietário após medir as imagens finais. O instalador TWRP verifica, em leitura
+somente, cada capacidade atual antes de qualquer gravação e aborta se insuficiente.
+O pacote não reparticiona, formata nem limpa. O perfil
 `extreme-structure` e a referência genérica ExtremeROM permanecem apenas como
 material de pesquisa não selecionado; não demonstram o layout físico do G975F
 nem equivalência com ArtisanROM. Isso não confirma compatibilidade, instalação
 ou boot em hardware.
+
+O Actions [Build #7](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/44017401587)
+falhou ao compilar as ferramentas porque o Gradle não resolveu
+`com.vanniktech.maven.publish:0.33.0`; não chegou ao download de firmware,
+empacotamento, validação ZIP ou upload. A repetição sem alterar as entradas,
+[Build #8](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/44019396347),
+passou pela compilação das ferramentas e estava na etapa de download de firmware
+no último check. Nenhum ZIP S10+ validado, flash ou boot é afirmado.

@@ -100,3 +100,12 @@ pinados. Não há caps fixos nem reparticionamento/formatação automática. O T
 ZIP faz pré-checagem somente-leitura com os tamanhos reais das imagens e a
 capacidade atual. Isso não verifica a tabela física do aparelho, instalação,
 flash ou boot. O build S10+ continua experimental e não testado em hardware.
+
+A [Build #7](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/44017401587)
+faliu ao compilar ferramentas: o Gradle não resolveu
+`com.vanniktech.maven.publish:0.33.0`. A falha ocorreu antes de baixar firmwares
+ou criar pacote; validação do ZIP e upload foram ignorados. A nova tentativa,
+[Build #8](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/44019396347),
+passou pela compilação das ferramentas e estava baixando o firmware doador no
+último check. Ainda não há ZIP S10+ validado. O workflow de validação de fontes
+para o commit `3626d2f` concluiu com sucesso; isso não substitui o build.
