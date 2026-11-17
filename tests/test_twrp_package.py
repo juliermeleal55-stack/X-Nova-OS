@@ -119,18 +119,18 @@ class TWRPPackageTests(unittest.TestCase):
             self.workspace(root, model='SM-G975F', codename='beyond2lte')
             with patch.dict(os.environ, {'BEYOUD_OUTPUT_FORMAT': 'twrp-zip'}, clear=True):
                 marker, codename, model = twrp_package._workspace_identity(root)
-                paths = twrp_package._output_paths(root, codename, model, 'extreme-structure')
+                paths = twrp_package._output_paths(root, codename, model, 'content-sized')
             self.assertEqual((codename, model), ('beyond2lte', 'SM-G975F'))
             self.assertIn('SM-G975F', paths[1].name)
-            self.assertIn('EXTREME-STRUCTURE-NO-FIXED-SIZE-CAP', paths[1].name)
+            self.assertIn('CUSTOM-REPARTITION-REQUIRED', paths[1].name)
             self.assertEqual(paths[1].parent.name, 'beyond2lte')
 
-    def test_s10plus_extreme_structure_candidate_builds_target_locked_zip_proof(self):
+    def test_s10plus_content_sized_candidate_builds_target_locked_zip_proof(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             _lock, raw_dir, _raw_proof = self.fixtures(
                 root, model='SM-G975F', codename='beyond2lte',
-                partition_layout='extreme-structure',
+                partition_layout='content-sized',
             )
             report = {'images': ['system', 'vendor', 'product', 'dtb', 'dtbo', 'boot']}
 
@@ -141,7 +141,7 @@ class TWRPPackageTests(unittest.TestCase):
 
             with patch.dict(os.environ, {
                 'BEYOUD_OUTPUT_FORMAT': 'twrp-zip',
-                'BEYOUD_PARTITION_LAYOUT': 'extreme-structure',
+                'BEYOUD_PARTITION_LAYOUT': 'content-sized',
                 'BEYOUD_ALPHA_VERSION': '3.2',
                 'GITHUB_RUN_NUMBER': '52',
                 'GITHUB_RUN_ATTEMPT': '1',
@@ -154,16 +154,16 @@ class TWRPPackageTests(unittest.TestCase):
 
             self.assertEqual(result['target_model'], 'SM-G975F')
             self.assertEqual(result['target_codename'], 'beyond2lte')
-            self.assertEqual(result['partition_layout'], 'extreme-structure')
-            self.assertEqual(result['partition_structure'], ['system', 'vendor', 'product', 'odm', 'prism', 'optics'])
+            self.assertEqual(result['partition_layout'], 'content-sized')
+            self.assertEqual(result['partition_structure'], [])
             self.assertFalse(result['hardware_validated'])
             package = Path(result['package'])
             self.assertIn('SM-G975F', package.name)
-            self.assertIn('EXTREME-STRUCTURE-NO-FIXED-SIZE-CAP', package.name)
+            self.assertIn('CUSTOM-REPARTITION-REQUIRED', package.name)
             proof = json.loads((root / twrp_package.PROOF_ROOT / 'beyond2lte.json').read_text())
             self.assertEqual(proof['target_model'], 'SM-G975F')
-            self.assertEqual(proof['partition_layout'], 'extreme-structure')
-            self.assertEqual(proof['partition_structure'], ['system', 'vendor', 'product', 'odm', 'prism', 'optics'])
+            self.assertEqual(proof['partition_layout'], 'content-sized')
+            self.assertEqual(proof['partition_structure'], [])
             self.assertFalse(proof['recovery_included'])
             self.assertFalse(proof['recovery_modified'])
             self.assertFalse(proof['hardware_validated'])

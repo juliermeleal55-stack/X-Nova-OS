@@ -51,7 +51,7 @@ X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820*
 
 Workspaces novas do S10 normal recebem as árvores OneROM fixadas de `target/beyond1lte/` e `platform/exynos9820/`, com créditos, licenças, proveniência e preservação dos arquivos Artisan substituídos. Isso não valida a portagem nem modifica ou distribui recovery. Consulte [a auditoria OneROM](docs/ONEROM-AUDIT.md) e [a integração](docs/INTEGRATION.md).
 
-O projeto não afirma que a ROM inicia ou que chamadas, câmera, biometria, criptografia e outros recursos funcionam. A configuração principal continua sendo SM-G973F. Existe um fluxo candidato separado somente para SM-G975F / `beyond2lte`, ainda sem build, flash ou boot validado; não infira suporte a SM-G975N, S10e ou variantes Snapdragon.
+O projeto não afirma que a ROM inicia ou que chamadas, câmera, biometria, criptografia e outros recursos funcionam. A configuração principal continua sendo SM-G973F. Existe um pedido de build completo experimental separado somente para SM-G975F / `beyond2lte`; até a validação bem-sucedida do Actions, não se afirma que haja ZIP concluído, e não houve flash ou boot validado. Não infira suporte a SM-G975N, S10e ou variantes Snapdragon.
 
 ## Organização do código
 

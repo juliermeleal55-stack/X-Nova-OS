@@ -1,16 +1,19 @@
 # Galaxy S10+ (beyond2lte) — pesquisa de OTA legado
 
-> **Atualização do fluxo candidato:** a solicitação atual usa `twrp-zip` com
-> `partition_layout: extreme-structure`. A referência ExtremeROM retida é um
-> repartitioner genérico Exynos 9820/9825 e é usada somente para nomes de
-> partições; ela não prova o layout físico do G975F nem compatibilidade com
-> ArtisanROM. O perfil seleciona seis papéis filesystem (`system`, `vendor`,
-> `product`, `odm`, `prism`, `optics`) e os componentes `dtb`, `dtbo`, `boot`, sem
-> impor os tamanhos daquela referência. O formato RAW `.img` dentro do TWRP ZIP
-> vem do pipeline S10 existente, não é atribuído ao ExtremeROM. O instalador
-> compara em leitura somente cada tamanho real com a capacidade atual antes de
-> gravar; não reparte nem formata. O texto abaixo registra a investigação
-> histórica do OTA, não a seleção vigente.
+> **Fluxo candidato atual:** após comparar com o build completo S10 Alpha 3.2
+> [#27](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43487807246),
+> a solicitação **SM-G975F/beyond2lte** usa `twrp-zip` e o mesmo perfil
+> `content-sized`, doador S24 FE fixado, base Artisan e tolerância experimental
+> a falhas de patch. A configuração/overlay Artisan beyond2lte e a guarda exata
+> do instalador são target-specific; patches OneROM explicitamente exclusivos
+> de beyond1lte não são copiados. As imagens RAW `.img` e o empacotamento vêm do
+> pipeline TWRP S10 existente. Não há teto fixo de tamanho, reparticionamento,
+> formatação ou limpeza automática. O instalador compara somente-leitura o
+> tamanho real de cada imagem com a capacidade atual antes de qualquer escrita.
+> Isso não comprova o layout físico do G975F, compatibilidade ArtisanROM,
+> instalação ou boot. O perfil `extreme-structure` continua não selecionado e
+> não é evidência de layout. O texto abaixo registra a investigação histórica
+> do OTA, não a seleção vigente.
 
 **Estado: research-only; não é uma ROM pronta para instalação.** O usuário confirmou
 nesta conversa o modelo **SM-G975F / beyond2lte**. Isso confirma apenas o modelo-alvo;

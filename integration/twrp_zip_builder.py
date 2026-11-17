@@ -186,8 +186,6 @@ def _declared_profile(layout, model, codename):
     else:
         if layout not in {'stock', 'content-sized', 'unknown'}:
             raise ValueError(f'Unsupported TWRP partition profile: {layout}')
-        if (model, codename) == ('SM-G975F', 'beyond2lte'):
-            raise ValueError('SM-G975F/beyond2lte TWRP ZIP requires the extreme-structure receipt')
         return None
     path = ROOT / 'integration/partition_layouts' / profile_name
     if path.is_symlink() or not path.is_file():
@@ -314,6 +312,9 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
         if receipt_path.is_symlink() or not receipt_path.is_file():
             raise ValueError('Missing/unsafe raw image proof for TWRP package verification')
         receipt_data = json.loads(receipt_path.read_text())
+    if ((expected_model, expected_codename) == ('SM-G975F', 'beyond2lte')
+            and receipt_data is None):
+        raise ValueError('SM-G975F/beyond2lte TWRP ZIP verification requires a persisted raw image proof receipt')
     expected_source_manifests = {
         'artisan': _source_manifest('artisan-s10-files.json'),
         'onerom': _source_manifest('onerom.json'),
@@ -476,6 +477,9 @@ def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None,
             receipt_data = json.loads(receipt_path.read_text())
         else:
             raise ValueError('TWRP ROM ZIP construction requires a persisted raw image proof receipt')
+    if ((expected_model, expected_codename) == ('SM-G975F', 'beyond2lte')
+            and receipt_data is None):
+        raise ValueError('SM-G975F/beyond2lte TWRP ZIP construction requires a persisted raw image proof receipt')
     partition_layout = receipt_data.get('partition_layout', 'unknown') if receipt_data else 'unknown'
     profile_caps = receipt_data.get('partition_profile_caps', {}) if receipt_data else {}
     partition_structure = receipt_data.get('partition_structure', []) if receipt_data else []

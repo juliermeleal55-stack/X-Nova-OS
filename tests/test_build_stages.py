@@ -83,19 +83,36 @@ class StageTests(unittest.TestCase):
         self.assertIn('ARTISAN-OTA-UNTESTED', text)
         self.assertIn('compression-level: 0', text)
 
-    def test_s10plus_request_uses_extreme_structure_without_fixed_size_caps(self):
+    def test_s10plus_request_matches_successful_s10_full_build_inputs_except_target(self):
         caller = (ROOT / '.github/workflows/s10plus-ota-request.yml').read_text()
+        s10_caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()
         reusable = (ROOT / '.github/workflows/alpha.yml').read_text()
-        profile = json.loads((ROOT / 'integration/partition_layouts/extreme-structure-beyond2lte.json').read_text())
+        for workflow in (caller, s10_caller):
+            self.assertIn("alpha_version: '3.2'", workflow)
+            self.assertIn('diagnostic_only: false', workflow)
+            self.assertIn('experimental_patch_failures: true', workflow)
+            self.assertIn('partition_layout: content-sized', workflow)
+            self.assertIn('uses: ./.github/workflows/alpha.yml', workflow)
+        self.assertIn('target: beyond1lte', s10_caller)
         self.assertIn('target: beyond2lte', caller)
         self.assertIn('output_format: twrp-zip', caller)
-        self.assertIn("alpha_version: '3.2'", caller)
-        self.assertIn('experimental_patch_failures: true', caller)
-        self.assertIn('partition_layout: extreme-structure', caller)
+        self.assertIn("default: 'twrp-zip'", reusable)
         self.assertIn('NO FIXED SIZE CAP', caller)
-        self.assertIn('Build #4 stopped', caller)
-        self.assertIn('scripts.collect_alpha', caller)
         self.assertIn('SM-G975F / beyond2lte', caller)
+        donor = json.loads((ROOT / 'integration/donors/s24fe.json').read_text())
+        self.assertEqual((donor['model'], donor['csc'], donor['reference_ap']),
+                         ('SM-S721B', 'EUX', 'S721BXXSFEZJ1'))
+        self.assertIn("BASE_COMMIT = '5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954'",
+                      (ROOT / 'scripts/prepare_workspace.py').read_text())
+        self.assertIn('description: Continue despite patch/module failures; boot NOT validated', reusable)
+        self.assertIn('TWRP-ROM-ZIP-UNTESTED', reusable)
+        self.assertIn('does not verify the physical partition table', (ROOT / 'integration/twrp_zip_builder.py').read_text())
+
+    def test_retained_extreme_structure_reference_is_generic_only_and_not_the_selected_profile(self):
+        caller = (ROOT / '.github/workflows/s10plus-ota-request.yml').read_text()
+        profile = json.loads((ROOT / 'integration/partition_layouts/extreme-structure-beyond2lte.json').read_text())
+        self.assertIn('partition_layout: content-sized', caller)
+        self.assertNotIn('partition_layout: extreme-structure', caller)
         self.assertEqual((profile['model'], profile['codename']), ('SM-G975F', 'beyond2lte'))
         self.assertEqual(profile['image_partitions'], [
             'system', 'vendor', 'product', 'odm', 'prism', 'optics',
@@ -109,9 +126,6 @@ class StageTests(unittest.TestCase):
         source_manifest = json.loads((ROOT / 'manifests/extreme-repartition.json').read_text())
         repartitioner = (ROOT / profile['reference']).read_text()
         self.assertEqual(verify_extreme_structure_profile(source_manifest, profile, repartitioner), 12)
-        self.assertIn('description: Continue despite patch/module failures; boot NOT validated', reusable)
-        self.assertIn('TWRP-ROM-ZIP-UNTESTED', reusable)
-        self.assertIn('does not verify the physical partition table', (ROOT / 'integration/twrp_zip_builder.py').read_text())
 
     def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):
         caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()

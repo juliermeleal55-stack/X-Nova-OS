@@ -1,13 +1,13 @@
 > **Fluxo atual:** consulte [BUILD-STAGES.md](BUILD-STAGES.md) e
-> [CROSS-AUDIT.md](CROSS-AUDIT.md). As tentativas e comandos anteriores abaixo
-> são históricos; não comprovam sucesso do fluxo atual.
+> [CROSS-AUDIT.md](CROSS-AUDIT.md). O build S10 Alpha 3.2 #27 concluiu com
+> sucesso a validação/entrega do ZIP no Actions; isso é validação de host,
+> não de instalação, flash ou boot em aparelho.
 
-# Estado de construção — histórico SM-G975F e portagem atual SM-G973F
+# Estado de construção — S10 SM-G973F e candidato S10+ SM-G975F
 
-> O bloco SM-G975F abaixo é um registro antigo, não o estado global do projeto.
-> A branch contém artefatos Alpha anteriores para o SM-G973F; consulte o README
-> e `docs/ALPHA-REPAIR-STATUS.md`. A portagem completa OneROM descrita ao fim é
-> posterior a esses builds e ainda precisa de sua própria execução.
+> O registro histórico de pesquisa SM-G975F abaixo não é evidência de suporte.
+> O build normal S10 #27 e o novo pedido S10+ são fluxos distintos, documentados
+> separadamente. Consulte o README e `docs/ALPHA-REPAIR-STATUS.md`.
 
 ## Implementado no registro histórico SM-G975F
 
@@ -63,9 +63,10 @@ OneROM nem altera o instalador Artisan original. A Alpha 3.2 empacota
 separadamente um `update-binary` para TWRP; nenhum recovery é distribuído ou
 modificado.
 
-Uma importação integral para workspace temporária foi conferida estruturalmente;
-**não houve build da ROM, flash ou teste de boot/aparelho**. As verificações
-host do repositório não são validação funcional. Veja `docs/INTEGRATION.md` e
+O build S10 normal Alpha 3.2 #27 executou a integração completa do workspace
+fixado e terminou com sucesso nas etapas de build, validação do TWRP ZIP e
+upload do artifact. Isso comprova apenas o resultado host daquele commit/alvo;
+**não houve flash nem teste de boot/aparelho**. Veja `docs/INTEGRATION.md` e
 `docs/ONEROM-AUDIT.md` para escopo, créditos e limites de redistribuição.
 
 ## Novo contrato de entrega — Alpha 3.2
@@ -77,22 +78,25 @@ imagens requeridas para beyond1lte são `system`, `vendor`, `product`, `boot`,
 `dtb` e `dtbo`; outras partições só entram quando o alvo e o perfil as sustentam.
 `system_ext` fica em `system` conforme a configuração.
 
-A execução Alpha 3.2 #25 falhou porque o módulo de kernel estava desabilitado e
-o firmware stock não continha `dtb.img`. A Alpha #26 ativou o hook e chegou à
-etapa de pacote, mas o validador esperava um FDT isolado (`d00dfeed`), enquanto
-o `mkdtimg cfg_create` pinado gera um Android DT table (`d7b7ab1e`). Os
-validadores RAW/ZIP foram corrigidos para o formato efetivamente produzido; a
-próxima execução deve confirmar a compilação e o ZIP. Ainda não há ZIP Alpha
-3.2 validado, instalação TWRP, flash ou boot em hardware. A Alpha 3.1 histórica
-permanece intacta. Consulte [BUILD-STAGES.md](BUILD-STAGES.md).
+As execuções Alpha 3.2 #25 e #26 falharam em problemas diferentes de kernel/DTB.
+A execução seguinte, [Build #27](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43487807246),
+concluiu com sucesso: etapas completas do build, validação do TWRP ZIP e upload
+foram todas `success`. O artifact `14075714047` tem 7.382.847.089 bytes; seu
+conteúdo não foi baixado neste sandbox, portanto o que se afirma é o resultado
+registrado pelo Actions e pelos validadores do workflow. Não houve instalação
+TWRP, flash ou boot em hardware; a Alpha 3.1 histórica permanece intacta.
+Consulte [BUILD-STAGES.md](BUILD-STAGES.md).
 
 ## Solicitação separada do S10+ — SM-G975F / beyond2lte
 
-O workflow `s10plus-ota-request.yml` agora solicita um build experimental
-TWRP/RAW para o alvo exato SM-G975F/beyond2lte. Ele escolhe o perfil
-`extreme-structure` sem tetos fixos de tamanho; a referência ExtremeROM pinada
-é usada somente para nomes genéricos de partições, não como prova de layout
-físico do aparelho ou compatibilidade ArtisanROM. O formato `.img` vem do fluxo
-TWRP S10 existente. Não há reparticionamento/formatação no instalador. Ainda
-não houve execução Actions deste pedido, build completo, flash ou validação de
-boot; o artefato continua candidato não testado.
+A requisição S10+ foi comparada com o build completo S10 Alpha 3.2 bem-sucedido
+[Build #27](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43487807246).
+Versão, doador S24 FE fixado, base Artisan, pipeline TWRP/RAW, tolerância
+experimental de falhas de patch e perfil `content-sized` estão alinhados; o
+alvo/codename, assets Artisan beyond2lte, hook de kernel e guarda de modelo do
+instalador são específicos do S10+. Patches OneROM marcados como exclusivos de
+beyond1lte não são copiados ao alvo S10+; os componentes comuns permanecem
+pinados. Não há caps fixos nem reparticionamento/formatação automática. O TWRP
+ZIP faz pré-checagem somente-leitura com os tamanhos reais das imagens e a
+capacidade atual. Isso não verifica a tabela física do aparelho, instalação,
+flash ou boot. O build S10+ continua experimental e não testado em hardware.

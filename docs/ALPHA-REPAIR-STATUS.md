@@ -326,26 +326,26 @@ implementada. Alterar o perfil continua invalidando caches/identidade da receita
 Validação limpa: 170 testes PASS; 69 Artisan, 37 OneROM e 64 evidências de
 auditoria PASS. Testes incluem o payload system que falhou anteriormente,
 um cabeçalho sparse sintético de 12 GiB, requisitos/instalador dimensionados
-pela imagem e rótulo/sidecar da coleta. Esses fixtures não são imagens reais
-nem prova de ZIP concluído ou boot. O resultado da nova execução ainda precisa
-ser acompanhado.
+pela imagem e rótulo/sidecar da coleta. Esses fixtures não são imagens reais.
+O [Actions Alpha 3.2 #27](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43487807246)
+concluiu o build S10 normal, a validação do TWRP ZIP e o upload; isso não valida
+flash ou boot em hardware.
 
-## Correção vigente do S10+ — perfil estrutural sem teto de tamanho
+## Correção vigente do S10+ — paridade com o build S10 Alpha 3.2 #27
 
-A seleção atual para **SM-G975F/beyond2lte** é `extreme-structure`, não
-`extreme-default` nem `content-sized`. Foram removidos do perfil S10+ os caps
-fixos 7000/1500/1500/4/600/30 MiB. O perfil declara os papéis candidate de
-filesystem `system`, `vendor`, `product`, `odm`, `prism`, `optics` e os
-componentes de boot `dtb`, `dtbo`, `boot`, usando o formato RAW `.img` dentro do
-TWRP ZIP do fluxo S10 existente. A referência ExtremeROM pinada é um
-repartitioner Exynos 9820/9825 usado somente para nomes genéricos de partições;
-não comprova layout do G975F, imagem ExtremeROM nem equivalência ArtisanROM.
-O perfil registra os nomes vistos no script, sem importar tamanhos ou executar
-repartition/cleaner.
+A solicitação **SM-G975F/beyond2lte** foi comparada com o build S10 normal
+[Alpha 3.2 #27](https://github.com/juliermeleal55-stack/X-Nova-OS/actions/runs/43487807246).
+O alvo/codename é a única mudança no selector; versão, doador S24 FE exato,
+base Artisan, execução completa, tolerância experimental aos erros registrados
+e perfil `content-sized` correspondem. A configuração/overlay Artisan beyond2lte,
+o hook de kernel do mesmo Exynos e a guarda `SM-G975F` do instalador são
+específicos do S10+. Módulos OneROM marcados como exclusivos de beyond1lte não
+são copiados para beyond2lte; os componentes comuns continuam pinados.
 
-O build não tem teto fixo ExtremeROM para o tamanho das imagens; o pacote anota
-os bytes reais produzidos. A checagem de instalação continua sendo somente de
-leitura e compara cada partição atual com o tamanho efetivo da imagem antes de
-qualquer gravação. Não há reparticionamento, formatação ou limpeza automática.
-Isso não confirma o layout do telefone; não houve build de ROM, flash ou
-validação de boot em hardware.
+`content-sized` não aplica teto fixo de imagem. O ZIP registra bytes reais e o
+instalador TWRP verifica, em leitura somente, cada capacidade atual antes de
+qualquer gravação. O pacote não reparticiona, formata nem limpa. O perfil
+`extreme-structure` e a referência genérica ExtremeROM permanecem apenas como
+material de pesquisa não selecionado; não demonstram o layout físico do G975F
+nem equivalência com ArtisanROM. Isso não confirma compatibilidade, instalação
+ou boot em hardware.

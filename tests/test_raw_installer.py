@@ -173,7 +173,7 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
             }))
 
             output = root / 's10plus.zip'
-            with self.assertRaisesRegex(ValueError, 'requires the extreme-structure receipt'):
+            with self.assertRaisesRegex(ValueError, 'requires a persisted raw image proof receipt'):
                 builder.build(
                     images, root / 'missing-proof.zip',
                     expected_model=model, expected_codename=codename,
@@ -217,6 +217,58 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
                 builder._declared_profile_structure('extreme-structure', model, codename),
                 structure,
             )
+
+    def test_s10plus_content_sized_zip_records_exact_sizes_and_requires_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            images, _candidate, _records, _stage = self.fixtures(root)
+            model, codename = 'SM-G975F', 'beyond2lte'
+            receipt = root / 'raw-proof-content-sized.json'
+            receipt.write_text(json.dumps({
+                'schema_version': 1,
+                'format': 'raw-images-only-v1',
+                'status': 'images-built-and-host-verified',
+                'target_model': model,
+                'target_codename': codename,
+                'partition_layout': 'content-sized',
+                'partition_profile_caps': {},
+                'partition_structure': [],
+                'firmware_lock_sha256': 'a' * 64,
+                'build': {'target_model': model, 'target_codename': codename},
+            }))
+            output = root / 's10plus-content-sized.zip'
+            with (
+                patch.object(builder, 'verify_image'),
+                patch.object(builder, 'verify_raw_bundle', return_value={'images': []}),
+            ):
+                records = builder.build(
+                    images, output, receipt=receipt,
+                    expected_model=model, expected_codename=codename,
+                )
+                report = builder.verify_package(
+                    output, expected_model=model, expected_codename=codename,
+                    images=images, raw_receipt=receipt,
+                )
+
+            self.assertEqual(report['target_model'], model)
+            self.assertEqual(report['target_codename'], codename)
+            self.assertEqual(report['images'], [record['name'] for record in records])
+            with zipfile.ZipFile(output) as archive:
+                sizes = json.loads(archive.read('REQUIRED-IMAGE-SIZES.json'))
+                self.assertEqual(sizes['partition_layout'], 'content-sized')
+                self.assertEqual(sizes['partition_profile_caps'], {})
+                self.assertEqual(sizes['partition_structure'], [])
+                self.assertFalse(sizes['physical_layout_verified'])
+                update = archive.read(builder.UPDATE_BINARY)
+                self.assertEqual(update.count(b'SM-G975F'), 1)
+                self.assertNotIn(b'SM-G973F', update)
+                guard = archive.read('installer/layout-check.sh').decode()
+            for record in records:
+                self.assertIn(f"check_partition {record['name']} {record['bytes']}", guard)
+            self.assertNotIn('sgdisk', guard)
+            self.assertNotIn('mkfs', guard)
+            self.assertNotIn('resize2fs', guard)
+            subprocess.run(['sh', '-n'], input=guard, text=True, check=True)
 
     def test_hash_failure_stops_during_staging_before_writes(self):
         with tempfile.TemporaryDirectory() as directory:
