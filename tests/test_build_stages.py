@@ -97,6 +97,7 @@ class StageTests(unittest.TestCase):
         self.assertIn('target: beyond2lte', caller)
         self.assertIn('output_format: twrp-zip', caller)
         self.assertIn("default: 'twrp-zip'", reusable)
+        self.assertIn("cancel-in-progress: ${{ inputs.target == 'beyond2lte' && inputs.partition_layout == 'content-sized' }}", reusable)
         self.assertIn('NO FIXED SIZE CAP', caller)
         self.assertIn('SM-G975F / beyond2lte', caller)
         donor = json.loads((ROOT / 'integration/donors/s24fe.json').read_text())
