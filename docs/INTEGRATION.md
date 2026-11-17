@@ -4,8 +4,11 @@
 
 A **ArtisanROM histórica**, fixada em
 `5638a7f66cdf8bc9dd43f087a96f7dfa4f9e6954`, continua sendo a base do build. O
-alvo padrão é o Galaxy S10 normal **SM-G973F / `beyond1lte` / Exynos 9820**.
-S10+, S10e e Snapdragon não são inferidos como suportados.
+alvo padrão permanece o Galaxy S10 normal **SM-G973F / `beyond1lte` / Exynos
+9820**. Há um fluxo experimental separado de build TWRP/RAW candidato para
+**SM-G975F / `beyond2lte`**, sem validação de layout físico, compatibilidade ou
+boot; isso não representa suporte de hardware. S10e, SM-G975N e variantes
+Snapdragon não são suportados/inferidos.
 
 Em workspaces novos `beyond1lte`, o preparador importa as árvores completas do
 OneROM fixado em `644f0aacc49ad2410e566de8deb05e6c8211d83d`:

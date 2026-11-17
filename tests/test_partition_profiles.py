@@ -38,18 +38,76 @@ class PartitionProfileTests(unittest.TestCase):
             self.assertEqual(data['image_size_caps'],dict(system=7340032000,vendor=1572864000,product=1572864000,odm=4194304,prism=629145600,optics=31457280))
             self.assertEqual(data['partition_layout']['id'],'extreme-default')
 
-    def test_stock_remains_default_and_other_s10_model_cannot_opt_in(self):
+    def test_stock_remains_default_and_extreme_profile_is_target_specific(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);s10(root)
             with patch.dict(os.environ,BEYOUD_PARTITION_LAYOUT='stock'):
                 self.assertEqual(capture(root)['image_size_caps']['product'],650117120)
                 strict=identity(root)
-            with patch.dict(os.environ,BEYOUD_PARTITION_LAYOUT='extreme-default'):
-                self.assertNotEqual(strict,identity(root))
-                (root/'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(target='SM-G975F',codename='beyond2lte')))
-                with self.assertRaises(ValueError):selected_layout(root)
-            with patch.dict(os.environ,BEYOUD_PARTITION_LAYOUT='unknown'):
-                with self.assertRaises(ValueError):selected_layout(root)
+            with patch.dict(os.environ, BEYOUD_PARTITION_LAYOUT='extreme-default'):
+                self.assertNotEqual(strict, identity(root))
+                (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(target='SM-G975F', codename='beyond2lte')))
+                with self.assertRaisesRegex(ValueError, 'disabled for beyond2lte'):
+                    selected_layout(root)
+            with patch.dict(os.environ, BEYOUD_PARTITION_LAYOUT='extreme-structure'):
+                profile = selected_layout(root)
+                self.assertEqual(profile['id'], 'extreme-structure')
+                self.assertEqual(profile['image_partitions'], ['system', 'vendor', 'product', 'odm', 'prism', 'optics'])
+                self.assertNotIn('image_size_caps', profile)
+                (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps(dict(target='SM-G975N', codename='beyond2lte')))
+                with self.assertRaises(ValueError):
+                    selected_layout(root)
+            with patch.dict(os.environ, BEYOUD_PARTITION_LAYOUT='unknown'):
+                with self.assertRaises(ValueError):
+                    selected_layout(root)
+
+    def test_s10plus_extreme_structure_has_no_fixed_size_caps(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, BEYOUD_PARTITION_LAYOUT='extreme-structure'):
+            root = Path(tmp)
+            s10plus(root)
+            data = capture(root)
+            self.assertEqual((data['model'], data['codename']), ('SM-G975F', 'beyond2lte'))
+            self.assertEqual(data['partition_layout']['id'], 'extreme-structure')
+            self.assertEqual(data['partition_layout']['image_partitions'], ['system', 'vendor', 'product', 'odm', 'prism', 'optics'])
+            self.assertNotIn('image_size_caps', data['partition_layout'])
+            self.assertEqual(set(data['image_size_caps']), {'system', 'vendor', 'product', 'odm', 'prism', 'optics'})
+            self.assertTrue(all(value is None for value in data['image_size_caps'].values()))
+
+    def test_extreme_structure_records_actual_sizes_without_fixed_profile_limits(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {
+            'BEYOUD_PARTITION_LAYOUT': 'extreme-structure',
+            'BEYOUD_OUTPUT_FORMAT': 'twrp-zip',
+        }):
+            root = Path(tmp)
+            s10plus(root)
+            retire(root)
+            directory = root / 'out/zip'
+            directory.mkdir()
+            logical = 12 * 1024**3
+            image = directory / 'system.img'
+            image.write_bytes(struct.pack('<I4H4I', 0xed26ff3a, 1, 0, 28, 12, 4096, logical // 4096, 1, 0))
+            check_image(root, 'system', image)
+            report_path = directory / 'REQUIRED-IMAGE-SIZES.json'
+            report = json.loads(report_path.read_text())
+            self.assertEqual(report['layout'], 'extreme-structure')
+            self.assertEqual(report['model'], 'SM-G975F')
+            self.assertEqual(report['partition_structure'], ['system', 'vendor', 'product', 'odm', 'prism', 'optics'])
+            self.assertEqual(report['image_size_bytes'], {'system': logical})
+            script = directory / 'partition-layout-check.sh'
+            # Add synthetic image sizes for the other required structure members
+            # so the read-only check can be generated without imposing fixed caps.
+            report['image_size_bytes'].update({name: 4096 for name in ('vendor', 'product', 'odm', 'prism', 'optics')})
+            report_path.write_text(json.dumps(report))
+            write_layout_check(root, script)
+            text = script.read_text()
+            self.assertIn(f'check_partition system {logical}', text)
+            self.assertIn('check_partition optics 4096', text)
+            self.assertNotIn('7340032000', text)
+            self.assertNotIn('1572864000', text)
+            self.assertIn('blockdev --getsize64', text)
+            self.assertNotIn('sgdisk', text)
+            self.assertNotIn('mkfs', text)
+            subprocess.run(['sh', '-n', str(script)], check=True)
 
     def test_content_sized_profile_accepts_only_the_explicit_s10plus_candidate_without_caps(self):
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, BEYOUD_PARTITION_LAYOUT='content-sized'):

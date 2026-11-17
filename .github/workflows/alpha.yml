@@ -8,7 +8,7 @@ on:
         type: string
         default: '3.2'
       output_format:
-        description: TWRP RAW-image ZIP for audited beyond1lte, or legacy Artisan OTA for explicit S10 candidates
+        description: Experimental TWRP RAW-image ZIP for exact Exynos S10 models, or legacy Artisan OTA for explicit candidates
         type: string
         default: 'twrp-zip'
       diagnostic_only:
@@ -104,6 +104,7 @@ jobs:
           {
             echo "## X-NovaOS Alpha $ALPHA_VERSION"
             echo
+            echo "- Partition profile: $BEYOUD_PARTITION_LAYOUT (declared build constraint, not a handset measurement)."
             echo "- Build number: #$GITHUB_RUN_NUMBER"
             echo "- Attempt: $GITHUB_RUN_ATTEMPT"
             echo "- Target: $BEYOUD_TARGET"

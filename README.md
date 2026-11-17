@@ -7,7 +7,7 @@
 
 **Alpha 3.2 · SM-G973F / `beyond1lte` · ZIP para TWRP · NÃO TESTADA**
 
-[Build e limites](docs/BUILD-STAGES.md) · [Integração e proveniência](docs/INTEGRATION.md) · [Auditoria OneROM](docs/ONEROM-AUDIT.md) · [Alpha histórica](https://github.com/juliermeleal55-stack/X-Nova-OS/releases/tag/v0.1.0-alpha3.1-sm-g973f-s24fe-test-43117943493)
+[Build e limites](docs/BUILD-STAGES.md) · [Pedido S10+ experimental](docs/S10PLUS-OTA-RESEARCH.md) · [Integração e proveniência](docs/INTEGRATION.md) · [Auditoria OneROM](docs/ONEROM-AUDIT.md) · [Alpha histórica](https://github.com/juliermeleal55-stack/X-Nova-OS/releases/tag/v0.1.0-alpha3.1-sm-g973f-s24fe-test-43117943493)
 
 </div>
 
@@ -51,7 +51,7 @@ X-Nova OS é uma derivação experimental da base **ArtisanROM para Exynos 9820*
 
 Workspaces novas do S10 normal recebem as árvores OneROM fixadas de `target/beyond1lte/` e `platform/exynos9820/`, com créditos, licenças, proveniência e preservação dos arquivos Artisan substituídos. Isso não valida a portagem nem modifica ou distribui recovery. Consulte [a auditoria OneROM](docs/ONEROM-AUDIT.md) e [a integração](docs/INTEGRATION.md).
 
-O projeto não afirma que a ROM inicia ou que chamadas, câmera, biometria, criptografia e outros recursos funcionam. Esta configuração é para SM-G973F; não infira suporte ao S10+, S10e ou variantes Snapdragon.
+O projeto não afirma que a ROM inicia ou que chamadas, câmera, biometria, criptografia e outros recursos funcionam. A configuração principal continua sendo SM-G973F. Existe um fluxo candidato separado somente para SM-G975F / `beyond2lte`, ainda sem build, flash ou boot validado; não infira suporte a SM-G975N, S10e ou variantes Snapdragon.
 
 ## Organização do código
 

@@ -50,14 +50,15 @@ class StageTests(unittest.TestCase):
     def setUp(self):
         self.enterContext(patch.dict(os.environ, BEYOUD_OUTPUT_FORMAT='artisan-ota'))
 
-    def test_output_format_gates_do_not_allow_twrp_or_other_models_for_s10plus(self):
-        with self.assertRaisesRegex(ValueError, 'audited only for SM-G973F'):
-            build.validate_output_target('twrp-zip', 'beyond2lte', 'SM-G975F')
+    def test_output_format_gates_allow_only_the_exact_s10plus_exynos_model(self):
+        build.validate_output_target('twrp-zip', 'beyond2lte', 'SM-G975F')
+        build.validate_output_target('artisan-ota', 'beyond2lte', 'SM-G975F')
         with self.assertRaisesRegex(ValueError, 'explicit Exynos'):
             build.validate_output_target('artisan-ota', 'beyond2lte', 'SM-G975N')
+        with self.assertRaisesRegex(ValueError, 'SM-G973F/beyond1lte and SM-G975F/beyond2lte'):
+            build.validate_output_target('twrp-zip', 'beyond2lte', 'SM-G975N')
         with self.assertRaisesRegex(ValueError, 'Unsupported ROM output format'):
             build.validate_output_target('raw-img', 'beyond2lte', 'SM-G975F')
-        build.validate_output_target('artisan-ota', 'beyond2lte', 'SM-G975F')
 
     def test_workflow_gates_twrp_and_artisan_ota_outputs(self):
         text = (ROOT / '.github/workflows/alpha.yml').read_text()
@@ -82,23 +83,35 @@ class StageTests(unittest.TestCase):
         self.assertIn('ARTISAN-OTA-UNTESTED', text)
         self.assertIn('compression-level: 0', text)
 
-    def test_s10plus_build_request_uses_content_sized_experimental_ota_retry(self):
+    def test_s10plus_request_uses_extreme_structure_without_fixed_size_caps(self):
         caller = (ROOT / '.github/workflows/s10plus-ota-request.yml').read_text()
         reusable = (ROOT / '.github/workflows/alpha.yml').read_text()
-        collector = (ROOT / 'scripts/collect_alpha.py').read_text()
+        profile = json.loads((ROOT / 'integration/partition_layouts/extreme-structure-beyond2lte.json').read_text())
         self.assertIn('target: beyond2lte', caller)
-        self.assertIn('output_format: artisan-ota', caller)
-        self.assertIn("alpha_version: '3'", caller)
+        self.assertIn('output_format: twrp-zip', caller)
+        self.assertIn("alpha_version: '3.2'", caller)
         self.assertIn('experimental_patch_failures: true', caller)
-        self.assertIn('partition_layout: content-sized', caller)
-        self.assertIn('owner-managed repartition', caller)
-        self.assertIn('620 MiB / 650,117,120 bytes', caller)
-        self.assertIn('1,540,594,508 bytes / ~1.43 GiB', caller)
-        self.assertIn('CUSTOM REPARTITION REQUIRED', caller)
+        self.assertIn('partition_layout: extreme-structure', caller)
+        self.assertIn('NO FIXED SIZE CAP', caller)
+        self.assertIn('Build #4 stopped', caller)
+        self.assertIn('scripts.collect_alpha', caller)
         self.assertIn('SM-G975F / beyond2lte', caller)
-        self.assertIn('description: Continue despite patch/module failures; boot NOT validated\n        type: boolean\n        default: false', reusable)
-        self.assertIn('-CUSTOM-REPARTITION-REQUIRED', collector)
-        self.assertIn('ARTISAN-OTA-UNTESTED', reusable)
+        self.assertEqual((profile['model'], profile['codename']), ('SM-G975F', 'beyond2lte'))
+        self.assertEqual(profile['image_partitions'], [
+            'system', 'vendor', 'product', 'odm', 'prism', 'optics',
+        ])
+        self.assertEqual(profile['boot_components'], ['dtb', 'dtbo', 'boot'])
+        self.assertNotIn('image_size_caps', profile)
+        self.assertIn('no fixed image-size limits', profile['requires'].lower())
+        self.assertIn('no physical-layout or ArtisanROM-equivalence claim', profile['reference_scope'])
+        self.assertIn('not attributed to ExtremeROM', profile['payload_format_source'])
+        from scripts.verify_audit import verify_extreme_structure_profile
+        source_manifest = json.loads((ROOT / 'manifests/extreme-repartition.json').read_text())
+        repartitioner = (ROOT / profile['reference']).read_text()
+        self.assertEqual(verify_extreme_structure_profile(source_manifest, profile, repartitioner), 12)
+        self.assertIn('description: Continue despite patch/module failures; boot NOT validated', reusable)
+        self.assertIn('TWRP-ROM-ZIP-UNTESTED', reusable)
+        self.assertIn('does not verify the physical partition table', (ROOT / 'integration/twrp_zip_builder.py').read_text())
 
     def test_x_novaos_alpha_runs_and_artifacts_use_versioned_build_numbers(self):
         caller = (ROOT / '.github/workflows/s10-alpha-request.yml').read_text()

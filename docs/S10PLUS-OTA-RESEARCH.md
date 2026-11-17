@@ -1,5 +1,17 @@
 # Galaxy S10+ (beyond2lte) — pesquisa de OTA legado
 
+> **Atualização do fluxo candidato:** a solicitação atual usa `twrp-zip` com
+> `partition_layout: extreme-structure`. A referência ExtremeROM retida é um
+> repartitioner genérico Exynos 9820/9825 e é usada somente para nomes de
+> partições; ela não prova o layout físico do G975F nem compatibilidade com
+> ArtisanROM. O perfil seleciona seis papéis filesystem (`system`, `vendor`,
+> `product`, `odm`, `prism`, `optics`) e os componentes `dtb`, `dtbo`, `boot`, sem
+> impor os tamanhos daquela referência. O formato RAW `.img` dentro do TWRP ZIP
+> vem do pipeline S10 existente, não é atribuído ao ExtremeROM. O instalador
+> compara em leitura somente cada tamanho real com a capacidade atual antes de
+> gravar; não reparte nem formata. O texto abaixo registra a investigação
+> histórica do OTA, não a seleção vigente.
+
 **Estado: research-only; não é uma ROM pronta para instalação.** O usuário confirmou
 nesta conversa o modelo **SM-G975F / beyond2lte**. Isso confirma apenas o modelo-alvo;
 firmware, partições, kernel, compatibilidade vendor e boot continuam sem validação.

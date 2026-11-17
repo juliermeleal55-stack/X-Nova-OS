@@ -22,27 +22,29 @@ class RawImageTests(unittest.TestCase):
         image[1024 + 0x38:1024 + 0x3A] = b'\x53\xef'
         return bytes(image)
 
-    def workspace(self, root, *, optional=True):
+    def workspace(self, root, *, optional=True, model=None, codename=None, layout='stock'):
+        model = model or self.MODEL
+        codename = codename or self.CODENAME
         (root / 'out').mkdir()
         (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps({
-            'target': self.MODEL, 'codename': self.CODENAME,
+            'target': model, 'codename': codename,
             'status': 'unvalidated-candidate',
         }))
         (root / 'out/firmware-lock.json').write_text(json.dumps({
-            'schema_version': 1, 'firmwares': [{'model': self.MODEL, 'csc': 'AUT'}],
+            'schema_version': 1, 'firmwares': [{'model': model, 'csc': 'AUT'}],
         }))
-        target = root / 'target' / self.CODENAME
+        target = root / 'target' / codename
         target.mkdir(parents=True)
         (target / 'config.sh').write_text(
-            'TARGET_CODENAME="beyond1lte"\n'
-            'TARGET_ASSERT_MODEL=("SM-G973F")\n'
+            f'TARGET_CODENAME="{codename}"\n'
+            f'TARGET_ASSERT_MODEL=("{model}")\n'
             'TARGET_OS_FILE_SYSTEM="ext4"\n'
             'TARGET_SUPER_PARTITION_SIZE=0\n'
             'TARGET_HAS_SYSTEM_EXT=false\n'
         )
         (root / 'scripts').mkdir()
         (root / 'scripts/build_fs_image.sh').write_text('#!/bin/sh\n')
-        work = root / 'out/target' / self.CODENAME / 'work_dir'
+        work = root / 'out/target' / codename / 'work_dir'
         kernel = work / 'kernel'
         configs = work / 'configs'
         kernel.mkdir(parents=True)
@@ -59,19 +61,30 @@ class RawImageTests(unittest.TestCase):
         (kernel / 'dtbo.img').write_bytes(raw_images.DT_TABLE_MAGIC + bytes(128))
         (work / 'up_param.bin').write_bytes(b'not-an-img')
         caps = {name: 64 * 1024 for name in raw_images.FILESYSTEM_ORDER}
+        selected_profile = {'id': layout}
+        if layout == 'extreme-default':
+            caps = {
+                'system': 7000 * 1024**2, 'vendor': 1500 * 1024**2,
+                'product': 1500 * 1024**2, 'odm': 4 * 1024**2,
+                'prism': 600 * 1024**2, 'optics': 30 * 1024**2,
+            }
+        elif layout == 'extreme-structure':
+            caps = dict.fromkeys(('system', 'vendor', 'product', 'odm', 'prism', 'optics'))
+            selected_profile.update(image_partitions=list(caps), boot_components=['dtb', 'dtbo', 'boot'])
         inputs = {
             'schema_version': 1,
-            'codename': self.CODENAME,
-            'model': self.MODEL,
-            'partition_layout': {'id': 'stock'},
+            'codename': codename,
+            'model': model,
+            'partition_layout': selected_profile,
             'stock_image_size_caps': caps,
+            'image_size_caps': caps,
         }
         environment = {
             'BEYOUD_OUTPUT_FORMAT': 'twrp-zip',
             'BEYOUD_ALPHA_VERSION': '3.2',
             'BEYOUD_JOBS': '1',
-            'TARGET_CODENAME': self.CODENAME,
-            'TARGET_ASSERT_MODEL': self.MODEL,
+            'TARGET_CODENAME': codename,
+            'TARGET_ASSERT_MODEL': model,
             'TARGET_OS_FILE_SYSTEM': 'ext4',
             'WORK_DIR': str(work.resolve()),
             'GITHUB_RUN_NUMBER': '42',
@@ -109,15 +122,39 @@ class RawImageTests(unittest.TestCase):
             }),
         )
 
-    def test_raw_bundle_rejects_unreviewed_s10_plus_target(self):
+    def test_extreme_structure_raw_bundle_is_g975f_only_and_has_no_fixed_caps(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            self.workspace(root)
+            work, inputs, environment = self.workspace(
+                root, optional=True, model='SM-G975F', codename='beyond2lte',
+                layout='extreme-structure',
+            )
+            # vendor_dlkm is outside this candidate profile's six filesystem image roles.
+            import shutil
+            shutil.rmtree(work / 'vendor_dlkm')
+            with contextlib.ExitStack() as stack:
+                for item in self.build_patches(inputs, environment):
+                    stack.enter_context(item)
+                with contextlib.redirect_stdout(io.StringIO()):
+                    result = raw_images.build(root)
+            receipt = root / raw_images.PROOF_ROOT / 'beyond2lte.json'
+            report = raw_images.verify_bundle(
+                result, 'SM-G975F', 'beyond2lte', receipt=receipt, verify_hashes=True,
+            )
+            self.assertEqual(report['target_model'], 'SM-G975F')
+            self.assertEqual(report['target_codename'], 'beyond2lte')
+            self.assertEqual(report['partition_layout'], 'extreme-structure')
+            self.assertEqual(report['partition_profile_caps'], {})
+            self.assertEqual(report['partition_structure'], ['system', 'vendor', 'product', 'odm', 'prism', 'optics'])
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.workspace(root, model='SM-G975F', codename='beyond2lte')
             (root / 'BEYOUD-WORKSPACE.json').write_text(json.dumps({
-                'target': 'SM-G975F', 'codename': 'beyond2lte',
+                'target': 'SM-G975N', 'codename': 'beyond2lte',
                 'status': 'unvalidated-candidate',
             }))
-            with self.assertRaisesRegex(ValueError, 'only SM-G973F / beyond1lte'):
+            with self.assertRaisesRegex(ValueError, 'mismatch'):
                 raw_images.build(root)
 
     def test_build_publishes_only_imgs_and_collects_all_existing_supported_partitions(self):
@@ -226,7 +263,7 @@ class RawImageTests(unittest.TestCase):
             with contextlib.ExitStack() as stack:
                 for item in self.build_patches(inputs, environment):
                     stack.enter_context(item)
-                with self.assertRaisesRegex(ValueError, 'exceeds physical image capacity'):
+                with self.assertRaisesRegex(ValueError, 'exceeds selected image-size cap'):
                     raw_images.build(root)
             self.assertFalse((root / 'out/raw-images' / self.CODENAME).exists())
             self.assertFalse((root / raw_images.PROOF_ROOT / f'{self.CODENAME}.json').exists())

@@ -29,6 +29,15 @@ from integration.raw_images import (
     REQUIRED_IMAGES,
     verify_bundle as verify_raw_bundle,
 )
+from integration.targets import TWRP_ROM_TARGETS
+from integration.package_inputs import (
+    EXTREME_REPARTITIONER_PARTITIONS,
+    EXTREME_STRUCTURE_BOOT_COMPONENTS,
+    EXTREME_STRUCTURE_PARTITIONS,
+    EXTREME_STRUCTURE_PAYLOAD_FORMAT,
+    EXTREME_STRUCTURE_PAYLOAD_FORMAT_SOURCE,
+    EXTREME_STRUCTURE_REFERENCE_SCOPE,
+)
 
 ORDER = IMAGE_ORDER
 REQUIRED = REQUIRED_IMAGES
@@ -39,6 +48,19 @@ DEVICE_BASE_DEFAULT = '/dev/block/by-name'
 LICENSE_FILE = ROOT / 'integration/onerom/upstream/LICENSE'
 LICENSE_ENTRY = 'LICENSES/GPL-3.0-or-later.txt'
 CREDITS_ENTRY = 'CREDITS/OneROM-S10.md'
+TARGET_MODEL_TOKEN = b'@@TARGET_MODEL@@'
+
+
+def _update_binary(model):
+    if not any(known_model == model for _codename, known_model in TWRP_ROM_TARGETS):
+        raise ValueError('Unsupported exact TWRP model assertion')
+    path = ROOT / 'integration/new_installer/update-binary.sh'
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('Pinned TWRP update-binary template is missing/unsafe')
+    template = path.read_bytes()
+    if template.count(TARGET_MODEL_TOKEN) != 1:
+        raise ValueError('TWRP update-binary template must contain one exact target-model token')
+    return template.replace(TARGET_MODEL_TOKEN, model.encode('ascii'))
 
 
 def _credits_file():
@@ -79,7 +101,7 @@ def _source_manifest(filename):
     return {key: data.get(key) for key in ('repository', 'commit', 'license') if data.get(key) is not None}
 
 
-def _provenance(records, raw_receipt=None):
+def _provenance(records, raw_receipt=None, *, model='SM-G973F', codename='beyond1lte'):
     receipt = None
     receipt_path = None
     if raw_receipt is not None:
@@ -93,9 +115,11 @@ def _provenance(records, raw_receipt=None):
     }
     if receipt is not None and any(not value for value in source_manifests.values()):
         raise ValueError('Pinned Artisan/OneROM source manifests are required in the ROM ZIP')
+    if (codename, model) not in TWRP_ROM_TARGETS:
+        raise ValueError('TWRP ZIP provenance target is not an approved exact Exynos model')
     return {
-        'model': 'SM-G973F',
-        'codename': 'beyond1lte',
+        'model': model,
+        'codename': codename,
         'recovery_protocol': 'TWRP Android update-binary interface',
         'recovery_included': False,
         'recovery_modified': False,
@@ -150,11 +174,68 @@ def _safe_device_base(device_base):
     return device_base
 
 
-def _layout_guard(records, device_base):
+def _declared_profile(layout, model, codename):
+    if layout == 'extreme-default':
+        if (model, codename) != ('SM-G973F', 'beyond1lte'):
+            raise ValueError('Fixed-size ExtremeROM Default is disabled for the SM-G975F candidate')
+        profile_name = 'extreme-default.json'
+    elif layout == 'extreme-structure':
+        if (model, codename) != ('SM-G975F', 'beyond2lte'):
+            raise ValueError('ExtremeROM structure-only profile is scoped to SM-G975F/beyond2lte')
+        profile_name = 'extreme-structure-beyond2lte.json'
+    else:
+        if layout not in {'stock', 'content-sized', 'unknown'}:
+            raise ValueError(f'Unsupported TWRP partition profile: {layout}')
+        if (model, codename) == ('SM-G975F', 'beyond2lte'):
+            raise ValueError('SM-G975F/beyond2lte TWRP ZIP requires the extreme-structure receipt')
+        return None
+    path = ROOT / 'integration/partition_layouts' / profile_name
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('Pinned ExtremeROM partition profile is missing/unsafe')
+    profile = json.loads(path.read_text())
+    if (profile.get('schema_version') != 1 or profile.get('id') != layout
+            or profile.get('model') != model or profile.get('codename') != codename):
+        raise ValueError('Pinned ExtremeROM profile does not match the exact TWRP target')
+    if layout == 'extreme-default':
+        caps = profile.get('image_size_caps')
+        if (profile.get('unit') != 'bytes' or not isinstance(caps, dict)
+                or set(caps) != {'system', 'vendor', 'product', 'odm', 'prism', 'optics'}
+                or any(type(size) is not int or size <= 0 for size in caps.values())):
+            raise ValueError('Pinned ExtremeROM Default size profile is malformed')
+    else:
+        if ('image_size_caps' in profile
+                or profile.get('image_partitions') != list(EXTREME_STRUCTURE_PARTITIONS)
+                or profile.get('boot_components') != list(EXTREME_STRUCTURE_BOOT_COMPONENTS)
+                or profile.get('repartitioner_partitions') != list(EXTREME_REPARTITIONER_PARTITIONS)
+                or profile.get('reference_scope') != EXTREME_STRUCTURE_REFERENCE_SCOPE
+                or profile.get('payload_format') != EXTREME_STRUCTURE_PAYLOAD_FORMAT
+                or profile.get('payload_format_source') != EXTREME_STRUCTURE_PAYLOAD_FORMAT_SOURCE):
+            raise ValueError('ExtremeROM structure profile must declare image roles without fixed size caps')
+    return profile
+
+
+def _declared_profile_caps(layout, model, codename):
+    profile = _declared_profile(layout, model, codename)
+    return profile.get('image_size_caps', {}) if profile else {}
+
+
+def _declared_profile_structure(layout, model, codename):
+    profile = _declared_profile(layout, model, codename)
+    return profile.get('image_partitions', []) if profile else []
+
+
+def _layout_guard(records, device_base, partition_profile_caps=None):
+    profile_caps = partition_profile_caps or {}
+    if (not isinstance(profile_caps, dict) or set(profile_caps) - FILESYSTEM_IMAGES
+            or any(type(size) is not int or size <= 0 for size in profile_caps.values())):
+        raise ValueError('Invalid read-only partition profile requirements')
+    required = {record['name']: record['bytes'] for record in records}
+    for name, capacity in profile_caps.items():
+        required[name] = max(required.get(name, 0), capacity)
     guard = '#!/sbin/sh\n' + (ROOT / 'integration/recovery_layout_check.sh').read_text() + '\n'
     guard += ''.join(
-        f"check_partition {record['name']} {record['bytes']} || failures=1\n"
-        for record in records
+        f'check_partition {name} {required[name]} || failures=1\n'
+        for name in ORDER if name in required
     )
     guard += 'exit "$failures"\n'
     return guard
@@ -224,8 +305,8 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
     package = Path(package)
     if package.is_symlink() or not package.is_file() or package.stat().st_size <= 0:
         raise ValueError('Missing/unsafe TWRP ROM ZIP')
-    if (expected_model, expected_codename) != ('SM-G973F', 'beyond1lte'):
-        raise ValueError('The reviewed TWRP package target is SM-G973F / beyond1lte only')
+    if (expected_codename, expected_model) not in TWRP_ROM_TARGETS:
+        raise ValueError('TWRP ZIP target must be exactly SM-G973F/beyond1lte or SM-G975F/beyond2lte')
     receipt_path = None
     receipt_data = None
     if raw_receipt is not None:
@@ -276,18 +357,27 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
         device_base = archive.read('installer/device-base').decode('ascii')
         if device_base != _safe_device_base(device_base.strip()) + '\n':
             raise ValueError('Invalid installer device-base entry')
-        expected_guard = _layout_guard(records, device_base.strip()).encode()
+        partition_layout = receipt_data.get('partition_layout', 'unknown') if receipt_data else 'unknown'
+        profile_caps = receipt_data.get('partition_profile_caps', {}) if receipt_data else {}
+        partition_structure = receipt_data.get('partition_structure', []) if receipt_data else []
+        expected_profile_caps = _declared_profile_caps(partition_layout, expected_model, expected_codename)
+        expected_structure = _declared_profile_structure(partition_layout, expected_model, expected_codename)
+        if profile_caps != expected_profile_caps or partition_structure != expected_structure:
+            raise ValueError('RAW image proof does not match the selected partition structure/cap policy')
+        expected_guard = _layout_guard(records, device_base.strip(), profile_caps).encode()
         if archive.read('installer/layout-check.sh') != expected_guard:
             raise ValueError('TWRP package capacity/mount guard differs from the reviewed host source')
         if archive.read('installer/engine.sh') != (ROOT / 'integration/new_installer/engine.sh').read_bytes():
             raise ValueError('TWRP package installer engine differs from reviewed host source')
-        if update_binary != (ROOT / 'integration/new_installer/update-binary.sh').read_bytes():
-            raise ValueError('TWRP package update-binary differs from reviewed host source')
+        if update_binary != _update_binary(expected_model):
+            raise ValueError('TWRP package update-binary differs from the exact target-locked host template')
         if archive.read('installer/zip64-probe.txt') != b'XNOVA_RAW_V1\n':
             raise ValueError('TWRP ZIP64 probe entry is invalid')
         warning = archive.read('WARNING.txt').decode('utf-8')
-        if 'NOT HARDWARE-VALIDATED' not in warning or 'unsigned' not in warning.lower():
-            raise ValueError('TWRP package warning must disclose hardware and signature status')
+        if ('NOT HARDWARE-VALIDATED' not in warning or 'unsigned' not in warning.lower()
+                or 'does not verify the physical partition table' not in warning.lower()
+                or 'read-only installer guard' not in warning.lower()):
+            raise ValueError('TWRP package warning must disclose hardware, layout and signature status')
         try:
             sizes = json.loads(archive.read('REQUIRED-IMAGE-SIZES.json'))
             provenance = json.loads(archive.read('installer/provenance.json'))
@@ -296,6 +386,10 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
         expected_sizes = {record['name']: record['bytes'] for record in records}
         if (sizes.get('model') != expected_model or sizes.get('codename') != expected_codename
                 or sizes.get('image_size_bytes') != expected_sizes
+                or sizes.get('physical_layout_verified') is not False
+                or sizes.get('partition_layout') != partition_layout
+                or sizes.get('partition_profile_caps') != profile_caps
+                or sizes.get('partition_structure', []) != partition_structure
                 or provenance.get('model') != expected_model
                 or provenance.get('codename') != expected_codename
                 or provenance.get('recovery_included') is not False
@@ -356,9 +450,12 @@ def verify_package(package, *, expected_model='SM-G973F', expected_codename='bey
     }
 
 
-def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None):
+def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None,
+          expected_model='SM-G973F', expected_codename='beyond1lte'):
     images = Path(images)
     output = Path(output)
+    if (expected_codename, expected_model) not in TWRP_ROM_TARGETS:
+        raise ValueError('TWRP ZIP target must be exactly SM-G973F/beyond1lte or SM-G975F/beyond2lte')
     device_base = _safe_device_base(device_base)
     if images.is_symlink() or not images.is_dir():
         raise ValueError('Missing/unsafe RAW image directory')
@@ -368,8 +465,23 @@ def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None):
     available = {path.stem for path in input_entries}
     if len(available) != len(input_entries) or not REQUIRED <= available or available - set(ORDER):
         raise ValueError('Missing required or unsupported image role (no recovery/data/EFS writes)')
+    receipt_data = None
     if receipt is not None:
-        verify_raw_bundle(images, 'SM-G973F', 'beyond1lte', receipt=receipt, verify_hashes=True)
+        verify_raw_bundle(images, expected_model, expected_codename,
+                          receipt=receipt, verify_hashes=True)
+        if isinstance(receipt, (str, Path)):
+            receipt_path = Path(receipt)
+            if receipt_path.is_symlink() or not receipt_path.is_file():
+                raise ValueError('Missing/unsafe raw image proof for TWRP package build')
+            receipt_data = json.loads(receipt_path.read_text())
+        else:
+            raise ValueError('TWRP ROM ZIP construction requires a persisted raw image proof receipt')
+    partition_layout = receipt_data.get('partition_layout', 'unknown') if receipt_data else 'unknown'
+    profile_caps = receipt_data.get('partition_profile_caps', {}) if receipt_data else {}
+    partition_structure = receipt_data.get('partition_structure', []) if receipt_data else []
+    if (profile_caps != _declared_profile_caps(partition_layout, expected_model, expected_codename)
+            or partition_structure != _declared_profile_structure(partition_layout, expected_model, expected_codename)):
+        raise ValueError('RAW image proof does not match the selected partition structure/cap policy')
     if output.exists() or output.is_symlink():
         raise ValueError('Refusing to replace an existing package')
     if output.parent.is_symlink() or not output.parent.is_dir():
@@ -395,29 +507,47 @@ def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None):
                 )
                 archive.writestr('installer/manifest.tsv', manifest)
                 archive.writestr('installer/device-base', device_base + '\n')
-                archive.writestr('installer/layout-check.sh', _layout_guard(records, device_base))
+                archive.writestr('installer/layout-check.sh', _layout_guard(records, device_base, profile_caps))
                 archive.write(ROOT / 'integration/new_installer/engine.sh', 'installer/engine.sh')
                 info = zipfile.ZipInfo(UPDATE_BINARY)
                 info.external_attr = (stat.S_IFREG | 0o755) << 16
-                archive.writestr(info, (ROOT / 'integration/new_installer/update-binary.sh').read_bytes())
+                archive.writestr(info, _update_binary(expected_model))
                 archive.writestr('REQUIRED-IMAGE-SIZES.json', json.dumps({
-                    'model': 'SM-G973F',
-                    'codename': 'beyond1lte',
+                    'model': expected_model,
+                    'codename': expected_codename,
+                    'partition_layout': partition_layout,
+                    'partition_profile_caps': profile_caps,
+                    'partition_structure': partition_structure,
+                    'physical_layout_verified': False,
                     'installer': 'xnova-twrp-raw-v1-experimental',
                     'image_size_bytes': {record['name']: record['bytes'] for record in records},
                 }, indent=2) + '\n')
+                if partition_layout == 'extreme-structure':
+                    profile_warning = 'Selected ExtremeROM partition-name reference profile applies no fixed image-size cap at build time. '
+                elif profile_caps:
+                    profile_warning = 'Selected fixed profile image-size caps were enforced during image construction. '
+                else:
+                    profile_warning = 'No fixed profile image-size cap is enforced by this ZIP. '
                 archive.writestr(
                     'WARNING.txt',
-                    'EXPERIMENTAL TWRP ROM ZIP: NOT HARDWARE-VALIDATED; unsigned; not release-approved.\n'
+                    f'EXPERIMENTAL TWRP ROM ZIP for {expected_model} / {expected_codename}: '
+                    'NOT HARDWARE-VALIDATED; unsigned; not release-approved.\n'
                     'The package contains RAW partition images and an update-binary script; it does not '
                     'include or modify TWRP/recovery. TWRP must permit unsigned test packages.\n'
+                    'REQUIRED-IMAGE-SIZES.json lists exact image byte sizes. ' + profile_warning +
+                    'A read-only installer guard checks declared target paths, actual image capacities and '
+                    'mount state before any write, and aborts on failure. This does not verify the physical '
+                    'partition table or prove any repartition is installed.\n'
+                    'No partition resizing, repartitioning or filesystem formatting is performed. Confirm '
+                    'the actual device layout independently; an image may exceed a stock partition.\n'
                     'Writes are non-atomic; interruption after the first partition write may leave the '
                     'device unbootable. Requires userdata mounted and free staging space for all images.\n'
-                    'No formatting, repartitioning, automatic mount, OTA new.dat.br, transfer.list, '
-                    'block_image_update, modem, EFS or recovery image is included. Keep backups and a '
-                    'stock restore procedure.\n',
+                    'No automatic mount, OTA new.dat.br, transfer.list, block_image_update, modem, EFS '
+                    'or recovery image is included. Keep backups and a stock restore procedure.\n',
                 )
-                provenance = _provenance(records, receipt)
+                provenance = _provenance(
+                    records, receipt, model=expected_model, codename=expected_codename,
+                )
                 if LICENSE_FILE.is_symlink() or not LICENSE_FILE.is_file():
                     raise ValueError('Retained GPL license text is missing/unsafe')
                 archive.write(LICENSE_FILE, LICENSE_ENTRY)
@@ -428,7 +558,10 @@ def build(images, output, device_base=DEVICE_BASE_DEFAULT, *, receipt=None):
                 # Last entry deliberately exercises ZIP64 local-header handling.
                 with archive.open('installer/zip64-probe.txt', 'w', force_zip64=True) as probe:
                     probe.write(b'XNOVA_RAW_V1\n')
-        verify_package(output, images=images, raw_receipt=receipt)
+        verify_package(
+            output, expected_model=expected_model, expected_codename=expected_codename,
+            images=images, raw_receipt=receipt,
+        )
         return records
     except BaseException:
         if created:
@@ -443,13 +576,20 @@ def main(argv=None):
                         help='Host-verified raw-image proof receipt for this exact target')
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--device-base', default=DEVICE_BASE_DEFAULT)
+    parser.add_argument('--model', choices=sorted({model for _codename, model in TWRP_ROM_TARGETS}),
+                        default='SM-G973F')
+    parser.add_argument('--codename', choices=sorted({codename for codename, _model in TWRP_ROM_TARGETS}),
+                        default='beyond1lte')
     parser.add_argument('--experimental', action='store_true',
                         help='Acknowledge candidate, not hardware validated or release-approved')
     args = parser.parse_args(argv)
     if not args.experimental:
         parser.error('--experimental is required; no package is release-approved')
     try:
-        records = build(args.images, args.output, args.device_base, receipt=args.receipt)
+        records = build(
+            args.images, args.output, args.device_base, receipt=args.receipt,
+            expected_model=args.model, expected_codename=args.codename,
+        )
         print(json.dumps({
             'package': str(args.output),
             'sha256': sha256(args.output),

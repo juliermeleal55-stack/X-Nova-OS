@@ -17,7 +17,7 @@ for tool in cat mkdir rmdir awk tail sed unzip sha256sum dd timeout head stat df
     command -v "$tool" >/dev/null 2>&1 || fail "TOOL_MISSING $tool"
 done
 [ "$(id -u)" = 0 ] || fail NOT_ROOT
-[ "$(getprop ro.boot.em.model)" = SM-G973F ] || fail WRONG_MODEL
+[ "$(getprop ro.boot.em.model)" = "@@TARGET_MODEL@@" ] || fail WRONG_MODEL
 battery=$(cat /sys/class/power_supply/battery/capacity) || fail BATTERY_READ
 case "$battery" in ''|*[!0-9]*) fail BATTERY_READ;; esac
 [ "$battery" -ge 30 ] || fail BATTERY_LOW_CHARGE_FIRST

@@ -21,17 +21,25 @@ python3 scripts/collect_alpha.py /outside/repo/s10-work /outside/repo/s10-result
 python3 scripts/port.py doctor --target beyond1lte
 ```
 
-The default CLI target is beyond1lte/SM-G973F. The separate S10+ candidate,
-beyond2lte/SM-G975F, remains research-only and uses the legacy Artisan OTA path
-rather than the Alpha 3.2 TWRP/RAW path; see [S10+ OTA research](S10PLUS-OTA-RESEARCH.md).
-Generated markers contain model AND codename. Wrappers reject mismatched/unknown
-markers; package names and model assertions are device-specific, so a G973F
-archive is rejected by the G975F collector and vice versa.
+The default CLI target remains beyond1lte/SM-G973F. A separate, unvalidated
+candidate workflow now requests beyond2lte/SM-G975F through the Alpha 3.2
+TWRP/RAW ZIP path, with the structure-only profile and no fixed image-size
+limits. It uses the existing S10 RAW-image packaging format; the pinned
+ExtremeROM repartitioner contributes generic partition names only, not size
+values or evidence of the G975F physical layout/ArtisanROM compatibility. This
+is a build request, not a completed or hardware-supported ROM; see
+[S10+ OTA research](S10PLUS-OTA-RESEARCH.md).
 
-The alpha workflow is now **manual** (workflow_dispatch) with a target selector,
-to avoid automatically starting expensive firmware builds just by changing the
-workflow. Source validation still runs on pushes and pull requests. No phone
-firmware build was launched as part of adding this unconfirmed target.
+Generated markers contain model AND codename. Wrappers reject mismatched/unknown
+markers; package names and model assertions are device-specific. The S10+ path
+is restricted to SM-G975F/beyond2lte, and does not include SM-G975N or Snapdragon
+variants.
+
+The primary S10 alpha workflow is **manual** (`workflow_dispatch`) with a target
+selector. The separate S10+ request workflow is path-triggered on its own file;
+this workspace has not pushed it or launched an Actions build. Source validation
+still runs on pushes and pull requests. No device build was launched as part of
+adding the primary S10 target.
 
 Validation in this step: unit tests for own stock configuration, target routing,
 model mismatch rejection, legacy markers, distinct package names and warnings.

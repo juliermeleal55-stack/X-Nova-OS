@@ -7,6 +7,13 @@ TARGETS = {
     'beyond1lte': {'model': 'SM-G973F', 'legacy_model': 'SM-G973N', 'name': 'Galaxy S10'},
 }
 
+# Only Exynos model/codename pairs are eligible for the experimental TWRP ZIP.
+# In particular, the legacy Snapdragon model assertions are never accepted.
+TWRP_ROM_TARGETS = frozenset({
+    ('beyond1lte', 'SM-G973F'),
+    ('beyond2lte', 'SM-G975F'),
+})
+
 
 def select(codename):
     if codename not in TARGETS:

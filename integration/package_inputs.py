@@ -15,46 +15,117 @@ from integration.samloader.metadata import configured_firmwares, get
 from integration.targets import from_marker
 
 
+EXTREME_STRUCTURE_PARTITIONS = ('system', 'vendor', 'product', 'odm', 'prism', 'optics')
+EXTREME_STRUCTURE_BOOT_COMPONENTS = ('dtb', 'dtbo', 'boot')
+EXTREME_STRUCTURE_PAYLOAD_FORMAT = 'expanded-raw-img-in-s10-twrp-zip'
+EXTREME_STRUCTURE_REFERENCE_SCOPE = 'partition-names-only; no physical-layout or ArtisanROM-equivalence claim'
+EXTREME_STRUCTURE_PAYLOAD_FORMAT_SOURCE = 'existing-s10-twrp-raw-image-pipeline; not attributed to ExtremeROM'
+EXTREME_REPARTITIONER_PARTITIONS = (
+    'system', 'vendor', 'product', 'odm', 'prism', 'optics', 'cache', 'omr',
+    'cp_debug', 'cp2_debug', 'spu', 'userdata',
+)
+
+
+def _workspace_target(workspace):
+    marker = json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text())
+    return from_marker(marker)
+
+
+def _extreme_structure_profile(workspace):
+    codename, device = _workspace_target(workspace)
+    if (device['model'], codename) != ('SM-G975F', 'beyond2lte'):
+        raise ValueError('ExtremeROM structure-only profile is scoped to SM-G975F/beyond2lte')
+    if os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip') != 'twrp-zip':
+        raise ValueError('ExtremeROM structure-only profile requires the existing S10 TWRP ZIP pipeline')
+    path = Path(__file__).resolve().parent / 'partition_layouts/extreme-structure-beyond2lte.json'
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('Pinned ExtremeROM structure profile is missing/unsafe')
+    raw = path.read_bytes()
+    profile = json.loads(raw)
+    if (profile.get('schema_version') != 1
+            or profile.get('id') != 'extreme-structure'
+            or profile.get('model') != device['model']
+            or profile.get('codename') != codename
+            or profile.get('image_partitions') != list(EXTREME_STRUCTURE_PARTITIONS)
+            or profile.get('boot_components') != list(EXTREME_STRUCTURE_BOOT_COMPONENTS)
+            or profile.get('repartitioner_partitions') != list(EXTREME_REPARTITIONER_PARTITIONS)
+            or profile.get('reference_scope') != EXTREME_STRUCTURE_REFERENCE_SCOPE
+            or profile.get('payload_format') != EXTREME_STRUCTURE_PAYLOAD_FORMAT
+            or profile.get('payload_format_source') != EXTREME_STRUCTURE_PAYLOAD_FORMAT_SOURCE
+            or 'image_size_caps' in profile):
+        raise ValueError('ExtremeROM structure profile is malformed or contains fixed size limits')
+    return {
+        'id': profile['id'],
+        'sha256': hashlib.sha256(raw).hexdigest(),
+        'requires': profile['requires'],
+        'reference_scope': profile['reference_scope'],
+        'payload_format': profile['payload_format'],
+        'payload_format_source': profile['payload_format_source'],
+        'image_partitions': profile['image_partitions'],
+        'boot_components': profile['boot_components'],
+        'repartitioner_partitions': profile['repartitioner_partitions'],
+    }
+
+
 def selected_layout(workspace):
-    name=os.environ.get('BEYOUD_PARTITION_LAYOUT','stock')
-    if name=='stock':return dict(id='stock',sha256=None)
-    if name=='content-sized':
-        codename,device=from_marker(json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text()))
-        if (device['model'],codename) not in {('SM-G973F','beyond1lte'),('SM-G975F','beyond2lte')}:
+    name = os.environ.get('BEYOUD_PARTITION_LAYOUT', 'stock')
+    if name == 'stock':
+        return dict(id='stock', sha256=None)
+    if name == 'content-sized':
+        codename, device = _workspace_target(workspace)
+        if (device['model'], codename) not in {('SM-G973F', 'beyond1lte'), ('SM-G975F', 'beyond2lte')}:
             raise ValueError('Content-sized layout is scoped to the audited Exynos S10/S10+ candidates')
-        return dict(id=name,sha256=None,requires='Owner-managed repartition sized AFTER image generation; no fixed capacity promise; no automatic repartition.',
-                    image_size_caps=dict.fromkeys(('system','vendor','product','odm','prism','optics')))
-    if name!='extreme-default':raise ValueError('Unknown explicit partition layout')
-    path=Path(__file__).resolve().parent/'partition_layouts/extreme-default.json'
-    raw=path.read_bytes();profile=json.loads(raw)
-    codename,device=from_marker(json.loads((workspace/'BEYOUD-WORKSPACE.json').read_text()))
-    if (profile.get('schema_version')!=1 or profile.get('id')!=name or profile.get('unit')!='bytes'
-            or profile.get('model')!=device['model'] or profile.get('codename')!=codename):
-        raise ValueError('Partition profile does not match selected S10 model')
-    caps=profile['image_size_caps']
-    if set(caps)!={'system','vendor','product','odm','prism','optics'} or any(type(v) is not int or v<=0 or v%1048576 for v in caps.values()):
+        return dict(
+            id=name,
+            sha256=None,
+            requires='Owner-managed repartition sized AFTER image generation; no fixed capacity promise; no automatic repartition.',
+            image_size_caps=dict.fromkeys(EXTREME_STRUCTURE_PARTITIONS),
+        )
+    if name == 'extreme-structure':
+        return _extreme_structure_profile(workspace)
+    if name != 'extreme-default':
+        raise ValueError('Unknown explicit partition layout')
+    codename, device = _workspace_target(workspace)
+    if (device['model'], codename) != ('SM-G973F', 'beyond1lte'):
+        raise ValueError('Fixed-size ExtremeROM Default profile is disabled for beyond2lte; use extreme-structure')
+    path = Path(__file__).resolve().parent / 'partition_layouts/extreme-default.json'
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('Pinned ExtremeROM Default size profile is missing/unsafe')
+    raw = path.read_bytes()
+    profile = json.loads(raw)
+    if (profile.get('schema_version') != 1 or profile.get('id') != name or profile.get('unit') != 'bytes'
+            or profile.get('model') != device['model'] or profile.get('codename') != codename):
+        raise ValueError('Fixed-size partition profile does not match selected S10 model')
+    caps = profile.get('image_size_caps')
+    if (set(caps or {}) != set(EXTREME_STRUCTURE_PARTITIONS)
+            or any(type(value) is not int or value <= 0 or value % 1048576 for value in caps.values())):
         raise ValueError('Invalid declared partition profile capacities')
-    return dict(id=name,sha256=hashlib.sha256(raw).hexdigest(),requires=profile['requires'],image_size_caps=caps)
+    return dict(
+        id=name,
+        sha256=hashlib.sha256(raw).hexdigest(),
+        requires=profile['requires'],
+        image_size_caps=caps,
+    )
 
 
 def _content_sized_caps(stock_caps):
-    # The user-selected custom layout always covers the six donor/static
-    # partitions. Kernel modules/system_ext are not invented: they are enabled
-    # only when the locked target firmware explicitly contains that partition.
-    names = {'system', 'vendor', 'product', 'odm', 'prism', 'optics'}
+    # The selected structure covers the six static S10 filesystem partitions.
+    # Kernel modules/system_ext are not invented: they are enabled only when
+    # the locked target firmware explicitly contains that partition.
+    names = set(EXTREME_STRUCTURE_PARTITIONS)
     names.update(name for name in ('system_ext', 'vendor_dlkm', 'odm_dlkm', 'system_dlkm')
                  if name in stock_caps)
     return {name: None for name in names}
 
 
 def _layout_image_caps(layout, stock_caps):
-    if layout.get('id') == 'content-sized':
+    if layout.get('id') in {'content-sized', 'extreme-structure'}:
         return _content_sized_caps(stock_caps)
     return layout.get('image_size_caps', stock_caps)
 
 
 def image_caps(data):
-    return data.get('image_size_caps',data['stock_image_size_caps'])
+    return data.get('image_size_caps', data['stock_image_size_caps'])
 
 
 def lock_digest(workspace):
@@ -161,23 +232,30 @@ def load(workspace):
 
 
 def write_layout_check(workspace, destination):
-    data=load(workspace)
-    if destination.is_symlink() or destination.parent.resolve()!=(workspace/'out/zip').resolve():
+    data = load(workspace)
+    if destination.is_symlink() or destination.parent.resolve() != (workspace / 'out/zip').resolve():
         raise ValueError('Unsafe recovery layout-check destination')
-    script='#!/sbin/sh\n# Read-only capacity check; never repartition or format.\n'
-    if data.get('partition_layout',{}).get('id','stock')!='stock':
-        script+=(Path(__file__).resolve().parent/'recovery_layout_check.sh').read_text()+'\n'
-        caps=image_caps(data)
-        if data['partition_layout']['id']=='content-sized':
-            report=json.loads((workspace/'out/zip/REQUIRED-IMAGE-SIZES.json').read_text())
-            caps=report['image_size_bytes']
-            if report.get('layout')!='content-sized' or report.get('model')!=data['model'] or 'system' not in caps or set(caps)-set(image_caps(data)) or any(type(v) is not int or v<=0 for v in caps.values()):
+    script = '#!/sbin/sh\n# Read-only capacity check; never repartition or format.\n'
+    layout = data.get('partition_layout', {}).get('id', 'stock')
+    if layout != 'stock':
+        script += (Path(__file__).resolve().parent / 'recovery_layout_check.sh').read_text() + '\n'
+        caps = image_caps(data)
+        if layout in {'content-sized', 'extreme-structure'}:
+            report = json.loads((workspace / 'out/zip/REQUIRED-IMAGE-SIZES.json').read_text())
+            caps = report.get('image_size_bytes', {})
+            required = set(data['partition_layout'].get('image_partitions', ()))
+            if layout == 'content-sized':
+                required.add('system')
+            if (report.get('layout') != layout or report.get('model') != data['model']
+                    or report.get('partition_structure', []) != list(data['partition_layout'].get('image_partitions', ()))
+                    or not required <= set(caps) or set(caps) - set(image_caps(data))
+                    or any(type(value) is not int or value <= 0 for value in caps.values())):
                 raise ValueError('Invalid generated image requirements')
-        for name,cap in sorted(caps.items()):
-            script+=f'check_partition {name} {cap} || failures=1\n'
-        script+='log "Partition check complete: failures=$failures; details=$LOG"\nexit "$failures"\n'
+        for name, cap in sorted(caps.items()):
+            script += f'check_partition {name} {cap} || failures=1\n'
+        script += 'log "Partition check complete: failures=$failures; details=$LOG"\nexit "$failures"\n'
     else:
-        script+='exit 0\n'
+        script += 'exit 0\n'
     destination.write_text(script)
 
 
@@ -190,9 +268,11 @@ def identifier(workspace, key):
 
 def check_image(workspace, partition, image):
     data = load(workspace)
-    cap = image_caps(data).get(partition)
-    unbounded=data.get('partition_layout',{}).get('id')=='content-sized'
-    if partition not in image_caps(data) or (not unbounded and (type(cap) is not int or cap <= 0)):
+    layout = data.get('partition_layout', {}).get('id', 'stock')
+    caps = image_caps(data)
+    cap = caps.get(partition)
+    unbounded = layout in {'content-sized', 'extreme-structure'}
+    if partition not in caps or (not unbounded and (type(cap) is not int or cap <= 0)):
         raise ValueError(f'No selected image size cap for {partition}')
     with image.open('rb') as stream:
         header = stream.read(28)
@@ -206,16 +286,30 @@ def check_image(workspace, partition, image):
     else:
         logical = image.stat().st_size
     if logical <= 0 or (not unbounded and logical > cap):
-        raise ValueError(f'{partition} logical image size={logical} exceeds selected image cap={cap}; revise payload, do not bypass')
+        raise ValueError(f'{partition} logical image size={logical} exceeds selected image-size cap={cap}; revise payload, do not bypass')
     if unbounded:
-        directory=workspace/'out/zip'
-        if directory.is_symlink():raise ValueError('Unsafe image requirements directory')
-        directory.mkdir(parents=True,exist_ok=True)
-        path=directory/'REQUIRED-IMAGE-SIZES.json'
-        report=json.loads(path.read_text()) if path.is_file() else dict(layout='content-sized',model=data['model'],image_size_bytes={})
-        report['image_size_bytes'][partition]=logical
-        atomic_json(path,report)
-    print(f'{partition}: logical bytes={logical}, selected image cap={cap} (None means content-sized; not a device measurement)', flush=True)
+        directory = workspace / 'out/zip'
+        if directory.is_symlink():
+            raise ValueError('Unsafe image requirements directory')
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / 'REQUIRED-IMAGE-SIZES.json'
+        structure = list(data['partition_layout'].get('image_partitions', ()))
+        if path.is_file():
+            report = json.loads(path.read_text())
+            if (report.get('layout') != layout or report.get('model') != data['model']
+                    or report.get('partition_structure', []) != structure):
+                raise ValueError('Existing image requirements belong to a different profile/target')
+        else:
+            report = {
+                'layout': layout,
+                'model': data['model'],
+                'partition_structure': structure,
+                'image_size_bytes': {},
+            }
+        report['image_size_bytes'][partition] = logical
+        atomic_json(path, report)
+    cap_text = 'none (no fixed build-time cap; not a device measurement)' if unbounded else f'{cap} bytes'
+    print(f'{partition}: logical bytes={logical}, fixed build-time cap={cap_text}', flush=True)
 
 
 def retire(workspace):

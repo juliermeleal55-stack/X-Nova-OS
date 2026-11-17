@@ -11,11 +11,11 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from integration.package_inputs import atomic_json
+from integration.package_inputs import atomic_json, load as load_package_inputs
 from integration.raw_images import PROOF_ROOT as RAW_PROOF_ROOT
 from integration.raw_images import build as build_raw_images
 from integration.raw_images import verify_bundle as verify_raw_bundle
-from integration.targets import from_marker
+from integration.targets import TWRP_ROM_TARGETS, from_marker
 from integration.twrp_zip_builder import build as build_twrp_zip
 from integration.twrp_zip_builder import sha256, verify_package as verify_twrp_zip
 
@@ -38,15 +38,25 @@ def _positive_label(name, default):
     return value
 
 
-def _package_name(model):
+def _package_name(model, partition_layout='stock'):
     version = os.environ.get('BEYOUD_ALPHA_VERSION', '3.2')
     if not re.fullmatch(r'[0-9]+(?:\.[0-9]+)*', version):
         raise ValueError('BEYOUD_ALPHA_VERSION must be numeric dot-separated components')
+    layout = partition_layout
+    try:
+        layout_suffix = {
+            'stock': '',
+            'extreme-default': '-EXTREME-DEFAULT-REPARTITION',
+            'extreme-structure': '-EXTREME-STRUCTURE-NO-FIXED-SIZE-CAP',
+            'content-sized': '-CUSTOM-REPARTITION-REQUIRED',
+        }[layout]
+    except KeyError as exc:
+        raise ValueError(f'Unsupported TWRP package partition layout: {layout}') from exc
     run_number = _positive_label('GITHUB_RUN_NUMBER', 'local')
     run_attempt = _positive_label('GITHUB_RUN_ATTEMPT', '1')
     return (
         f'X-NovaOS-Alpha-{version}-{model}-Build-{run_number}-Attempt-{run_attempt}'
-        '-TWRP-UNTESTED.zip'
+        f'{layout_suffix}-TWRP-UNTESTED.zip'
     )
 
 
@@ -54,15 +64,15 @@ def _workspace_identity(workspace):
     marker_path = _safe_file(workspace / 'BEYOUD-WORKSPACE.json', 'workspace provenance marker')
     marker = json.loads(marker_path.read_text())
     codename, device = from_marker(marker)
-    if (codename, device['model']) != ('beyond1lte', 'SM-G973F'):
-        raise ValueError('The reviewed TWRP ROM ZIP currently supports SM-G973F / beyond1lte only')
+    if (codename, device['model']) not in TWRP_ROM_TARGETS:
+        raise ValueError('TWRP ROM ZIP supports only SM-G973F/beyond1lte or SM-G975F/beyond2lte')
     return marker, codename, device['model']
 
 
-def _output_paths(workspace, codename):
+def _output_paths(workspace, codename, model, partition_layout='stock'):
     zip_dir = workspace / OUTPUT_ROOT / codename
     proof_dir = workspace / PROOF_ROOT
-    zip_path = zip_dir / _package_name('SM-G973F')
+    zip_path = zip_dir / _package_name(model, partition_layout)
     proof_path = proof_dir / f'{codename}.json'
     raw_dir = workspace / 'out/raw-images' / codename
     raw_receipt = workspace / RAW_PROOF_ROOT / f'{codename}.json'
@@ -74,7 +84,14 @@ def verify_workspace(workspace):
     workspace = Path(workspace).resolve()
     marker, codename, model = _workspace_identity(workspace)
     lock_path = _safe_file(workspace / 'out/firmware-lock.json', 'verified firmware lock')
-    zip_dir, expected_zip, proof_dir, proof_path, raw_dir, raw_receipt = _output_paths(workspace, codename)
+    package_inputs = load_package_inputs(workspace)
+    selected_profile = package_inputs.get('partition_layout', {})
+    selected_layout = selected_profile.get('id', 'stock')
+    profile_caps = selected_profile.get('image_size_caps', {}) if selected_layout == 'extreme-default' else {}
+    profile_structure = selected_profile.get('image_partitions', []) if selected_layout == 'extreme-structure' else []
+    zip_dir, expected_zip, proof_dir, proof_path, raw_dir, raw_receipt = _output_paths(
+        workspace, codename, model, selected_layout,
+    )
     for path in (workspace / OUTPUT_ROOT, zip_dir, proof_dir,
                  workspace / 'out/raw-images', raw_dir,
                  workspace / RAW_PROOF_ROOT, raw_receipt.parent):
@@ -96,8 +113,14 @@ def verify_workspace(workspace):
         raw_dir, expected_model=model, expected_codename=codename,
         receipt=raw_receipt, verify_hashes=True,
     )
-    if json.loads(raw_receipt.read_text()).get('firmware_lock_sha256') != sha256(lock_path):
+    raw_provenance = json.loads(raw_receipt.read_text())
+    if raw_provenance.get('firmware_lock_sha256') != sha256(lock_path):
         raise ValueError('RAW image proof does not match the verified firmware lock')
+    partition_layout = raw_provenance.get('partition_layout', 'stock')
+    if (partition_layout != selected_layout
+            or raw_provenance.get('partition_profile_caps', {}) != profile_caps
+            or raw_provenance.get('partition_structure', []) != profile_structure):
+        raise ValueError('RAW image proof differs from the selected partition structure/cap policy')
     package = packages[0]
     zip_report = verify_twrp_zip(
         package, expected_model=model, expected_codename=codename,
@@ -110,6 +133,8 @@ def verify_workspace(workspace):
         'status': 'host-verified-not-hardware-validated',
         'target_model': model,
         'target_codename': codename,
+        'partition_layout': partition_layout,
+        'partition_structure': profile_structure,
         'package_filename': package.name,
         'package_bytes': package.stat().st_size,
         'package_sha256': sha256(package),
@@ -129,6 +154,8 @@ def verify_workspace(workspace):
         'status': zip_report['status'],
         'target_model': model,
         'target_codename': codename,
+        'partition_layout': partition_layout,
+        'partition_structure': profile_structure,
         'package': str(package),
         'package_bytes': zip_report['bytes'],
         'package_sha256': zip_report['sha256'],
@@ -151,8 +178,15 @@ def build_workspace(workspace):
     out = workspace / 'out'
     if out.is_symlink() or not out.is_dir():
         raise ValueError('Missing/unsafe build output directory')
-    zip_dir, zip_path, proof_dir, proof_path, raw_dir, raw_receipt = _output_paths(workspace, codename)
     lock_path = _safe_file(out / 'firmware-lock.json', 'verified firmware lock')
+    package_inputs = load_package_inputs(workspace)
+    selected_profile = package_inputs.get('partition_layout', {})
+    selected_layout = selected_profile.get('id', 'stock')
+    profile_caps = selected_profile.get('image_size_caps', {}) if selected_layout == 'extreme-default' else {}
+    profile_structure = selected_profile.get('image_partitions', []) if selected_layout == 'extreme-structure' else []
+    zip_dir, zip_path, proof_dir, proof_path, raw_dir, raw_receipt = _output_paths(
+        workspace, codename, model, selected_layout,
+    )
     for path, description in ((out / 'twrp-zips', 'TWRP ZIP root'),
                               (zip_dir, 'TWRP ZIP output directory'),
                               (proof_dir, 'private TWRP ZIP proof directory'),
@@ -174,8 +208,14 @@ def build_workspace(workspace):
         build_raw_images(workspace)
         raw_receipt = _safe_file(raw_receipt, 'private RAW image proof receipt')
 
-    if json.loads(raw_receipt.read_text()).get('firmware_lock_sha256') != sha256(lock_path):
+    raw_provenance = json.loads(raw_receipt.read_text())
+    if raw_provenance.get('firmware_lock_sha256') != sha256(lock_path):
         raise ValueError('RAW image proof does not match the verified firmware lock')
+    partition_layout = raw_provenance.get('partition_layout', 'stock')
+    if (partition_layout != selected_layout
+            or raw_provenance.get('partition_profile_caps', {}) != profile_caps
+            or raw_provenance.get('partition_structure', []) != profile_structure):
+        raise ValueError('RAW image proof differs from the selected partition structure/cap policy')
     if zip_dir.exists():
         if list(zip_dir.iterdir()):
             raise ValueError('TWRP ZIP output directory is not empty; preserve prior artifacts and use a fresh workspace')
@@ -187,7 +227,10 @@ def build_workspace(workspace):
 
     created_package = False
     try:
-        records = build_twrp_zip(raw_dir, zip_path, receipt=raw_receipt)
+        records = build_twrp_zip(
+            raw_dir, zip_path, receipt=raw_receipt,
+            expected_model=model, expected_codename=codename,
+        )
         created_package = True
         report = verify_twrp_zip(
             zip_path, expected_model=model, expected_codename=codename,
@@ -199,6 +242,8 @@ def build_workspace(workspace):
             'status': 'host-verified-not-hardware-validated',
             'target_model': model,
             'target_codename': codename,
+            'partition_layout': partition_layout,
+            'partition_structure': profile_structure,
             'package_filename': zip_path.name,
             'package_bytes': zip_path.stat().st_size,
             'package_sha256': sha256(zip_path),

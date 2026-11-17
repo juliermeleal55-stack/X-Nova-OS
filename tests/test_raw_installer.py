@@ -1,6 +1,7 @@
 """Real ZIP/hash/file-IO tests; NO device node, recovery or actual image flashed."""
 import hashlib
 import io
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -96,6 +97,126 @@ set_progress() { printf 'progress %s\\n' "$*" >> "$log"; }
             self.assertEqual(report['status'], 'twrp-rom-zip-host-verified')
             self.assertFalse(report['recovery_included'])
             self.assertFalse(report['recovery_modified'])
+
+    def test_s10plus_extreme_structure_zip_uses_actual_sizes_without_fixed_caps(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            model, codename = 'SM-G975F', 'beyond2lte'
+            structure = ['system', 'vendor', 'product', 'odm', 'prism', 'optics']
+            images = root / 'images'
+            images.mkdir()
+            fs_image = bytearray(4096)
+            fs_image[1024 + 0x38:1024 + 0x3A] = b'\x53\xef'
+            image_names = set(structure) | {'dtb', 'dtbo', 'boot'}
+            for name in builder.ORDER:
+                if name not in image_names:
+                    continue
+                if name in structure:
+                    payload = bytes(fs_image)
+                elif name == 'boot':
+                    payload = b'ANDROID!' + bytes(256)
+                else:
+                    payload = builder.DT_TABLE_MAGIC + bytes(128)
+                (images / f'{name}.img').write_bytes(payload)
+
+            records = []
+            for name in builder.ORDER:
+                if name not in image_names:
+                    continue
+                path = images / f'{name}.img'
+                filesystem = name in structure
+                record = {
+                    'name': name,
+                    'filename': path.name,
+                    'role': 'filesystem-partition' if filesystem else 'boot-component',
+                    'bytes': path.stat().st_size,
+                    'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+                    'filesystem': 'ext4' if filesystem else None,
+                    'sparse': False,
+                }
+                if not filesystem:
+                    record['validation'] = 'raw-header-verified'
+                records.append(record)
+
+            raw_receipt = root / 'raw-proof.json'
+            build_identity = {
+                'project': 'X-NovaOS',
+                'format': 'raw-images-only-v1',
+                'target_model': model,
+                'target_codename': codename,
+                'partition_layout': 'extreme-structure',
+                'partition_structure': structure,
+                'automatic_installer_included': False,
+                'recovery_installer_included': False,
+                'flashing_method_included': False,
+                'hardware_validated': False,
+                'image_count': len(records),
+            }
+            raw_receipt.write_text(json.dumps({
+                'schema_version': 1,
+                'format': 'raw-images-only-v1',
+                'status': 'images-built-and-host-verified',
+                'target_model': model,
+                'target_codename': codename,
+                'partition_layout': 'extreme-structure',
+                'partition_structure': structure,
+                'partition_profile_caps': {},
+                'required_images': [name for name in builder.ORDER if name in builder.REQUIRED],
+                'contains_recovery': False,
+                'contains_installer': False,
+                'contains_new_dat_br': False,
+                'contains_transfer_lists': False,
+                'firmware_lock_sha256': 'a' * 64,
+                'build': build_identity,
+                'provenance': {'target': model, 'codename': codename},
+                'images': records,
+            }))
+
+            output = root / 's10plus.zip'
+            with self.assertRaisesRegex(ValueError, 'requires the extreme-structure receipt'):
+                builder.build(
+                    images, root / 'missing-proof.zip',
+                    expected_model=model, expected_codename=codename,
+                )
+            with patch.object(builder, 'verify_image'):
+                builder.build(
+                    images, output, receipt=raw_receipt,
+                    expected_model=model, expected_codename=codename,
+                )
+            report = builder.verify_package(
+                output, expected_model=model, expected_codename=codename,
+                images=images, raw_receipt=raw_receipt,
+            )
+            self.assertEqual(report['target_model'], model)
+            self.assertEqual(report['target_codename'], codename)
+            with zipfile.ZipFile(output) as archive:
+                sizes = json.loads(archive.read('REQUIRED-IMAGE-SIZES.json'))
+                self.assertEqual(sizes['partition_layout'], 'extreme-structure')
+                self.assertEqual(sizes['partition_profile_caps'], {})
+                self.assertEqual(sizes['partition_structure'], structure)
+                self.assertEqual(
+                    sizes['image_size_bytes'],
+                    {record['name']: record['bytes'] for record in records},
+                )
+                self.assertFalse(sizes['physical_layout_verified'])
+                warning = archive.read('WARNING.txt').decode().lower()
+                self.assertIn('no fixed image-size cap', warning)
+                self.assertIn('does not verify the physical partition table', warning)
+                self.assertIn('read-only installer guard', warning)
+                guard = archive.read('installer/layout-check.sh').decode()
+            for name in structure + ['boot']:
+                record = next(record for record in records if record['name'] == name)
+                self.assertIn(f'check_partition {name} {record["bytes"]}', guard)
+            self.assertNotIn('7340032000', guard)
+            self.assertNotIn('1572864000', guard)
+            subprocess.run(['sh', '-n'], input=guard, text=True, check=True)
+            self.assertEqual(
+                builder._declared_profile_caps('extreme-structure', model, codename), {},
+            )
+            self.assertEqual(
+                builder._declared_profile_structure('extreme-structure', model, codename),
+                structure,
+            )
 
     def test_hash_failure_stops_during_staging_before_writes(self):
         with tempfile.TemporaryDirectory() as directory:

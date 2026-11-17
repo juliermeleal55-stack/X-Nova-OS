@@ -19,6 +19,38 @@ def blob(path, entry):
         raise ValueError(f'Audit evidence modified: {path}')
 
 
+def verify_extreme_structure_profile(repartition_manifest, profile, repartitioner_script):
+    """Check the S10+ candidate profile against pinned source names, not sizes/layout."""
+    expected_images = ['system', 'vendor', 'product', 'odm', 'prism', 'optics']
+    expected_boot = ['dtb', 'dtbo', 'boot']
+    references = {entry['path']: entry['reference'] for entry in repartition_manifest['files']}
+    names = re.findall(
+        r'^([a-z][a-z0-9_]*)=`\$SGDISK --print \$DISK \| grep ([a-z][a-z0-9_]*) \|',
+        repartitioner_script,
+        re.MULTILINE,
+    )
+    partition_names = [variable for variable, source_name in names if variable == source_name]
+    if (profile.get('schema_version') != 1
+            or profile.get('id') != 'extreme-structure'
+            or profile.get('model') != 'SM-G975F'
+            or profile.get('codename') != 'beyond2lte'
+            or profile.get('repository') != repartition_manifest.get('repository')
+            or profile.get('commit') != repartition_manifest.get('commit')
+            or profile.get('reference') != references.get('repartitioner/extreme/repartition.sh')
+            or profile.get('readme_reference') != references.get('README.md')
+            or profile.get('reference_scope') != 'partition-names-only; no physical-layout or ArtisanROM-equivalence claim'
+            or profile.get('payload_format') != 'expanded-raw-img-in-s10-twrp-zip'
+            or profile.get('payload_format_source') != 'existing-s10-twrp-raw-image-pipeline; not attributed to ExtremeROM'
+            or profile.get('image_partitions') != expected_images
+            or profile.get('boot_components') != expected_boot
+            or profile.get('repartitioner_partitions') != partition_names
+            or 'image_size_caps' in profile
+            or 'no fixed image-size limits' not in profile.get('requires', '').lower()
+            or 'not proof of the sm-g975f physical layout' not in profile.get('requires', '').lower()):
+        raise ValueError('S10+ structure-only profile is not aligned with pinned partition-name evidence or carries unsupported claims')
+    return len(partition_names)
+
+
 def verify():
     audit = json.loads((ROOT / 'manifests/cross-audit.json').read_text())
     count = 0
@@ -62,6 +94,9 @@ def verify():
         path = ROOT / entry['reference']
         if not path.resolve().is_relative_to((ROOT / 'reference/extreme-repartition').resolve()):raise ValueError('Unsafe repartition evidence')
         blob(path,entry);count+=1
+    structure_profile = json.loads((ROOT / 'integration/partition_layouts/extreme-structure-beyond2lte.json').read_text())
+    structure_script = (ROOT / 'reference/extreme-repartition/repartitioner/extreme/repartition.sh').read_text()
+    verify_extreme_structure_profile(repart, structure_profile, structure_script)
     profile=json.loads((ROOT/'integration/partition_layouts/extreme-default.json').read_text())
     if profile['commit']!=repart['commit']:raise ValueError('Repartition profile provenance mismatch')
     script=(ROOT/'reference/extreme-repartition/repartitioner/extreme/repartition.sh').read_text()

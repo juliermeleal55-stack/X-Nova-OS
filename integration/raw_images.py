@@ -21,8 +21,13 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from integration.installer_integrity import EROFS_MAGIC, SPARSE_MAGIC, verify_image
-from integration.package_inputs import atomic_json, image_caps, load as load_package_inputs
-from integration.targets import from_marker
+from integration.package_inputs import (
+    EXTREME_REPARTITIONER_PARTITIONS, EXTREME_STRUCTURE_BOOT_COMPONENTS,
+    EXTREME_STRUCTURE_PARTITIONS, EXTREME_STRUCTURE_PAYLOAD_FORMAT,
+    EXTREME_STRUCTURE_PAYLOAD_FORMAT_SOURCE, EXTREME_STRUCTURE_REFERENCE_SCOPE, atomic_json,
+    image_caps, load as load_package_inputs,
+)
+from integration.targets import TWRP_ROM_TARGETS, from_marker
 
 # Static filesystem images emitted by the pinned S10 work-tree assembler. Extra
 # partitions are included when the completed target tree contains them.
@@ -158,8 +163,8 @@ def build(workspace):
     marker = json.loads(marker_path.read_text())
     codename, device = from_marker(marker)
     model = device['model']
-    if (codename, model) != ('beyond1lte', 'SM-G973F'):
-        raise ValueError('The audited raw-image output currently supports only SM-G973F / beyond1lte')
+    if (codename, model) not in TWRP_ROM_TARGETS:
+        raise ValueError('Raw-image TWRP output supports only explicit Exynos S10 models: SM-G973F/beyond1lte or SM-G975F/beyond2lte')
 
     output_format = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
     if output_format != 'twrp-zip':
@@ -208,8 +213,14 @@ def build(workspace):
     inputs = load_package_inputs(workspace)
     if inputs.get('codename') != codename or inputs.get('model') != model:
         raise ValueError('Package input identity does not match selected target')
-    layout = inputs.get('partition_layout', {}).get('id', 'stock')
+    selected_profile = inputs.get('partition_layout', {})
+    layout = selected_profile.get('id', 'stock')
     caps = image_caps(inputs)
+    partition_structure = list(selected_profile.get('image_partitions', ()))
+    if layout == 'extreme-structure' and partition_structure != list(EXTREME_STRUCTURE_PARTITIONS):
+        raise ValueError('ExtremeROM structure-only profile has an unexpected filesystem image map')
+    if layout != 'extreme-structure' and partition_structure:
+        raise ValueError('Partition structure metadata is only allowed for the ExtremeROM structure profile')
     filesystem = target_layout['filesystem']
 
     partitions = []
@@ -221,10 +232,17 @@ def build(workspace):
             if not path.is_dir():
                 raise ValueError(f'Partition tree is not a directory: {name}')
             if name not in caps:
-                raise ValueError(f'No audited physical image-size profile for partition: {name}')
+                raise ValueError(f'No declared image-size cap for partition: {name}')
             partitions.append(name)
-    if not REQUIRED_FILESYSTEM <= set(partitions):
-        raise ValueError(f'Missing required filesystem partition trees: {sorted(REQUIRED_FILESYSTEM - set(partitions))}')
+    required_filesystem = REQUIRED_FILESYSTEM | set(partition_structure)
+    if not required_filesystem <= set(partitions):
+        raise ValueError(f'Missing required filesystem partition trees: {sorted(required_filesystem - set(partitions))}')
+    profile_caps = caps if layout == 'extreme-default' else {}
+    if profile_caps and not set(profile_caps) <= set(partitions):
+        raise ValueError(
+            f'ExtremeROM Default layout requires all declared filesystem images: '
+            f'{sorted(set(profile_caps) - set(partitions))}'
+        )
     if 'system_ext' in partitions and not target_layout['has_system_ext']:
         raise ValueError('S10 config embeds system_ext inside system; separate system_ext.img is not an audited target partition')
     if target_layout['has_system_ext'] and 'system_ext' not in partitions:
@@ -282,7 +300,7 @@ def build(workspace):
             logical_bytes = output.stat().st_size
             cap = caps[name]
             if type(cap) is int and logical_bytes > cap:
-                raise ValueError(f'{name}.img size {logical_bytes} exceeds physical image capacity {cap}')
+                raise ValueError(f'{name}.img size {logical_bytes} exceeds selected image-size cap {cap}')
             records.append({
                 'name': name, 'filename': output.name, 'role': 'filesystem-partition',
                 'bytes': logical_bytes, 'sha256': sha256(output),
@@ -308,6 +326,7 @@ def build(workspace):
             raise ValueError(f'Final raw bundle is missing required images: {sorted(REQUIRED_IMAGES - names)}')
 
         info = _build_identity(model, codename, layout)
+        info['partition_structure'] = partition_structure
         info['image_count'] = len(records)
         non_image_sources = list(work.iterdir()) + list(kernel.iterdir())
         info['excluded_non_image_components'] = sorted({
@@ -333,6 +352,8 @@ def build(workspace):
             'target_model': model,
             'target_codename': codename,
             'partition_layout': layout,
+            'partition_structure': partition_structure,
+            'partition_profile_caps': profile_caps,
             'required_images': [name for name in IMAGE_ORDER if name in REQUIRED_IMAGES],
             'contains_recovery': False,
             'contains_installer': False,
@@ -408,6 +429,44 @@ def verify_bundle(bundle, expected_model=None, expected_codename=None, receipt=N
         raise ValueError('Raw image bundle codename mismatch')
     if receipt.get('required_images') != [name for name in IMAGE_ORDER if name in REQUIRED_IMAGES]:
         raise ValueError('Raw image receipt has an unexpected required-image map')
+    layout = receipt.get('partition_layout')
+    profile_caps = receipt.get('partition_profile_caps')
+    partition_structure = receipt.get('partition_structure', [])
+    if layout not in {'stock', 'extreme-default', 'content-sized', 'extreme-structure'} or not isinstance(profile_caps, dict):
+        raise ValueError('Raw image receipt has an unknown partition profile')
+    if layout == 'extreme-structure':
+        profile_path = ROOT / 'integration/partition_layouts/extreme-structure-beyond2lte.json'
+        if profile_path.is_symlink() or not profile_path.is_file():
+            raise ValueError('ExtremeROM structure-only profile is missing/unsafe')
+        profile = json.loads(profile_path.read_text())
+        expected_structure = profile.get('image_partitions')
+        if (profile.get('schema_version') != 1 or profile.get('id') != layout
+                or profile.get('model') != model or profile.get('codename') != codename
+                or expected_structure != list(EXTREME_STRUCTURE_PARTITIONS)
+                or profile.get('boot_components') != list(EXTREME_STRUCTURE_BOOT_COMPONENTS)
+                or profile.get('repartitioner_partitions') != list(EXTREME_REPARTITIONER_PARTITIONS)
+                or profile.get('reference_scope') != EXTREME_STRUCTURE_REFERENCE_SCOPE
+                or profile.get('payload_format') != EXTREME_STRUCTURE_PAYLOAD_FORMAT
+                or profile.get('payload_format_source') != EXTREME_STRUCTURE_PAYLOAD_FORMAT_SOURCE
+                or 'image_size_caps' in profile
+                or partition_structure != expected_structure or not set(expected_structure) <= set(files)
+                or profile_caps):
+            raise ValueError('Raw image receipt does not match the exact ExtremeROM structure-only target profile')
+    elif partition_structure:
+        raise ValueError('Partition structure metadata is not allowed for this raw image profile')
+    if layout == 'extreme-default':
+        if (model, codename) != ('SM-G973F', 'beyond1lte'):
+            raise ValueError('Fixed-size ExtremeROM Default profile is disabled for the SM-G975F candidate')
+        profile_path = ROOT / 'integration/partition_layouts/extreme-default.json'
+        profile = json.loads(profile_path.read_text())
+        expected_caps = profile.get('image_size_caps')
+        if (profile.get('id') != layout or profile.get('model') != model
+                or profile.get('codename') != codename or profile.get('unit') != 'bytes'
+                or profile_caps != expected_caps or not isinstance(expected_caps, dict)
+                or not set(expected_caps) <= set(files)):
+            raise ValueError('Raw image receipt does not match the exact ExtremeROM Default target profile')
+    elif profile_caps:
+        raise ValueError('Fixed profile caps are not allowed for stock/content-sized/structure-only image bundles')
     for key in ('contains_recovery', 'contains_installer', 'contains_new_dat_br',
                 'contains_transfer_lists'):
         if receipt.get(key) is not False:
@@ -464,6 +523,7 @@ def verify_bundle(bundle, expected_model=None, expected_codename=None, receipt=N
             or build.get('format') != 'raw-images-only-v1'
             or build.get('target_model') != model or build.get('target_codename') != codename
             or build.get('partition_layout') != receipt.get('partition_layout')
+            or build.get('partition_structure', []) != partition_structure
             or build.get('automatic_installer_included') is not False
             or build.get('recovery_installer_included') is not False
             or build.get('flashing_method_included') is not False
@@ -486,6 +546,9 @@ def verify_bundle(bundle, expected_model=None, expected_codename=None, receipt=N
         'status': 'raw-images-verified',
         'target_model': model,
         'target_codename': codename,
+        'partition_layout': layout,
+        'partition_structure': partition_structure,
+        'partition_profile_caps': profile_caps,
         'images': ordered_names,
         'image_count': len(ordered_names),
         'raw_image_bytes': sum(files[name].stat().st_size for name in ordered_names),

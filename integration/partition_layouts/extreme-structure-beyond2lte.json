@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "extreme-structure",
+  "model": "SM-G975F",
+  "codename": "beyond2lte",
+  "repository": "emadhamid7/exynos9820-repartitioner",
+  "commit": "5fca1faafdf1e7ef54b285282412089728256372",
+  "reference": "reference/extreme-repartition/repartitioner/extreme/repartition.sh",
+  "readme_reference": "reference/extreme-repartition/README.md",
+  "reference_scope": "partition-names-only; no physical-layout or ArtisanROM-equivalence claim",
+  "requires": "The pinned ExtremeROM repartitioner is used only as a reference for generic partition names. Its size values and repartition/cleaner operations are not used. This is not proof of the SM-G975F physical layout or ArtisanROM compatibility. The existing S10 TWRP payload format is retained; no ExtremeROM image-format claim is made. No fixed image-size limits; check actual capacity read-only before writes. No repartitioning or formatting.",
+  "payload_format": "expanded-raw-img-in-s10-twrp-zip",
+  "payload_format_source": "existing-s10-twrp-raw-image-pipeline; not attributed to ExtremeROM",
+  "image_partitions": [
+    "system",
+    "vendor",
+    "product",
+    "odm",
+    "prism",
+    "optics"
+  ],
+  "boot_components": [
+    "dtb",
+    "dtbo",
+    "boot"
+  ],
+  "repartitioner_partitions": [
+    "system",
+    "vendor",
+    "product",
+    "odm",
+    "prism",
+    "optics",
+    "cache",
+    "omr",
+    "cp_debug",
+    "cp2_debug",
+    "spu",
+    "userdata"
+  ]
+}

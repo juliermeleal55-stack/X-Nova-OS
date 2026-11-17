@@ -85,3 +85,14 @@ validadores RAW/ZIP foram corrigidos para o formato efetivamente produzido; a
 próxima execução deve confirmar a compilação e o ZIP. Ainda não há ZIP Alpha
 3.2 validado, instalação TWRP, flash ou boot em hardware. A Alpha 3.1 histórica
 permanece intacta. Consulte [BUILD-STAGES.md](BUILD-STAGES.md).
+
+## Solicitação separada do S10+ — SM-G975F / beyond2lte
+
+O workflow `s10plus-ota-request.yml` agora solicita um build experimental
+TWRP/RAW para o alvo exato SM-G975F/beyond2lte. Ele escolhe o perfil
+`extreme-structure` sem tetos fixos de tamanho; a referência ExtremeROM pinada
+é usada somente para nomes genéricos de partições, não como prova de layout
+físico do aparelho ou compatibilidade ArtisanROM. O formato `.img` vem do fluxo
+TWRP S10 existente. Não há reparticionamento/formatação no instalador. Ainda
+não houve execução Actions deste pedido, build completo, flash ou validação de
+boot; o artefato continua candidato não testado.

@@ -11,7 +11,7 @@ import subprocess
 import tarfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from integration.targets import DEFAULT_TARGET, TARGETS, select
+from integration.targets import DEFAULT_TARGET, TARGETS, TWRP_ROM_TARGETS, select
 from integration.build_policy import apply as apply_build_policy
 from integration.framework_policy import install as install_framework
 from integration.preflight_policy import install as install_preflight
@@ -297,8 +297,8 @@ def apply_overlay(workspace, codename=DEFAULT_TARGET):
     output_format = os.environ.get('BEYOUD_OUTPUT_FORMAT', 'twrp-zip')
     if output_format not in {'twrp-zip', 'artisan-ota'}:
         raise ValueError(f'Unsupported ROM output format: {output_format}')
-    if output_format == 'twrp-zip' and codename != 'beyond1lte':
-        raise ValueError('RAW-image TWRP ZIP output is audited only for SM-G973F / beyond1lte')
+    if output_format == 'twrp-zip' and (codename, model) not in TWRP_ROM_TARGETS:
+        raise ValueError('RAW-image TWRP ZIP output is limited to the explicit Exynos S10 models')
     onerom_port = import_onerom_sources(workspace, codename)
     shutil.copytree(ROOT / 'integration', workspace / 'integration')
     # The generated package embeds pinned source/license provenance in its ZIP;

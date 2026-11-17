@@ -25,6 +25,7 @@ from integration.twrp_package import PROOF_ROOT as TWRP_PROOF_ROOT
 from integration.twrp_package import OUTPUT_ROOT as TWRP_OUTPUT_ROOT
 from integration.twrp_package import verify_workspace as verify_twrp_package
 from integration.static_layout import normalize as normalize_static_layout
+from integration.targets import TWRP_ROM_TARGETS
 
 STAGES = ('dependencies', 'source', 'target', 'patch', 'retire', 'package')
 OUTPUT_FORMATS = {'twrp-zip', 'artisan-ota'}
@@ -41,8 +42,8 @@ def selected_output_format():
 def validate_output_target(output_format, codename, model):
     if output_format not in OUTPUT_FORMATS:
         raise ValueError(f'Unsupported ROM output format: {output_format}')
-    if output_format == 'twrp-zip' and (codename, model) != ('beyond1lte', 'SM-G973F'):
-        raise ValueError('RAW-image TWRP ZIP output is audited only for SM-G973F / beyond1lte')
+    if output_format == 'twrp-zip' and (codename, model) not in TWRP_ROM_TARGETS:
+        raise ValueError('RAW-image TWRP ZIP output is limited to SM-G973F/beyond1lte and SM-G975F/beyond2lte')
     if output_format == 'artisan-ota' and (codename, model) not in {
             ('beyond1lte', 'SM-G973F'), ('beyond2lte', 'SM-G975F')}:
         raise ValueError('Artisan OTA output is limited to the explicit Exynos S10/S10+ candidates')
@@ -104,7 +105,7 @@ def _legacy_package_path(workspace, codename):
         raise ValueError('Artisan OTA package must be a regular file')
     marker = json.loads((workspace / 'BEYOUD-WORKSPACE.json').read_text())
     _, device = from_marker(marker)
-    from scripts.collect_alpha import check_package
+    from integration.ota_package import check_package
     inputs = load_package_inputs(workspace)
     check_package(package, device['model'], image_caps(inputs))
     raw_images = workspace / 'out/raw-images' / codename
@@ -296,7 +297,7 @@ def package_budget(workspace, codename):
         if not path.exists():
             continue
         if not path.is_dir() or name not in caps:
-            raise ValueError(f'Missing partition tree/capacity profile for raw image: {name}')
+            raise ValueError(f'Missing partition tree/declared image-size cap for raw image: {name}')
         payload = 0
         files = 0
         for entry in path.rglob('*'):
@@ -313,6 +314,11 @@ def package_budget(workspace, codename):
         else:
             raise ValueError(f'Invalid raw image capacity for {name}: {cap}')
         image_estimates[name] = estimate
+    selected_profile = inputs.get('partition_layout', {})
+    if selected_profile.get('id') == 'extreme-structure':
+        required = set(selected_profile.get('image_partitions', ()))
+        if required != {'system', 'vendor', 'product', 'odm', 'prism', 'optics'} or not required <= set(image_estimates):
+            raise ValueError('ExtremeROM structure-only profile requires its six separate filesystem image trees')
     if not image_estimates:
         raise ValueError('No partition trees for raw-image sizing')
     kernel = root / 'kernel'

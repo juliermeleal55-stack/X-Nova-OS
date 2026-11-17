@@ -1,11 +1,15 @@
-# Experimental test-build request for Galaxy S10+ SM-G975F / beyond2lte.
-# Build #2 found donor/target patch mismatches; Build #3 recorded them experimentally but
-# stock product capacity (620 MiB / 650,117,120 bytes) is below the payload lower bound
-# (1,540,594,508 bytes / ~1.43 GiB). Retry content-sized; owner-managed repartition required.
-# Failed patches remain recorded; installer capacity checks stay fail-closed; output UNTESTED.
-# Pushes affecting this file start one GitHub Actions build; no public release is created.
-name: Requested Galaxy S10+ SM-G975F Artisan OTA test build
-run-name: "Beyoud Alpha 3 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - Artisan OTA / CUSTOM REPARTITION REQUIRED / UNTESTED"
+# Explicit Alpha 3.2 request for Galaxy S10+ SM-G975F / beyond2lte.
+# Keep the S10 TWRP ZIP pipeline and separate RAW .img image structure.
+# The pinned ExtremeROM repartitioner is referenced only for partition names; no sizes or physical-layout claim are adopted.
+# The existing S10 TWRP RAW-image format is retained and is not attributed to ExtremeROM.
+# The installer checks actual image bytes against current target capacities before writes but never repartitions or formats.
+# The device's physical partition table and equivalence to ArtisanROM remain unverified.
+# Build #4 stopped in the old OTA output verifier because scripts.collect_alpha was absent from its staged workspace;
+# the validator import was repaired before switching this request to the historical S10 TWRP ZIP route.
+# Tolerated patch failures remain recorded; compile/package failures are fatal; output remains UNTESTED.
+# Editing this file on the session branch starts one Actions build; no public release is created.
+name: Requested Galaxy S10+ SM-G975F X-NovaOS Alpha TWRP ROM ZIP build
+run-name: "X-NovaOS Alpha 3.2 - Build #${{ github.run_number }} - Attempt #${{ github.run_attempt }} - SM-G975F / beyond2lte - TWRP ROM ZIP / EXTREME STRUCTURE / NO FIXED SIZE CAP / UNTESTED"
 on:
   push:
     branches: [arena/0d47b1d6-artisanrom-beyoud]
@@ -17,9 +21,9 @@ jobs:
   build:
     uses: ./.github/workflows/alpha.yml
     with:
-      alpha_version: '3'
-      output_format: artisan-ota
+      alpha_version: '3.2'
+      output_format: twrp-zip
       target: beyond2lte
       diagnostic_only: false
       experimental_patch_failures: true
-      partition_layout: content-sized
+      partition_layout: extreme-structure
